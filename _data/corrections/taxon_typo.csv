@@ -1,0 +1,30 @@
+raw,corrected,rank,side,scope_genus,correction_type,evidence
+Butyrospernum,Butyrospermum,genus,description,,typo,Long-standing INCI misspelling of Butyrospermum (shea); m/n substitution
+Crinium,Crinum,genus,description,,typo,INCI name CRINUM ASIATICUM contradicts description spelling Crinium (3 rows)
+Agastachye,Agastache,genus,description,,typo,INCI name AGASTACHE RUGOSA contradicts description spelling Agastachye (2 rows)
+Vacciniium,Vaccinium,genus,description,,typo,Doubled i; Vaccinium appears 24x in same dataset
+Jasminium,Jasminum,genus,description,,typo,Misspelling; Jasminum appears 14x in same dataset
+Diospypros,Diospyros,genus,description,,typo,Letter transposition; Diospyros appears 7x in same dataset
+Bertholetia,Bertholletia,genus,description,,typo,Missing l; correct genus is Bertholletia (Brazil nut)
+Herniarea,Herniaria,genus,description,,typo,INCI name HERNIARIA GLABRA contradicts description spelling Herniarea
+Cedurs,Cedrus,genus,description,,typo,Letter transposition; INCI name CEDRUS LIBANI is correct
+Guajacum,Guaiacum,genus,description,,typo,Obsolete orthographic variant; conserved spelling is Guaiacum
+Anona,Annona,genus,inci,,typo,"Obsolete spelling in the INCI name; conserved genus name is Annona, used in the description"
+Isodonis,Isodon,genus,inci,,typo,"INCI name is malformed; the accepted genus is Isodon, as given in the description"
+mooni,moonii,species,description,,typo,INCI name CAPPARIS MOONII contradicts description epithet mooni
+rhmanoides,rhamnoides,species,description,,typo,Letter transposition; INCI name HIPPOPHAE RHAMNOIDES is correct (3 rows)
+tetranda,tetrandra,species,description,,typo,Missing r; INCI name STEPHANIA TETRANDRA is correct
+phoenica,phoenicea,species,description,,typo,INCI name JUNIPERUS PHOENICEA is correct (2 rows)
+conzoides,conyzoides,species,description,,typo,Missing y; INCI name AGERATUM CONYZOIDES is correct
+fructescens,frutescens,species,description,,typo,Inserted c; INCI name CAPSICUM FRUTESCENS is correct
+oxycantha,oxyacantha,species,description,,typo,Missing a; INCI name CRATAEGUS OXYACANTHA is correct
+persiaca,persica,species,description,,typo,Letter transposition; INCI name PRUNUS PERSICA is correct
+officinalis,officinale,species,description,Zingiber,typo,Gender disagreement with Zingiber (neuter); correct epithet is officinale (4 rows).
+maritima,maritimum,species,description,Tripleurospermum,typo,Gender disagreement with Tripleurospermum (neuter); correct epithet is maritimum.
+calccarata,calcarata,species,description,,typo,Doubled c; INCI name ALPINIA CALCARATA is correct
+binnatus,bipinnatus,species,description,,typo,Dropped syllable; INCI name COSMOS BIPINNATUS is correct
+serrate,serrata,species,description,Banksia,typo,English form used instead of Latin; INCI name BANKSIA SERRATA is correct
+reticulate,reticulata,species,description,Copaifera,typo,English form used instead of Latin; correct epithet is reticulata
+paraguayensis,paraguariensis,species,description,,typo,INCI name ILEX PARAGUARIENSIS is correct
+gambier,gambir,species,description,,typo,Anglicised variant; INCI name UNCARIA GAMBIR is correct
+assafetida,assa-foetida,species,inci,Ferula,typo,"INCI drops the hyphen; the botanically correct epithet is assa-foetida, as given in the description"

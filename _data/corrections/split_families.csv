@@ -1,0 +1,4 @@
+raw,reason,resolve_by
+Liliaceae,"Liliaceae s.l. was split in APG IV across Liliaceae s.s., Amaryllidaceae, Asparagaceae, Melanthiaceae, Colchicaceae and others. A family-level mapping would assign 53 rows to the wrong family.",gbif_genus_lookup
+Scrophulariaceae,"Scrophulariaceae s.l. was split in APG IV across Scrophulariaceae s.s., Plantaginaceae and Orobanchaceae. A family-level mapping would assign 13 rows to the wrong family.",gbif_genus_lookup
+Myoporaceae,"Sunk into Scrophulariaceae s.l. in APG IV; placement depends on genus.",gbif_genus_lookup
