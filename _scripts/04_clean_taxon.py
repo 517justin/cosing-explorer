@@ -54,15 +54,23 @@ def main():
         if needs_gbif:
             steps.append(f"needs_gbif:{fam} was split in APG IV")
 
-        # A human decision in conflicts.csv overrides the parser.
+        # A decision in conflicts.csv (human or GBIF) overrides the parser.
         decided = conflicts.get(ref_no)
-        if decided and decided["resolved_to"]:
-            parts = decided["resolved_to"].split()
-            if len(parts) == 2:
-                genus, species = parts
-                binom = decided["resolved_to"]
-                src = "manual"
-                status = "manually_resolved"
+        if decided:
+            if decided["resolution"] == "excluded":
+                # INCI and the description name two different species and no
+                # external source can say which was meant. The ingredient stays
+                # in `ingredient`; it just never joins the taxonomic graph.
+                genus = species = binom = None
+                src = decided["resolution"]
+                status = "excluded"
+            elif decided["resolved_to"]:
+                parts = decided["resolved_to"].split()
+                if len(parts) == 2:
+                    genus, species = parts
+                    binom = decided["resolved_to"]
+                    src = decided["resolution"]
+                    status = f"resolved_by_{decided['resolution']}"
 
         out.append(
             {
@@ -154,6 +162,25 @@ def _report(con, out):
     for r in q("SELECT taxon_status, count(*) FROM extract GROUP BY 1 ORDER BY 2 DESC"):
         lines += [f"| {r[0]} | {r[1]} |"]
 
+    gb = q("SELECT ref_no, binomial_raw FROM extract "
+           "WHERE taxon_status='resolved_by_gbif' ORDER BY 1")
+    if gb:
+        lines += ["", "## 經 GBIF 查證後更正", "",
+                  "INCI 與敘述的兩個名稱在 GBIF 骨幹中指向同一個接受名，"
+                  "屬同物異名，已更正為接受名。", "",
+                  "| ref_no | 更正為 |", "| --- | --- |"]
+        lines += [f"| {r[0]} | {r[1]} |" for r in gb]
+
+    ex = q("SELECT e.ref_no, i.inci_name FROM extract e JOIN ingredient i USING(ref_no) "
+           "WHERE e.taxon_status='excluded' ORDER BY 1")
+    if ex:
+        lines += ["", "## 查無定論，未納入圖譜", "",
+                  "INCI 名稱與敘述指向**兩個不同的接受種**，GBIF 無法判斷原意為何。"
+                  "這些成分仍留在 `ingredient` 主表，但不建立物種／屬／科連結，"
+                  "因此不會污染分類階層。", "",
+                  "| ref_no | INCI 名稱 |", "| --- | --- |"]
+        lines += [f"| {r[0]} | {r[1]} |" for r in ex]
+
     lines += [
         "",
         "## 驗收檢查",
@@ -178,6 +205,12 @@ def _report(con, out):
          all(r[0] for r in q(
              "SELECT family_needs_gbif FROM extract WHERE family_raw IN "
              "('Liliaceae','Scrophulariaceae')"))),
+        ("查無定論者未帶入物種連結",
+         q("SELECT count(*) FROM extract WHERE taxon_status='excluded' "
+           "AND (genus_raw IS NOT NULL OR species_raw IS NOT NULL)")[0][0] == 0),
+        ("conflicts.csv 無未裁決項目",
+         q("SELECT count(*) FROM extract WHERE taxon_status IN "
+           "('species_mismatch','genus_mismatch','unparseable')")[0][0] == 0),
     ]
     for label, ok in checks:
         lines += [f"| {label} | {'✅ 通過' if ok else '❌ 失敗'} |"]

@@ -41,15 +41,15 @@
 
 | taxon_status | 列數 | 說明 |
 | --- | --- | --- |
-| `agree` | 3776 | INCI 與敘述兩路徑一致，自動採用 |
+| `agree` | 3789 | INCI 與敘述兩路徑一致，自動採用 |
 | `inci_not_binomial` | 32 | INCI 為俗名/商品名，學名取自敘述 |
-| `species_mismatch` | 23 | 兩路徑物種不同，待人工裁決 |
 | `genus_level_entry` | 17 | INCI 只到屬層級（如 CITRUS SPECIES） |
+| `excluded` | 8 |  |
 | `hyphen_split` | 6 | INCI 把連字號學名拆成兩個詞 |
+| `resolved_by_gbif` | 4 |  |
 | `inci_truncated` | 4 | INCI 截斷了種下名，敘述較完整 |
-| `genus_mismatch` | 2 | 兩路徑屬不同，待人工裁決 |
-| `desc_unparsed` | 1 | 敘述無可解析學名 |
 | `spelling_variant` | 1 | 編輯距離 1 的拼字差異，採用 INCI 寫法 |
+| `desc_unparsed` | 1 | 敘述無可解析學名 |
 
 ## 五、科名分布（正規化後）
 

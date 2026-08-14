@@ -6,3 +6,6 @@ _data/kb.duckdb
 # Large external downloads (Phase 4)
 _data/lotus/*
 !_data/lotus/.gitkeep
+
+# GBIF response cache (rebuildable; keep for offline reruns)
+!_data/gbif_cache.json

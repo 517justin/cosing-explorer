@@ -109,13 +109,22 @@ def parse_inci(inci):
     return genus.capitalize(), epithet.lower(), toks
 
 
+# Synonyms the description volunteers about its own taxon. These are NOT
+# alternative readings of the row - COSING is stating that two names denote the
+# same plant - so they must not be mistaken for the row's binomial.
+SYN_PAREN = re.compile(r"\(\s*syn[:.]?\s[^)]*\)", re.I)
+SYN_CLAUSE = re.compile(r",?\s*syn[:.]\s.*$", re.I | re.S)
+
+
 def description_candidates(desc):
     """(family, [(genus, epithet), ...]) - candidates ordered as they appear."""
     hits = list(FAMILY_TOKEN.finditer(desc))
     if not hits:
         return None, []
     last = hits[-1]
-    head = desc[: last.start()]
+    # Strip synonyms only from the text before the family token, so the family
+    # itself survives even when it follows a 'syn.' clause.
+    head = SYN_CLAUSE.sub("", SYN_PAREN.sub(" ", desc[: last.start()]))
     cands = []
     for m in BINOMIAL.finditer(head):
         g, s = m.group(1), m.group(2).lower()

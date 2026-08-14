@@ -29,51 +29,77 @@
 | Anonaceae | Annonaceae | 7 | typo |
 | Bombacaceae | Malvaceae | 6 | nomenclature |
 | Guttiferae | Clusiaceae | 6 | nomenclature |
-| Asclepiadaceae | Apocynaceae | 5 | nomenclature |
 | Taxodiaceae | Cupressaceae | 5 | nomenclature |
+| Asclepiadaceae | Apocynaceae | 5 | nomenclature |
 | Illiciaceae | Schisandraceae | 4 | nomenclature |
+| Elagnaceae | Elaeagnaceae | 3 | typo |
+| Anacardaceae | Anacardiaceae | 3 | typo |
 | Furaceae | Fucaceae | 3 | typo |
 | Myrsinaceae | Primulaceae | 3 | nomenclature |
-| Anacardaceae | Anacardiaceae | 3 | typo |
 | Cypressaceae | Cupressaceae | 3 | typo |
-| Palmae | Arecaceae | 3 | nomenclature |
-| Elagnaceae | Elaeagnaceae | 3 | typo |
 | Fumariaceae | Papaveraceae | 3 | nomenclature |
-| Capparidaceae | Capparaceae | 2 | nomenclature |
-| Cruciferae | Brassicaceae | 2 | nomenclature |
+| Palmae | Arecaceae | 3 | nomenclature |
 | Ruscaceae | Asparagaceae | 2 | nomenclature |
-| Cannabidaceae | Cannabaceae | 2 | typo |
 | Samydaceae | Salicaceae | 2 | nomenclature |
-| Valeriabaceae | Caprifoliaceae | 1 | typo |
-| Dipsacaceae | Caprifoliaceae | 1 | nomenclature |
-| Xanthorrhoeaceae | Asphodelaceae | 1 | nomenclature |
+| Cannabidaceae | Cannabaceae | 2 | typo |
+| Cruciferae | Brassicaceae | 2 | nomenclature |
+| Capparidaceae | Capparaceae | 2 | nomenclature |
 | Pyrolaceae | Ericaceae | 1 | nomenclature |
-| Flacourtiaceae | Salicaceae | 1 | nomenclature |
-| Callophyllaceae | Calophyllaceae | 1 | typo |
-| Myoporaceae | (待 GBIF) | 1 | needs_gbif |
-| Borraginaceae | Boraginaceae | 1 | typo |
-| Laminaceae | Lamiaceae | 1 | typo |
-| Maranthaceae | Marantaceae | 1 | typo |
-| Zygopuhyllaceae | Zygophyllaceae | 1 | typo |
-| Aceraceae | Sapindaceae | 1 | nomenclature |
 | Hydrophyllaceae | Boraginaceae | 1 | nomenclature |
-| Cuscutaceae | Convolvulaceae | 1 | nomenclature |
+| Aceraceae | Sapindaceae | 1 | nomenclature |
+| Laminaceae | Lamiaceae | 1 | typo |
+| Valeriabaceae | Caprifoliaceae | 1 | typo |
+| Zygopuhyllaceae | Zygophyllaceae | 1 | typo |
 | Apieaceae | Apiaceae | 1 | typo |
 | Julianiaceae | Anacardiaceae | 1 | nomenclature |
+| Xanthorrhoeaceae | Asphodelaceae | 1 | nomenclature |
+| Myoporaceae | (待 GBIF) | 1 | needs_gbif |
+| Callophyllaceae | Calophyllaceae | 1 | typo |
+| Flacourtiaceae | Salicaceae | 1 | nomenclature |
+| Dipsacaceae | Caprifoliaceae | 1 | nomenclature |
+| Cuscutaceae | Convolvulaceae | 1 | nomenclature |
+| Borraginaceae | Boraginaceae | 1 | typo |
+| Maranthaceae | Marantaceae | 1 | typo |
 
 ## 解析狀態分布
 
 | taxon_status | 列數 |
 | --- | --- |
-| agree | 3776 |
+| agree | 3789 |
 | inci_not_binomial | 32 |
-| species_mismatch | 23 |
 | genus_level_entry | 17 |
+| excluded | 8 |
 | hyphen_split | 6 |
+| resolved_by_gbif | 4 |
 | inci_truncated | 4 |
-| genus_mismatch | 2 |
-| spelling_variant | 1 |
 | desc_unparsed | 1 |
+| spelling_variant | 1 |
+
+## 經 GBIF 查證後更正
+
+INCI 與敘述的兩個名稱在 GBIF 骨幹中指向同一個接受名，屬同物異名，已更正為接受名。
+
+| ref_no | 更正為 |
+| --- | --- |
+| 32489 | Centaurium erythraea |
+| 39318 | Cinnamomum camphora |
+| 76054 | Syzygium aromaticum |
+| 96092 | Boswellia sacra |
+
+## 查無定論，未納入圖譜
+
+INCI 名稱與敘述指向**兩個不同的接受種**，GBIF 無法判斷原意為何。這些成分仍留在 `ingredient` 主表，但不建立物種／屬／科連結，因此不會污染分類階層。
+
+| ref_no | INCI 名稱 |
+| --- | --- |
+| 34178 | GUTTA PERCHA |
+| 39380 | COPAIFERA RETICULATA BALSAM OIL ACETYLATED |
+| 59357 | ROSA RUGOSA BUD POWDER |
+| 59358 | ROSA RUGOSA FLOWER EXTRACT |
+| 59359 | ROSA RUGOSA LEAF EXTRACT |
+| 83588 | ROSA RUGOSA FLOWER OIL |
+| 86471 | ELAEIS OLEIFERA KERNEL OIL |
+| 94152 | OENOCARPUS BATAUA ACID |
 
 ## 驗收檢查
 
@@ -84,3 +110,5 @@
 | Laminaceae -> Lamiaceae | ✅ 通過 |
 | 屬名解析率 > 98% | ✅ 通過 |
 | Liliaceae / Scrophulariaceae 未被科層級硬映射 | ✅ 通過 |
+| 查無定論者未帶入物種連結 | ✅ 通過 |
+| conflicts.csv 無未裁決項目 | ✅ 通過 |
