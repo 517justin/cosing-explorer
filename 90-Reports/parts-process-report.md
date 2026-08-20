@@ -34,14 +34,14 @@
 | balsam | 14 |
 | bulb | 9 |
 | thallus | 8 |
-| cone | 5 |
 | sap | 5 |
+| cone | 5 |
+| tuber | 2 |
 | lees | 2 |
 | cob | 2 |
-| tuber | 2 |
+| sclerotium | 1 |
 | cap | 1 |
 | gall | 1 |
-| sclerotium | 1 |
 
 ## 二、製程分布
 
@@ -59,19 +59,19 @@
 | seedcake | 9 |
 | starch | 8 |
 | meal | 6 |
-| acid | 4 |
 | lipids | 4 |
 | polysaccharide | 4 |
-| sterols | 3 |
+| acid | 4 |
 | tar | 3 |
+| sterols | 3 |
 | fiber | 3 |
-| unsaponifiables | 2 |
 | absolute | 2 |
-| ash | 1 |
-| malt | 1 |
+| unsaponifiables | 2 |
+| nonvolatiles | 1 |
 | tincture | 1 |
 | catechins | 1 |
-| nonvolatiles | 1 |
+| malt | 1 |
+| ash | 1 |
 
 ## 三、製程修飾語
 
@@ -81,16 +81,16 @@
 | acetylated | 14 |
 | expressed | 13 |
 | hydrogenated | 5 |
-| rectified | 3 |
 | oxidized | 3 |
+| rectified | 3 |
 | epoxidized | 2 |
-| distilled | 1 |
 | sulfurized | 1 |
+| distilled | 1 |
+| modified | 1 |
 | acetylated+sulfated | 1 |
-| steam_distilled | 1 |
 | acetylated+hydrogenated | 1 |
 | saponified | 1 |
-| modified | 1 |
+| steam_distilled | 1 |
 
 ## 四、科 × 部位的集中處
 
@@ -99,13 +99,13 @@
 | 科 | 部位 | 列數 |
 | --- | --- | --- |
 | Lamiaceae | leaf | 75 |
-| Asteraceae | flower | 68 |
 | Lamiaceae | aerial_part | 68 |
+| Asteraceae | flower | 68 |
 | Rosaceae | fruit | 63 |
 | Rutaceae | peel | 60 |
 | Rosaceae | flower | 56 |
-| Rosaceae | seed | 49 |
 | Poaceae | seed | 49 |
+| Rosaceae | seed | 49 |
 | Fabaceae | seed | 47 |
 | Rutaceae | fruit | 45 |
 | Lamiaceae | flower, leaf, stem | 44 |
