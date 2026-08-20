@@ -155,10 +155,15 @@ def pick_candidate(cands, inci_genus):
 
 
 def apply_typos(genus, species, typos, side):
-    """Apply corrections registered for this side; return (g, s, applied)."""
+    """Apply corrections registered for this side; return (g, s, applied).
+
+    A correction's `side` is 'inci', 'description', or 'both' - 'both' is for
+    names COSING misspells identically in the INCI name and the description,
+    where the two paths agree with each other and are agreeing on an error.
+    """
     applied = []
     for t in typos:
-        if t["side"] != side:
+        if t["side"] not in (side, "both"):
             continue
         if t["scope_genus"] and t["scope_genus"] != genus:
             continue

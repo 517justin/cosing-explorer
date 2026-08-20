@@ -48,8 +48,8 @@
 | `hyphen_split` | 6 | INCI 把連字號學名拆成兩個詞 |
 | `resolved_by_gbif` | 4 |  |
 | `inci_truncated` | 4 | INCI 截斷了種下名，敘述較完整 |
-| `spelling_variant` | 1 | 編輯距離 1 的拼字差異，採用 INCI 寫法 |
 | `desc_unparsed` | 1 | 敘述無可解析學名 |
+| `spelling_variant` | 1 | 編輯距離 1 的拼字差異，採用 INCI 寫法 |
 
 ## 五、科名分布（正規化後）
 

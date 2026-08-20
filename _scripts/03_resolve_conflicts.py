@@ -19,73 +19,27 @@ lookup date is recorded - GBIF's backbone changes as APG is revised.
 
 import csv
 import datetime
-import json
 import sys
-import time
-import urllib.parse
-import urllib.request
+import urllib.error
 
-from common import CORRECTIONS, DATA
+import gbif
+from common import CORRECTIONS
 
-CACHE = DATA / "gbif_cache.json"
-API = "https://api.gbif.org/v1/species/match?name={}"
 MIN_CONFIDENCE = 90
 
 
-def load_cache():
-    if CACHE.exists():
-        return json.loads(CACHE.read_text(encoding="utf-8"))
-    return {}
-
-
-def lookup(name, cache):
-    """GBIF backbone match for a binomial, cached."""
-    if name in cache:
-        return cache[name]
-    url = API.format(urllib.parse.quote(name))
-    req = urllib.request.Request(url, headers={"User-Agent": "cosing-kg/0.1"})
-    with urllib.request.urlopen(req, timeout=30) as fh:
-        data = json.load(fh)
-    data["_retrieved_at"] = datetime.date.today().isoformat()
-    cache[name] = data
-    time.sleep(0.35)                      # be polite to a free public API
-    return data
-
-
-SPECIES_RANKS = {"SPECIES", "SUBSPECIES", "VARIETY", "FORM"}
-# Biological-source rows cover plants, algae (Chromista) and fungi.
-LIVING_KINGDOMS = {"Plantae", "Chromista", "Fungi", "Protozoa", "Bacteria"}
-
-
 def accepted_species(rec):
-    """Reduce a match to (accepted_species, status, matchType, confidence).
-
-    A GBIF match on a synonym still reports the accepted species in `species`,
-    so that field is the answer for both ACCEPTED and SYNONYM statuses.
-
-    Three guards, all learned the hard way:
-      - matchType HIGHERRANK means GBIF only got as far as a genus or family,
-        which is not an answer to 'which species is this'.
-      - a non-species rank is likewise not an answer.
-      - without a kingdom check, 'Gutta percha' matches *Gutta* Wrase & Schmidt,
-        a beetle. Animal matches for a botanical name are always wrong here.
-    """
-    if not rec or rec.get("matchType") in {"NONE", "HIGHERRANK"}:
-        return None, "NO_MATCH", rec.get("matchType", "NONE") if rec else "NONE", 0
-    conf = rec.get("confidence", 0)
-    status = rec.get("status", "?")
-    mtype = rec.get("matchType", "?")
-    if rec.get("rank") not in SPECIES_RANKS:
-        return None, f"RANK_{rec.get('rank')}", mtype, conf
-    if rec.get("kingdom") not in LIVING_KINGDOMS:
-        return None, f"KINGDOM_{rec.get('kingdom')}", mtype, conf
-    return rec.get("species"), status, mtype, conf
+    """(accepted_species, status, matchType, confidence) via the shared guards."""
+    a = gbif.accepted(rec)
+    if not a["ok"]:
+        return None, a["reason"] or "NO_MATCH", a["match_type"] or "NONE", a["confidence"]
+    return a["accepted_name"], a["status"], a["match_type"], a["confidence"]
 
 
 def main():
     path = CORRECTIONS / "conflicts.csv"
     rows = list(csv.DictReader(open(path, encoding="utf-8")))
-    cache = load_cache()
+    cache = gbif.load_cache()
 
     # Re-evaluate rows this script decided before (so improved matching logic
     # takes effect on a re-run) but never overwrite a human 'manual' decision.
@@ -101,8 +55,8 @@ def main():
         inci = f"{r['inci_genus']} {r['inci_species']}".strip()
         desc = f"{r['desc_genus']} {r['desc_species']}".strip()
 
-        a = accepted_species(lookup(inci, cache)) if r["inci_genus"] else (None, "NO_NAME", "NONE", 0)
-        b = accepted_species(lookup(desc, cache)) if r["desc_genus"] else (None, "NO_NAME", "NONE", 0)
+        a = accepted_species(gbif.lookup(inci, cache)) if r["inci_genus"] else (None, "NO_NAME", "NONE", 0)
+        b = accepted_species(gbif.lookup(desc, cache)) if r["desc_genus"] else (None, "NO_NAME", "NONE", 0)
 
         a_sp, a_st, a_mt, a_cf = a
         b_sp, b_st, b_mt, b_cf = b
@@ -144,7 +98,7 @@ def main():
 
         print(f"  {r['ref_no']:>6} {inci:<30} vs {desc:<30} {mark}")
 
-    CACHE.write_text(json.dumps(cache, indent=1, ensure_ascii=False), encoding="utf-8")
+    gbif.save_cache(cache)
     with open(path, "w", encoding="utf-8", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=list(rows[0]))
         w.writeheader()
@@ -152,11 +106,11 @@ def main():
 
     print(f"\nresolved via GBIF : {resolved}")
     print(f"excluded          : {excluded}")
-    print(f"cache             : {CACHE} ({len(cache)} names)")
+    print(f"cache             : {gbif.CACHE_PATH.name} ({len(cache)} names)")
 
 
 if __name__ == "__main__":
     try:
         main()
     except urllib.error.URLError as e:
-        sys.exit(f"GBIF unreachable: {e}. Cached results in {CACHE} are still valid.")
+        sys.exit(f"GBIF unreachable: {e}. Cached results in {gbif.CACHE_PATH} are still valid.")
