@@ -6,6 +6,7 @@
 #   03 resolve          settle conflicts against GBIF (network; cached)
 #   04 clean_taxon      apply corrections -> `extract` table
 #   05 gbif_taxonomy    full GBIF hierarchy + split families -> `taxon` table
+#   06 parts            plant part / process / modifier vocabulary match
 #   00 profile          regenerate the profile report
 #
 # GBIF responses are cached in _data/gbif_cache.json, so a second run needs no
@@ -18,4 +19,5 @@ $PY _scripts/02_parse_taxon.py
 $PY _scripts/03_resolve_conflicts.py
 $PY _scripts/04_clean_taxon.py
 $PY _scripts/05_gbif_taxonomy.py
+$PY _scripts/06_parts.py
 $PY _scripts/00_profile.py

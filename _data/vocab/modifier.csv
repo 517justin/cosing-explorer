@@ -1,0 +1,18 @@
+token,modifier,note
+HYDROLYZED,hydrolyzed,
+HYDROGENATED,hydrogenated,
+ACETYLATED,acetylated,
+ACETYLATED-HYDROGENATED,acetylated+hydrogenated,
+ACETYLATED-SULFATED,acetylated+sulfated,
+SULFATED,sulfated,
+SULFURIZED,sulfurized,
+OXIDIZED,oxidized,
+EPOXIDIZED,epoxidized,
+SAPONIFIED,saponified,
+RECTIFIED,rectified,redistilled
+EXPRESSED,expressed,cold pressed
+PRESSED,expressed,
+DISTILLED,distilled,
+STEAM-DISTILLED,steam_distilled,
+FERMENTED,fermented,
+MODIFIED,modified,

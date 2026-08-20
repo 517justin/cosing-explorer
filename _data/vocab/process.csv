@@ -1,0 +1,41 @@
+token,process,category,implies_part,note
+EXTRACT,extract,extract,,
+EXTRACTS,extract,extract,,
+EXTRAXT,extract,extract,,misspelling of EXTRACT in COSING (ref 40863 and 41278)
+EXT,extract,extract,,abbreviation used in ref 39762
+OIL,oil,oil,,
+OILS,oil,oil,,
+BUTTER,butter,fat,,
+CERA,wax,wax,,cera is Latin for wax
+WAX,wax,wax,,
+WATER,water,aqueous,,aqueous distillate
+JUICE,juice,aqueous,,
+POWDER,powder,solid,,
+FLOUR,flour,solid,,
+MEAL,meal,solid,,
+SEEDCAKE,seedcake,solid,seed,residue after oil pressing
+FIBER,fiber,solid,,
+ASH,ash,solid,,
+STARCH,starch,isolate,,
+PROTEIN,protein,isolate,,
+POLYPEPTIDES,protein,isolate,,
+PEPTIDE,protein,isolate,,
+ZEIN,protein,isolate,,maize protein
+GLUTEN,protein,isolate,,
+PECTIN,polysaccharide,isolate,,
+POLYSACCHARIDE,polysaccharide,isolate,,
+LIPIDS,lipids,isolate,,
+OLEOSOMES,lipids,isolate,,
+STEROL,sterols,isolate,,
+STEROLS,sterols,isolate,,
+UNSAPONIFIABLES,unsaponifiables,isolate,,
+NONVOLATILES,nonvolatiles,isolate,,
+CATECHINS,catechins,isolate,,
+ACID,acid,isolate,,fatty acid fraction
+ESTERS,esters,derivative,,
+AMIDES,amides,derivative,,
+ABSOLUTE,absolute,extract,,solvent extract of a concrete
+CONCRETE,concrete,extract,,
+TINCTURE,tincture,extract,,alcoholic macerate
+MALT,malt,other,,
+TAR,tar,other,,destructive distillation product

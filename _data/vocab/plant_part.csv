@@ -1,0 +1,74 @@
+token,part,category,note
+LEAF,leaf,organ,
+LEAVES,leaf,organ,plural form seen in descriptions
+FLOWER,flower,organ,
+FLOWERS,flower,organ,
+PETAL,flower,organ,petal folded into flower
+CALYX,flower,organ,
+STAMEN,flower,organ,
+STIGMA,flower,organ,
+POLLEN,flower,organ,
+EXINE,flower,organ,pollen wall
+FRUIT,fruit,organ,
+FRUITS,fruit,organ,
+BERRY,fruit,organ,
+PERICARP,fruit,organ,fruit wall
+PULP,fruit,organ,
+ARIL,fruit,organ,
+POD,fruit,organ,
+HULL,fruit,organ,
+HUSK,fruit,organ,
+PEEL,peel,organ,epicarp
+SKIN,peel,organ,
+SEED,seed,organ,
+SEEDS,seed,organ,
+KERNEL,seed,organ,
+GERM,seed,organ,embryo of the seed
+EMBRYO,seed,organ,
+COTYLEDON,seed,organ,
+SEEDCOAT,seed,organ,
+BRAN,seed,organ,seed coat layer of grain
+NUT,seed,organ,
+SHELL,seed,organ,
+ROOT,root,organ,
+ROOTS,root,organ,
+RHIZOME,rhizome,organ,
+TUBER,tuber,organ,
+BULB,bulb,organ,
+STEM,stem,organ,
+STEMS,stem,organ,
+STALK,stem,organ,
+BRANCH,stem,organ,
+TWIG,stem,organ,
+VINE,stem,organ,
+XYLEM,wood,organ,
+WOOD,wood,organ,
+BARK,bark,organ,
+HERB,aerial_part,organ,herb = aerial parts in COSING usage
+HERBS,aerial_part,organ,
+SPROUT,sprout,organ,
+SHOOT,sprout,organ,
+BUD,bud,organ,
+NEEDLE,leaf,organ,conifer leaf
+CONE,cone,organ,
+COB,cob,organ,
+STRAW,aerial_part,organ,
+GRASS,aerial_part,organ,
+THALLUS,thallus,organ,algae and lichens
+THALLE,thallus,organ,COSING variant spelling of thallus
+SCLEROTIUM,sclerotium,organ,fungal
+CAP,cap,organ,mushroom cap
+GALL,gall,organ,
+OVARY,flower,organ,
+SPIKE,flower,organ,
+GUM,gum,exudate,
+RESIN,resin,exudate,
+BALSAM,balsam,exudate,
+OLIBANUM,resin,exudate,frankincense resin
+COLOPHONIUM,resin,exudate,rosin
+COPAL,resin,exudate,
+LATEX,latex,exudate,
+SAP,sap,exudate,
+LEES,lees,other,wine sediment
+WHOLE,whole_plant,whole,
+PLANT,whole_plant,whole,
