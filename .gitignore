@@ -9,3 +9,8 @@ _data/lotus/*
 
 # GBIF response cache (rebuildable; keep for offline reruns)
 !_data/gbif_cache.json
+
+# npm (docx 產生器用)
+node_modules/
+package-lock.json
+package.json
