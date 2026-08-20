@@ -132,7 +132,7 @@ def main(limit_partitions=None):
         buckets = sorted(buckets, key=lambda b: b[2])[:limit_partitions]
         print(f"  DRY RUN: fetching only the first {len(buckets)} partition(s)")
 
-    seen, rows, requests = set(), [], 0
+    seen, rows, requests, dup = set(), [], 0, 0
     for lo, hi, n in buckets:
         page = 1
         got = 0
@@ -151,15 +151,27 @@ def main(limit_partitions=None):
                 if sid and sid not in seen:
                     seen.add(sid)
                     rows.append(rec)
+                elif sid:
+                    dup += 1
             got += len(batch)
             page += 1
             time.sleep(1.0)
         print(f"    [{lo}, {hi}) {got}/{n} in {page - 1} pages "
               f"(running total {len(rows)})")
 
+    # totalResults counts index documents, not distinct ingredients: a handful
+    # of records were ingested twice (same substanceId, same content, differing
+    # only in Elasticsearch's own esST_REFERENCE / esDA_FirstIngestDate). So the
+    # completeness test is that every bucket delivered its full document count
+    # -- checked in the loop above -- and that distinct + duplicate reconciles.
     expected = planned if not limit_partitions else sum(n for _, _, n in buckets)
-    if len(rows) != expected:
-        raise SystemExit(f"collected {len(rows)} distinct ids, expected {expected}")
+    if len(rows) + dup != expected:
+        raise SystemExit(
+            f"collected {len(rows)} distinct + {dup} duplicate = "
+            f"{len(rows) + dup}, expected {expected}")
+    if dup:
+        print(f"  {dup} duplicate documents collapsed "
+              f"({expected} documents -> {len(rows)} distinct ingredients)")
 
     stamp = date.today().isoformat()
     name = "inventory_sample" if limit_partitions else "inventory"
@@ -169,6 +181,10 @@ def main(limit_partitions=None):
         w.writerows(sorted(rows, key=lambda r: int(r["substanceId"] or 0)))
     (OUT / f"{name}_meta.json").write_text(json.dumps({
         "fetched": stamp, "records": len(rows), "api_total": total,
+        "duplicate_documents": dup,
+        "note": ("api_total counts index documents; duplicates are the same "
+                 "ingredient ingested twice and differ only in Elasticsearch "
+                 "internal fields, so records is the distinct ingredient count"),
         "requests": requests + len(buckets), "partitions": len(buckets),
         "licence": "CC BY 4.0, Commission Decision 2011/833/EU",
         "source": "European Commission CosIng",

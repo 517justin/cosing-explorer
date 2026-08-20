@@ -82,8 +82,8 @@ FROM extract GROUP BY 1 ORDER BY 2 DESC
 | ANTIOXIDANT | 216 | 363 | 37.3 |
 | HUMECTANT | 146 | 336 | 30.3 |
 | PERFUMING | 709 | 1945 | 26.7 |
-| BULKING | 32 | 104 | 23.5 |
 | ANTIMICROBIAL | 76 | 248 | 23.5 |
+| BULKING | 32 | 104 | 23.5 |
 | EMOLLIENT | 282 | 1058 | 21.0 |
 | ORAL CARE | 23 | 103 | 18.3 |
 | HAIR CONDITIONING | 194 | 1002 | 16.2 |
@@ -101,11 +101,11 @@ FROM extract GROUP BY 1 ORDER BY 2 DESC
 | FOAMING | 2 | 148 | 1.3 |
 | PLASTICISER | 1 | 109 | 0.9 |
 | PRESERVATIVE | 1 | 163 | 0.6 |
-| COSMETIC COLORANT | 1 | 194 | 0.5 |
-| SURFACTANT | 8 | 1570 | 0.5 |
 | EMULSIFYING | 7 | 1395 | 0.5 |
-| FOAM BOOSTING | 1 | 230 | 0.4 |
+| SURFACTANT | 8 | 1570 | 0.5 |
+| COSMETIC COLORANT | 1 | 194 | 0.5 |
 | ANTISTATIC | 3 | 677 | 0.4 |
+| FOAM BOOSTING | 1 | 230 | 0.4 |
 | SOLVENT | 1 | 406 | 0.2 |
 | HYDROTROPE | 0 | 118 | 0.0 |
 
@@ -255,11 +255,11 @@ GROUP BY 1 HAVING 受限數 >= 3 ORDER BY 2 DESC
 | III/123 | 10 | 1 | Cupressaceae |
 | III/110 | 9 | 1 | Pinaceae |
 | III/103 | 6 | 1 | Pinaceae |
-| III/122 | 6 | 1 | Pinaceae |
 | II/360 R3 | 6 | 1 | Lauraceae |
+| III/122 | 6 | 1 | Pinaceae |
 | III/115 | 5 | 1 | Pinaceae |
-| III/107 | 4 | 1 | Pinaceae |
 | III/112 | 4 | 1 | Pinaceae |
+| III/107 | 4 | 1 | Pinaceae |
 
 <details><summary>查詢語句</summary>
 
@@ -380,6 +380,16 @@ FROM ingredient GROUP BY 1 ORDER BY 1
 > **成分數並未更新。** 完整 Inventory 無批次匯出途徑，因此 `ingredient` 表維持 2019 快照。只有法規層（Annex II–VI）取得了現行版本。
 
 > 線上 `substance` 總數與 `_data/cosing_2026/` 收錄的條目數相符，可據此確認法規層抓取完整。
+
+### ⚠️ 更重要的是：2019 快照本身就不完整
+
+取回現行全庫後才發現，在 `COSING_CAS.csv` 自己的編號範圍（31364–97704）內，現行資料庫有 **27,170** 筆，而該檔只收錄 **13,622** 筆——**涵蓋率僅 50.1%**。
+
+兩邊都有的 13,441 筆全為 `Active`，但範圍內未被收錄者也有 99.7% 是 `Active`，因此無法用「只匯出有效項目」解釋。`COSING_CAS.csv` 從來就是**約一半的子集**，不是 2019 年的完整匯出。
+
+> **本報告所有比例都應理解為「該子集的樣貌」**，而非 COSING 母體的比例。結論的方向多半仍成立（科與部位的對應、植物與合成的分工、法規集中於特定科），但百分比不可當作母體數值引用。
+
+> 詳見 `90-Reports/snapshot-vs-current.md`。
 
 ---
 

@@ -21,14 +21,14 @@
 | III/123 | Cupressus sempervirens oil and extract | 10 | 1 |
 | III/110 | Pinus sylvestris oil and extract | 9 | 1 |
 | III/103 | Abies alba oil and extract | 6 | 1 |
-| II/360 | Safrole, except for normal content in the natural essences used and provided that the conc | 6 | 1 |
 | III/122 | Cedrus atlantica oil and extract | 6 | 1 |
+| II/360 | Safrole, except for normal content in the natural essences used and provided that the conc | 6 | 1 |
 | III/115 | Pinus species oil and extract | 5 | 1 |
 | III/156 | Cuminum cyminum oil and extract | 5 | 1 |
-| III/107 | Abies balsamea oil and extract | 4 | 1 |
-| III/320 | Indigofera tinctoria, dried and pulverised leaves of Indigofera tinctoria L | 4 | 1 |
 | III/112 | Pinus palustris oil and extract | 4 | 1 |
-| II/1136 | Peru balsam (INCI name: Myroxylon pereirae), when used as a fragrance ingredient | 3 | 1 |
+| III/320 | Indigofera tinctoria, dried and pulverised leaves of Indigofera tinctoria L | 4 | 1 |
+| III/107 | Abies balsamea oil and extract | 4 | 1 |
+| III/109 | Pinus mugo leaf and twig oil and extract | 3 | 1 |
 
 ## 三、2019 之後才被納管的萃取物（依科）
 
@@ -49,11 +49,11 @@
 | Rutaceae | 58 |
 | Pinaceae | 55 |
 | Cupressaceae | 10 |
+| Fabaceae | 7 |
 | Lauraceae | 7 |
 | Apiaceae | 7 |
-| Fabaceae | 7 |
-| Parmeliaceae | 4 |
 | Altingiaceae | 4 |
+| Parmeliaceae | 4 |
 
 ## 五、查詢方式
 

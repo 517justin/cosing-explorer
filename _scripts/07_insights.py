@@ -227,6 +227,25 @@ FROM ingredient GROUP BY 1 ORDER BY 1""",
           "> 線上 `substance` 總數與 `_data/cosing_2026/` 收錄的條目數相符，"
           "可據此確認法規層抓取完整。", "")
 
+    inv = q("SELECT count(*) FROM information_schema.tables "
+            "WHERE table_name='inventory_2026'")[0][0]
+    if inv:
+        lo, hi = q("SELECT min(ref_no), max(ref_no) FROM ingredient")[0]
+        rng = q(f"SELECT count(*) FROM inventory_2026 "
+                f"WHERE ref_no BETWEEN {lo} AND {hi}")[0][0]
+        w("### ⚠️ 更重要的是：2019 快照本身就不完整", "",
+          f"取回現行全庫後才發現，在 `COSING_CAS.csv` 自己的編號範圍"
+          f"（{lo}–{hi}）內，現行資料庫有 **{rng:,}** 筆，"
+          f"而該檔只收錄 **{n:,}** 筆——**涵蓋率僅 {n/rng*100:.1f}%**。", "",
+          "兩邊都有的 13,441 筆全為 `Active`，但範圍內未被收錄者也有 99.7% 是 "
+          "`Active`，因此無法用「只匯出有效項目」解釋。"
+          "`COSING_CAS.csv` 從來就是**約一半的子集**，不是 2019 年的完整匯出。", "",
+          "> **本報告所有比例都應理解為「該子集的樣貌」**，"
+          "而非 COSING 母體的比例。結論的方向多半仍成立"
+          "（科與部位的對應、植物與合成的分工、法規集中於特定科），"
+          "但百分比不可當作母體數值引用。", "",
+          "> 詳見 `90-Reports/snapshot-vs-current.md`。", "")
+
     w("---", "", "## 七、Function 標籤的粒度問題", "")
     finding(
         "SKIN CONDITIONING 幾乎沒有區辨力",
