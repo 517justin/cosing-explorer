@@ -20,3 +20,7 @@ _data/cosing_2026/*.json
 
 # 全量 inventory（若抓取，體積大）
 _data/cosing_2026/inventory.csv
+
+# LOTUS 凍結資料集（20MB，可自 Zenodo 重新下載）
+_data/lotus/*.csv.gz
+# PubChem 快取（可重建，但重跑要 40 分鐘，故保留）

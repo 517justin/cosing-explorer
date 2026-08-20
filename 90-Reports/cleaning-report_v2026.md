@@ -32,34 +32,34 @@
 | Aceraceae | Sapindaceae | 8 | nomenclature |
 | Bombacaceae | Malvaceae | 7 | nomenclature |
 | Taxodiaceae | Cupressaceae | 7 | nomenclature |
-| Myrsinaceae | Primulaceae | 6 | nomenclature |
 | Asclepiadaceae | Apocynaceae | 6 | nomenclature |
-| Illiciaceae | Schisandraceae | 5 | nomenclature |
+| Myrsinaceae | Primulaceae | 6 | nomenclature |
 | Xanthorrhoeaceae | Asphodelaceae | 5 | nomenclature |
-| Guttiferae | Clusiaceae | 5 | nomenclature |
-| Fumariaceae | Papaveraceae | 5 | nomenclature |
 | Cruciferae | Brassicaceae | 5 | nomenclature |
+| Illiciaceae | Schisandraceae | 5 | nomenclature |
+| Fumariaceae | Papaveraceae | 5 | nomenclature |
+| Guttiferae | Clusiaceae | 5 | nomenclature |
 | Ruscaceae | Asparagaceae | 4 | nomenclature |
-| Palmae | Arecaceae | 3 | nomenclature |
-| Elagnaceae | Elaeagnaceae | 3 | typo |
 | Flacourtiaceae | Salicaceae | 3 | nomenclature |
+| Elagnaceae | Elaeagnaceae | 3 | typo |
 | Cypressaceae | Cupressaceae | 3 | typo |
-| Pyrolaceae | Ericaceae | 2 | nomenclature |
-| Samydaceae | Salicaceae | 2 | nomenclature |
+| Palmae | Arecaceae | 3 | nomenclature |
 | Capparidaceae | Capparaceae | 2 | nomenclature |
 | Furaceae | Fucaceae | 2 | typo |
+| Samydaceae | Salicaceae | 2 | nomenclature |
 | Cannabidaceae | Cannabaceae | 2 | typo |
+| Pyrolaceae | Ericaceae | 2 | nomenclature |
+| Dipsacaceae | Caprifoliaceae | 1 | nomenclature |
 | Hydrophyllaceae | Boraginaceae | 1 | nomenclature |
-| Callophyllaceae | Calophyllaceae | 1 | typo |
+| Valeriabaceae | Caprifoliaceae | 1 | typo |
+| Borraginaceae | Boraginaceae | 1 | typo |
 | Cuscutaceae | Convolvulaceae | 1 | nomenclature |
+| Myoporaceae | (待 GBIF) | 1 | needs_gbif |
+| Zygopuhyllaceae | Zygophyllaceae | 1 | typo |
+| Maranthaceae | Marantaceae | 1 | typo |
 | Apieaceae | Apiaceae | 1 | typo |
 | Julianiaceae | Anacardiaceae | 1 | nomenclature |
-| Borraginaceae | Boraginaceae | 1 | typo |
-| Maranthaceae | Marantaceae | 1 | typo |
-| Zygopuhyllaceae | Zygophyllaceae | 1 | typo |
-| Dipsacaceae | Caprifoliaceae | 1 | nomenclature |
-| Valeriabaceae | Caprifoliaceae | 1 | typo |
-| Myoporaceae | (待 GBIF) | 1 | needs_gbif |
+| Callophyllaceae | Calophyllaceae | 1 | typo |
 
 ## 解析狀態分布
 

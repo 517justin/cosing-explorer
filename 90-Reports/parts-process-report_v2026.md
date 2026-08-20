@@ -39,8 +39,8 @@
 | cone | 8 |
 | lees | 4 |
 | gall | 3 |
-| cob | 2 |
 | sclerotium | 2 |
+| cob | 2 |
 | cap | 1 |
 
 ## 二、製程分布
@@ -62,16 +62,16 @@
 | fiber | 9 |
 | meal | 7 |
 | sterols | 6 |
-| lipids | 5 |
 | acid | 5 |
+| lipids | 5 |
 | tar | 3 |
+| unsaponifiables | 2 |
 | absolute | 2 |
 | catechins | 2 |
-| unsaponifiables | 2 |
-| nonvolatiles | 1 |
-| tincture | 1 |
-| ash | 1 |
 | malt | 1 |
+| ash | 1 |
+| tincture | 1 |
+| nonvolatiles | 1 |
 
 ## 三、製程修飾語
 
@@ -84,14 +84,14 @@
 | oxidized | 4 |
 | rectified | 3 |
 | epoxidized | 2 |
-| sulfurized | 1 |
 | distilled | 1 |
-| modified | 1 |
-| sulfated | 1 |
+| sulfurized | 1 |
 | acetylated+sulfated | 1 |
 | steam_distilled | 1 |
+| sulfated | 1 |
 | acetylated+hydrogenated | 1 |
 | saponified | 1 |
+| modified | 1 |
 
 ## 四、科 × 部位的集中處
 
@@ -102,8 +102,8 @@
 | Rosaceae | fruit | 111 |
 | Rutaceae | peel | 103 |
 | Fabaceae | seed | 101 |
-| Asteraceae | flower | 98 |
 | Rutaceae | fruit | 98 |
+| Asteraceae | flower | 98 |
 | Lamiaceae | leaf | 96 |
 | Rosaceae | flower | 87 |
 | Asteraceae | whole_plant | 78 |

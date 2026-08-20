@@ -12,7 +12,9 @@
 #
 # 08_fetch_annexes.py and 10_fetch_inventory.py are NOT run here: they
 # re-download from the live EU database. Run them by hand to refresh
-# _data/cosing_2026/. GBIF answers are cached in _data/gbif_cache.json.
+# _data/cosing_2026/. GBIF and PubChem answers are cached (_data/gbif_cache.json,
+# _data/pubchem_cache.json), so only the first run needs the network. LOTUS is
+# read from _data/lotus/lotus_260413.csv.gz; re-download it from Zenodo to refresh.
 set -euo pipefail
 cd "$(dirname "$0")"
 export COSING_SOURCE="${1:-${COSING_SOURCE:-2019}}"
@@ -31,6 +33,8 @@ $PY _scripts/03_resolve_conflicts.py      # settle conflicts against GBIF
 $PY _scripts/04_clean_taxon.py            # apply corrections -> extract
 $PY _scripts/05_gbif_taxonomy.py          # full GBIF hierarchy -> taxon
 $PY _scripts/06_parts.py                  # plant part / process vocabulary
+$PY _scripts/13_lotus.py                  # LOTUS species -> compounds
+$PY _scripts/14_pubchem.py                # PubChem CAS -> structure (cached)
 
 if [ "$COSING_SOURCE" = "2019" ]; then
   $PY _scripts/09_link_regulation.py      # current Annex II-VI text

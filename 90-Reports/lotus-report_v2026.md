@@ -56,7 +56,7 @@ LOTUS 凍結版 2026-04-13：**674,454** 組「結構—生物—文獻」三元
 | Asteraceae | 195 | 170 | 87% |
 | Brassicaceae | 31 | 27 | 87% |
 | Amaryllidaceae | 23 | 20 | 87% |
-| Asparagaceae | 35 | 30 | 86% |
+| Plantaginaceae | 21 | 18 | 86% |
 
 ## 五、驗收檢查
 
