@@ -28,7 +28,7 @@
 | III/107 | Abies balsamea oil and extract | 4 | 1 |
 | III/320 | Indigofera tinctoria, dried and pulverised leaves of Indigofera tinctoria L | 4 | 1 |
 | III/112 | Pinus palustris oil and extract | 4 | 1 |
-| III/109 | Pinus mugo leaf and twig oil and extract | 3 | 1 |
+| II/1136 | Peru balsam (INCI name: Myroxylon pereirae), when used as a fragrance ingredient | 3 | 1 |
 
 ## 三、2019 之後才被納管的萃取物（依科）
 
@@ -49,9 +49,9 @@
 | Rutaceae | 58 |
 | Pinaceae | 55 |
 | Cupressaceae | 10 |
+| Lauraceae | 7 |
 | Apiaceae | 7 |
 | Fabaceae | 7 |
-| Lauraceae | 7 |
 | Parmeliaceae | 4 |
 | Altingiaceae | 4 |
 

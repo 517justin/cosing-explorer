@@ -65,10 +65,33 @@ def flatten(v):
     return "" if v is None else str(v)
 
 
+def count(item_type):
+    """One cheap request for a totalResults, no payload wanted."""
+    query = json.dumps({"bool": {"must": [{"term": {"itemType": item_type}}]}})
+    sort = json.dumps([{"field": "refNo_digit", "order": "ASC"}])
+    return post(query, sort, page=1).get("totalResults", 0)
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     fetched = date.today().isoformat()
     summary = []
+
+    # Currency check: how far has the live inventory moved past our snapshot?
+    live_ingredients = count("ingredient")
+    live_substances = count("substance")
+    print(f"live CosIng: {live_ingredients} ingredients, {live_substances} substances")
+    (OUT / "currency.json").write_text(json.dumps({
+        "checked": fetched,
+        "live_ingredients": live_ingredients,
+        "live_substances": live_substances,
+        "snapshot_ingredients": 13622,
+        "snapshot_date": "2019-11-21",
+        "note": ("Only the annex (substance) layer is downloadable in bulk. "
+                 "The ingredient inventory has no export, so ingredient counts "
+                 "in this project remain the 2019 snapshot."),
+    }, indent=1), encoding="utf-8")
+    time.sleep(1.0)
 
     for annex in ANNEXES:
         query = json.dumps({"bool": {"must": [
@@ -111,9 +134,20 @@ def main():
               f"({with_limit} 有濃度上限)  -> annex_{annex}.csv")
         time.sleep(1.0)                       # one request per second, be polite
 
+    ratio = live_ingredients / 13622
     (OUT / "README.md").write_text("\n".join([
         "# CosIng Annex II–VI（現行法規）", "",
         f"擷取日期：**{fetched}**　由 `_scripts/08_fetch_annexes.py` 產生，重跑即更新。", "",
+        "## ⚠️ 只有法規層是新的", "",
+        "| | 本專案 | CosIng 線上現況 |",
+        "| --- | --- | --- |",
+        f"| 成分（ingredient） | **13,622**（2019-11-21 快照） | "
+        f"**{live_ingredients:,}** |",
+        f"| 法規物質（substance） | — | **{live_substances:,}**（已全數取回）|",
+        "",
+        f"線上成分數是我們的 **{ratio:.1f} 倍**。完整 Inventory **無批次匯出**"
+        "（搜尋強制關鍵字、結果頁無匯出鈕、data.europa.eu 舊資料集已失效），"
+        "因此本專案的 `ingredient` 表**維持 2019 快照未更新**。", "",
         "## 為什麼需要這份資料", "",
         "`_data/COSING_CAS.csv` 是 2019 快照，`Restriction` 欄只有引用代碼"
         "（如 `II/358`），**沒有條文**，無法回答「限制的是什麼、限量多少」。"

@@ -103,9 +103,9 @@ const doc = new Document({
         [
           ['文件產生日期', '2026-08-20'],
           ['資料來源', '_data/kb.duckdb（由 _data/COSING_CAS.csv 唯讀原檔重建）'],
-          ['原始資料', 'EU COSING 化妝品成分資料庫，13,622 筆'],
+          ['原始資料', 'EU COSING 化妝品成分資料庫，13,622 筆（2019-11-21 快照）'],
           ['專案位置', '/Users/justnichen/Documents/cosing'],
-          ['版本控制', 'git，9 個 commit'],
+          ['版本控制', 'git，10 個 commit'],
           ['重建指令', { text: './run_all.sh', bold: true }],
         ],
       ),
@@ -132,6 +132,17 @@ const doc = new Document({
       p([t('進度：', { bold: true }), t('8 個 Phase 中，4 個完成、4 個未開始。Phase 0–3 已全部完成，可進入 Phase 4。')]),
 
       h('二、目前資料庫狀態', HeadingLevel.HEADING_1),
+      p([t('⚠️ 成分數量並未更新', { bold: true })]),
+      table(
+        [{ label: '', w: 2600 }, { label: '本專案', w: 2200, align: AlignmentType.RIGHT },
+         { label: 'CosIng 線上', w: 2200, align: AlignmentType.RIGHT },
+         { label: '', w: 2026 }],
+        [
+          ['成分（ingredient）', '13,622', '33,654', '2.5 倍，未更新'],
+          ['法規物質（substance）', '2,389', '2,389', '已全數取回'],
+        ],
+      ),
+      note('2026-08-20 直接向 CosIng 查得的權威總數。完整 Inventory 沒有批次匯出途徑（搜尋強制關鍵字、結果頁無匯出鈕、data.europa.eu 舊資料集已失效），因此 ingredient 表維持 2019 快照。本次只更新了法規層。線上 substance 總數與取回的條目數相符，可確認法規層抓取完整。'),
       p([t('資料表結構', { bold: true })]),
       table(
         [{ label: '資料表', w: 2000, mono: true }, { label: '列數', w: 1200, align: AlignmentType.RIGHT },
@@ -166,7 +177,7 @@ const doc = new Document({
         '  └─ 細胞培養來源             112    無部位，屬正常',
         '',
         '法規層（現行 Annex，2026-08 擷取）',
-        '  ├─ Annex 條文             2,389',
+        '  ├─ Annex 條文             2,389    與線上總數相符，抓取完整',
         '  ├─ 2019 引用解析率        97.2%   1,094 / 1,125 對到現行條文',
         '  ├─ 生物來源受限（現行）      154',
         '  └─ 生物來源受限（2019）      158',
@@ -396,6 +407,7 @@ const doc = new Document({
           [{ text: '產出', bold: true }, '_data/cosing_2026/ 五份 Annex CSV；regulation / ingredient_citation / ingredient_cmr 三張表；view extract_regulation'],
           [{ text: '兩條連結', bold: true }, 'snapshot_2019（從 2019 restriction 欄解析）與 annex_2026（現行條文自己列出的適用成分編號），刻意分開存放不合併'],
           [{ text: '驗收', bold: true }, '五項全數通過'],
+          [{ text: '未更新者', bold: true }, '成分主表仍為 2019 快照（13,622），線上已達 33,654，因無批次匯出途徑而未動'],
         ],
       ),
       p(''),

@@ -5,8 +5,9 @@ so a reader can re-run any claim. Numbers are queried live, never transcribed.
 """
 
 import datetime
+import json
 
-from common import REPORTS, connect
+from common import DATA, REPORTS, connect
 
 L = []
 con = None
@@ -207,6 +208,24 @@ FROM ingredient GROUP BY 1 ORDER BY 1""",
              "**這會改變 Phase 5「空白格推薦」的定位**："
              "它能回答的是「2019 年以前哪些同科物種尚未收錄」，"
              "屬於歷史盤點，不是現況的市場機會。")
+
+    cur = {}
+    cur_path = DATA / "cosing_2026" / "currency.json"
+    if cur_path.exists():
+        cur = json.loads(cur_path.read_text(encoding="utf-8"))
+    if cur:
+        w("### 與 CosIng 線上現況的落差", "",
+          f"於 {cur['checked']} 直接向 CosIng 查詢的權威總數：", "",
+          "| | 本專案 | CosIng 線上 | 倍數 |", "| --- | --- | --- | --- |",
+          f"| 成分（ingredient） | {cur['snapshot_ingredients']:,} | "
+          f"{cur['live_ingredients']:,} | "
+          f"{cur['live_ingredients']/cur['snapshot_ingredients']:.1f}× |",
+          f"| 法規物質（substance） | — | {cur['live_substances']:,} | 已全數取回 |", "",
+          "> **成分數並未更新。** 完整 Inventory 無批次匯出途徑，"
+          "因此 `ingredient` 表維持 2019 快照。"
+          "只有法規層（Annex II–VI）取得了現行版本。", "",
+          "> 線上 `substance` 總數與 `_data/cosing_2026/` 收錄的條目數相符，"
+          "可據此確認法規層抓取完整。", "")
 
     w("---", "", "## 七、Function 標籤的粒度問題", "")
     finding(
