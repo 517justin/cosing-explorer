@@ -22,44 +22,44 @@
 | Agavaceae | Asparagaceae | 16 | nomenclature |
 | Punicaceae | Lythraceae | 15 | nomenclature |
 | Chenopodiaceae | Amaranthaceae | 15 | nomenclature |
-| Valerianaceae | Caprifoliaceae | 13 | nomenclature |
 | Scrophulariaceae | (待 GBIF) | 13 | needs_gbif |
+| Valerianaceae | Caprifoliaceae | 13 | nomenclature |
 | Hippocastanaceae | Sapindaceae | 8 | nomenclature |
 | Simarubaceae | Simaroubaceae | 8 | typo |
 | Anonaceae | Annonaceae | 7 | typo |
-| Bombacaceae | Malvaceae | 6 | nomenclature |
 | Guttiferae | Clusiaceae | 6 | nomenclature |
+| Bombacaceae | Malvaceae | 6 | nomenclature |
 | Taxodiaceae | Cupressaceae | 5 | nomenclature |
 | Asclepiadaceae | Apocynaceae | 5 | nomenclature |
 | Illiciaceae | Schisandraceae | 4 | nomenclature |
-| Elagnaceae | Elaeagnaceae | 3 | typo |
-| Palmae | Arecaceae | 3 | nomenclature |
-| Cypressaceae | Cupressaceae | 3 | typo |
 | Furaceae | Fucaceae | 3 | typo |
 | Fumariaceae | Papaveraceae | 3 | nomenclature |
-| Anacardaceae | Anacardiaceae | 3 | typo |
 | Myrsinaceae | Primulaceae | 3 | nomenclature |
-| Ruscaceae | Asparagaceae | 2 | nomenclature |
+| Cypressaceae | Cupressaceae | 3 | typo |
+| Palmae | Arecaceae | 3 | nomenclature |
+| Anacardaceae | Anacardiaceae | 3 | typo |
+| Elagnaceae | Elaeagnaceae | 3 | typo |
 | Cruciferae | Brassicaceae | 2 | nomenclature |
-| Cannabidaceae | Cannabaceae | 2 | typo |
 | Samydaceae | Salicaceae | 2 | nomenclature |
 | Capparidaceae | Capparaceae | 2 | nomenclature |
-| Valeriabaceae | Caprifoliaceae | 1 | typo |
+| Ruscaceae | Asparagaceae | 2 | nomenclature |
+| Cannabidaceae | Cannabaceae | 2 | typo |
+| Myoporaceae | (待 GBIF) | 1 | needs_gbif |
+| Aceraceae | Sapindaceae | 1 | nomenclature |
 | Borraginaceae | Boraginaceae | 1 | typo |
 | Xanthorrhoeaceae | Asphodelaceae | 1 | nomenclature |
-| Zygopuhyllaceae | Zygophyllaceae | 1 | typo |
-| Cuscutaceae | Convolvulaceae | 1 | nomenclature |
-| Laminaceae | Lamiaceae | 1 | typo |
-| Pyrolaceae | Ericaceae | 1 | nomenclature |
-| Myoporaceae | (待 GBIF) | 1 | needs_gbif |
-| Callophyllaceae | Calophyllaceae | 1 | typo |
-| Apieaceae | Apiaceae | 1 | typo |
-| Julianiaceae | Anacardiaceae | 1 | nomenclature |
-| Flacourtiaceae | Salicaceae | 1 | nomenclature |
-| Aceraceae | Sapindaceae | 1 | nomenclature |
-| Hydrophyllaceae | Boraginaceae | 1 | nomenclature |
 | Maranthaceae | Marantaceae | 1 | typo |
 | Dipsacaceae | Caprifoliaceae | 1 | nomenclature |
+| Hydrophyllaceae | Boraginaceae | 1 | nomenclature |
+| Pyrolaceae | Ericaceae | 1 | nomenclature |
+| Flacourtiaceae | Salicaceae | 1 | nomenclature |
+| Callophyllaceae | Calophyllaceae | 1 | typo |
+| Cuscutaceae | Convolvulaceae | 1 | nomenclature |
+| Zygopuhyllaceae | Zygophyllaceae | 1 | typo |
+| Laminaceae | Lamiaceae | 1 | typo |
+| Valeriabaceae | Caprifoliaceae | 1 | typo |
+| Apieaceae | Apiaceae | 1 | typo |
+| Julianiaceae | Anacardiaceae | 1 | nomenclature |
 
 ## 解析狀態分布
 
@@ -70,8 +70,8 @@
 | genus_level_entry | 17 |
 | excluded | 8 |
 | hyphen_split | 6 |
-| resolved_by_gbif | 4 |
 | inci_truncated | 4 |
+| resolved_by_gbif | 4 |
 | spelling_variant | 1 |
 | desc_unparsed | 1 |
 
