@@ -18,7 +18,7 @@ import csv
 import re
 from collections import Counter
 
-from common import DATA, REPORTS, connect
+from common import DATA, REPORTS, SUFFIX, T, connect
 
 VOCAB = DATA / "vocab"
 
@@ -96,10 +96,10 @@ def parts_from_description(desc):
 
 def main():
     con = connect()
-    rows = con.execute("""
+    rows = con.execute(f"""
         SELECT e.ref_no, i.inci_name, i.description, e.genus_raw, e.species_raw
-        FROM extract e JOIN ingredient i USING(ref_no) ORDER BY e.ref_no
-    """).fetchall()
+        FROM {T('extract')} e JOIN {T('ingredient')} i USING(ref_no)
+        ORDER BY e.ref_no""").fetchall()
 
     out, stats = [], Counter()
     for ref_no, inci, desc, genus, species in rows:
@@ -151,7 +151,8 @@ def main():
                      ("process_category", "VARCHAR"),
                      ("process_modifiers", "VARCHAR[]"),
                      ("is_cell_culture", "BOOLEAN")]:
-        con.execute(f"ALTER TABLE extract ADD COLUMN IF NOT EXISTS {col} {typ}")
+        con.execute(
+            f"ALTER TABLE {T('extract')} ADD COLUMN IF NOT EXISTS {col} {typ}")
 
     con.execute("DROP TABLE IF EXISTS _parts")
     cols = list(out[0])
@@ -163,8 +164,8 @@ def main():
     con.executemany(
         f"INSERT INTO _parts VALUES ({','.join(['?'] * len(cols))})",
         [[r[c] for c in cols] for r in out])
-    con.execute("""
-        UPDATE extract e SET
+    con.execute(f"""
+        UPDATE {T('extract')} e SET
             plant_part = p.plant_part, part_count = p.part_count,
             part_source = p.part_source, part_category = p.part_category,
             process = p.process, process_all = p.process_all,
@@ -190,22 +191,22 @@ def _report(con, stats, n):
     print(f"  with modifier         : {stats['with_modifier']}")
     print(f"  cell-culture derived  : {stats['cell_culture']}")
 
-    parts = q("""SELECT p, count(*) c FROM (
-                     SELECT unnest(plant_part) AS p FROM extract
+    parts = q(f"""SELECT p, count(*) c FROM (
+                     SELECT unnest(plant_part) AS p FROM {T('extract')}
                      WHERE plant_part IS NOT NULL
                  ) GROUP BY p ORDER BY c DESC""")
-    procs = q("""SELECT process, count(*) c FROM extract
+    procs = q(f"""SELECT process, count(*) c FROM {T('extract')}
                  WHERE process IS NOT NULL GROUP BY 1 ORDER BY c DESC""")
-    mods = q("""SELECT m, count(*) c FROM (
-                    SELECT unnest(process_modifiers) AS m FROM extract
+    mods = q(f"""SELECT m, count(*) c FROM (
+                    SELECT unnest(process_modifiers) AS m FROM {T('extract')}
                     WHERE process_modifiers IS NOT NULL
                 ) GROUP BY m ORDER BY c DESC""")
-    nopart = q("SELECT count(*) FROM extract WHERE plant_part IS NULL")[0][0]
-    combo = q("""SELECT family_final, list_sort(plant_part) p, count(*) c FROM extract
+    nopart = q(f"SELECT count(*) FROM {T('extract')} WHERE plant_part IS NULL")[0][0]
+    combo = q(f"""SELECT family_final, list_sort(plant_part) p, count(*) c FROM {T('extract')}
                  WHERE plant_part IS NOT NULL AND family_final IS NOT NULL
                  GROUP BY 1,2 HAVING c >= 8 ORDER BY c DESC LIMIT 12""")
-    multisp = q("""SELECT species_accepted, count(DISTINCT list_sort(plant_part)) v, count(*) c
-                   FROM extract WHERE plant_part IS NOT NULL AND species_accepted IS NOT NULL
+    multisp = q(f"""SELECT species_accepted, count(DISTINCT list_sort(plant_part)) v, count(*) c
+                   FROM {T('extract')} WHERE plant_part IS NOT NULL AND species_accepted IS NOT NULL
                    GROUP BY 1 HAVING v >= 4 ORDER BY v DESC, c DESC LIMIT 12""")
 
     L = ["# Phase 3 — 使用部位與製程抽取報告", "",
@@ -242,9 +243,9 @@ def _report(con, stats, n):
         ("部位涵蓋率 > 75%", stats["with_part"] / n > 0.75),
         ("製程涵蓋率 > 90%", stats["with_process"] / n > 0.90),
         ("複合部位已拆成多值",
-         q("SELECT count(*) FROM extract WHERE part_count > 1")[0][0] > 0),
+         q(f"SELECT count(*) FROM {T('extract')} WHERE part_count > 1")[0][0] > 0),
         ("未標示部位者留空，未臆測為全株",
-         q("SELECT count(*) FROM extract WHERE plant_part IS NULL "
+         q(f"SELECT count(*) FROM {T('extract')} WHERE plant_part IS NULL "
            "AND part_source IS NOT NULL")[0][0] == 0),
     ]
     L += ["", "## 六、驗收檢查", "", "| 檢查項 | 結果 |", "| --- | --- |"]
@@ -254,8 +255,8 @@ def _report(con, stats, n):
         print(f"  {'PASS' if ok else 'FAIL'}  {lab}")
 
     REPORTS.mkdir(exist_ok=True)
-    (REPORTS / "parts-process-report.md").write_text("\n".join(L) + "\n", encoding="utf-8")
-    print(f"wrote {REPORTS / 'parts-process-report.md'}")
+    (REPORTS / f"parts-process-report{SUFFIX}.md").write_text("\n".join(L) + "\n", encoding="utf-8")
+    print(f"wrote {REPORTS / ('parts-process-report' + SUFFIX + '.md')}")
 
 
 if __name__ == "__main__":

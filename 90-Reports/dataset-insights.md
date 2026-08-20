@@ -82,8 +82,8 @@ FROM extract GROUP BY 1 ORDER BY 2 DESC
 | ANTIOXIDANT | 216 | 363 | 37.3 |
 | HUMECTANT | 146 | 336 | 30.3 |
 | PERFUMING | 709 | 1945 | 26.7 |
-| ANTIMICROBIAL | 76 | 248 | 23.5 |
 | BULKING | 32 | 104 | 23.5 |
+| ANTIMICROBIAL | 76 | 248 | 23.5 |
 | EMOLLIENT | 282 | 1058 | 21.0 |
 | ORAL CARE | 23 | 103 | 18.3 |
 | HAIR CONDITIONING | 194 | 1002 | 16.2 |
@@ -101,9 +101,9 @@ FROM extract GROUP BY 1 ORDER BY 2 DESC
 | FOAMING | 2 | 148 | 1.3 |
 | PLASTICISER | 1 | 109 | 0.9 |
 | PRESERVATIVE | 1 | 163 | 0.6 |
-| EMULSIFYING | 7 | 1395 | 0.5 |
 | SURFACTANT | 8 | 1570 | 0.5 |
 | COSMETIC COLORANT | 1 | 194 | 0.5 |
+| EMULSIFYING | 7 | 1395 | 0.5 |
 | ANTISTATIC | 3 | 677 | 0.4 |
 | FOAM BOOSTING | 1 | 230 | 0.4 |
 | SOLVENT | 1 | 406 | 0.2 |
@@ -179,8 +179,8 @@ ORDER BY t.tot DESC
 | Olea europaea | 20 | 7 | 6 |
 | Cinnamomum camphora | 19 | 6 | 2 |
 | Prunus amygdalus | 18 | 6 | 5 |
-| Citrus limon | 20 | 5 | 5 |
 | Oryza sativa | 20 | 5 | 7 |
+| Citrus limon | 20 | 5 | 5 |
 | Lavandula angustifolia | 16 | 5 | 6 |
 | Mentha piperita | 15 | 5 | 4 |
 | Foeniculum vulgare | 16 | 4 | 3 |
@@ -255,11 +255,11 @@ GROUP BY 1 HAVING 受限數 >= 3 ORDER BY 2 DESC
 | III/123 | 10 | 1 | Cupressaceae |
 | III/110 | 9 | 1 | Pinaceae |
 | III/103 | 6 | 1 | Pinaceae |
-| II/360 R3 | 6 | 1 | Lauraceae |
 | III/122 | 6 | 1 | Pinaceae |
+| II/360 R3 | 6 | 1 | Lauraceae |
 | III/115 | 5 | 1 | Pinaceae |
-| III/112 | 4 | 1 | Pinaceae |
 | III/107 | 4 | 1 | Pinaceae |
+| III/112 | 4 | 1 | Pinaceae |
 
 <details><summary>查詢語句</summary>
 
@@ -410,8 +410,8 @@ FROM ingredient GROUP BY 1 ORDER BY 1
 | ANTIOXIDANT | 70 | 216 | 5.6 |
 | PERFUMING | 69 | 709 | 18.4 |
 | ASTRINGENT | 68 | 218 | 5.6 |
-| HAIR CONDITIONING | 65 | 194 | 5.0 |
 | HUMECTANT | 65 | 146 | 3.8 |
+| HAIR CONDITIONING | 65 | 194 | 5.0 |
 | TONIC | 59 | 260 | 6.7 |
 | ABRASIVE | 49 | 132 | 3.4 |
 

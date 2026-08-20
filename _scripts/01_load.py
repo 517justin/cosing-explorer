@@ -10,7 +10,7 @@ import datetime
 import re
 import sys
 
-from common import DB, RAW_CSV, connect
+from common import RAW_CSV, connect
 
 # Source header -> snake_case. Note 'Ph.\xa0Eur. Name' carries a non-breaking
 # space, so it can never be matched with a plain ASCII string.
@@ -106,8 +106,10 @@ def main():
             rec[k] = rec[k] or None
         rows.append(rec)
 
-    DB.unlink(missing_ok=True)
     con = connect()
+    # Drop only what this script owns. Deleting the database file would take
+    # the regulation layer, inventory_2026 and every 2026 table with it.
+    con.execute("DROP TABLE IF EXISTS ingredient CASCADE")
     con.execute(
         """
         CREATE TABLE ingredient (
@@ -141,7 +143,7 @@ def main():
     )
 
     n = con.execute("SELECT count(*) FROM ingredient").fetchone()[0]
-    print(f"loaded {n} rows into {DB.name}")
+    print(f"loaded {n} rows into ingredient")
     print(f"  CAS marked (generic)      : {stats['generic']}")
     print(f"  CAS placeholder dropped   : {stats['placeholder']}")
     print(f"  rows with no parseable CAS: {stats['no_cas']}")

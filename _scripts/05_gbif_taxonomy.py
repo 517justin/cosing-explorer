@@ -18,9 +18,9 @@ fallback for rows GBIF cannot match.
 import csv
 
 import gbif
-from common import DATA, REPORTS, connect
+from common import DATA, REPORTS, SUFFIX, T, connect
 
-TAXONOMY_CSV = DATA / "taxonomy.csv"
+TAXONOMY_CSV = DATA / f"taxonomy{SUFFIX}.csv"
 FIELDS = ["raw_name", "accepted_name", "gbif_key", "genus", "family", "order",
           "class", "phylum", "kingdom", "status", "match_type", "confidence",
           "ok", "reason", "retrieved_at"]
@@ -29,7 +29,7 @@ FIELDS = ["raw_name", "accepted_name", "gbif_key", "genus", "family", "order",
 def main():
     con = connect()
     names = [r[0] for r in con.execute(
-        "SELECT DISTINCT binomial_raw FROM extract "
+        f"SELECT DISTINCT binomial_raw FROM {T('extract')} "
         "WHERE binomial_raw IS NOT NULL ORDER BY 1").fetchall()]
     print(f"distinct binomials to resolve: {len(names)}")
 
@@ -61,9 +61,9 @@ def main():
                          order=g.get("order"), kingdom=g.get("kingdom"),
                          reason=(r["reason"] or "") + "|genus_fallback")
 
-    con.execute("DROP TABLE IF EXISTS taxon")
-    con.execute("""
-        CREATE TABLE taxon (
+    con.execute(f"DROP TABLE IF EXISTS {T('taxon')}")
+    con.execute(f"""
+        CREATE TABLE {T('taxon')} (
             raw_name      VARCHAR PRIMARY KEY,
             accepted_name VARCHAR, gbif_key BIGINT, genus VARCHAR,
             family VARCHAR, "order" VARCHAR, class VARCHAR, phylum VARCHAR,
@@ -71,7 +71,7 @@ def main():
             confidence INTEGER, ok BOOLEAN, reason VARCHAR, retrieved_at VARCHAR
         )""")
     con.executemany(
-        f"INSERT INTO taxon VALUES ({','.join(['?'] * len(FIELDS))})",
+        f"INSERT INTO {T('taxon')} VALUES ({','.join(['?'] * len(FIELDS))})",
         [[r[f] for f in FIELDS] for r in rows])
 
     _attach(con)
@@ -86,21 +86,22 @@ def _attach(con):
                      ("genus_gbif", "VARCHAR"), ("family_gbif", "VARCHAR"),
                      ("order_name", "VARCHAR"), ("kingdom", "VARCHAR"),
                      ("family_final", "VARCHAR"), ("family_source", "VARCHAR")]:
-        con.execute(f"ALTER TABLE extract ADD COLUMN IF NOT EXISTS {col} {typ}")
+        con.execute(
+            f"ALTER TABLE {T('extract')} ADD COLUMN IF NOT EXISTS {col} {typ}")
 
-    con.execute("""
-        UPDATE extract e SET
+    con.execute(f"""
+        UPDATE {T('extract')} e SET
             species_accepted = t.accepted_name,
             gbif_key         = t.gbif_key,
             genus_gbif       = t.genus,
             family_gbif      = t.family,
             order_name       = t."order",
             kingdom          = t.kingdom
-        FROM taxon t WHERE e.binomial_raw = t.raw_name
+        FROM {T('taxon')} t WHERE e.binomial_raw = t.raw_name
     """)
     # GBIF wins where it has an answer; the offline mapping is the fallback.
-    con.execute("""
-        UPDATE extract SET
+    con.execute(f"""
+        UPDATE {T('extract')} SET
             family_final  = coalesce(family_gbif, family_accepted),
             family_source = CASE WHEN family_gbif IS NOT NULL THEN 'gbif'
                                  WHEN family_accepted IS NOT NULL THEN 'cosing'
@@ -123,16 +124,16 @@ def _report(con, rows):
     syn = sum(1 for r in rows if r["status"] == "SYNONYM")
     fuzzy = sum(1 for r in rows if r["match_type"] == "FUZZY")
 
-    tot, withfam = q("SELECT count(*), count(family_final) FROM extract")[0]
-    pending = q("SELECT count(*) FROM extract WHERE family_needs_gbif "
+    tot, withfam = q(f"SELECT count(*), count(family_final) FROM {T('extract')}")[0]
+    pending = q(f"SELECT count(*) FROM {T('extract')} WHERE family_needs_gbif "
                 "AND family_final IS NULL")[0][0]
-    split = q("""SELECT family_raw, family_final, count(*) FROM extract
+    split = q(f"""SELECT family_raw, family_final, count(*) FROM {T('extract')}
                  WHERE family_needs_gbif GROUP BY 1,2 ORDER BY 1, 3 DESC""")
-    disc = q("""SELECT family_accepted, family_gbif, count(*) c FROM extract
+    disc = q(f"""SELECT family_accepted, family_gbif, count(*) c FROM {T('extract')}
                 WHERE family_accepted IS NOT NULL AND family_gbif IS NOT NULL
                   AND family_accepted <> family_gbif
                 GROUP BY 1,2 ORDER BY c DESC""")
-    kingdoms = q("SELECT coalesce(kingdom,'(未定)'), count(*) FROM extract GROUP BY 1 ORDER BY 2 DESC")
+    kingdoms = q(f"SELECT coalesce(kingdom,'(未定)'), count(*) FROM {T('extract')} GROUP BY 1 ORDER BY 2 DESC")
 
     print(f"\nbinomials resolved   : {ok}/{n} ({ok/n*100:.1f}%)")
     print(f"  synonyms unified   : {syn}")
@@ -196,7 +197,7 @@ def _report(con, rows):
         ("同物異名已統一到接受名", syn > 0),
         ("科名不一致者全部留有紀錄", True),
         ("無動物界誤配", con.execute(
-            "SELECT count(*) FROM taxon WHERE kingdom NOT IN "
+            f"SELECT count(*) FROM {T('taxon')} WHERE kingdom NOT IN "
             "('Plantae','Chromista','Fungi','Protozoa','Bacteria')").fetchone()[0] == 0),
     ]
     L += ["", "## 五、驗收檢查", "", "| 檢查項 | 結果 |", "| --- | --- |"]
@@ -206,8 +207,8 @@ def _report(con, rows):
         print(f"  {'PASS' if okc else 'FAIL'}  {lab}")
 
     REPORTS.mkdir(exist_ok=True)
-    (REPORTS / "gbif-taxonomy-report.md").write_text("\n".join(L) + "\n", encoding="utf-8")
-    print(f"wrote {REPORTS / 'gbif-taxonomy-report.md'}")
+    (REPORTS / f"gbif-taxonomy-report{SUFFIX}.md").write_text("\n".join(L) + "\n", encoding="utf-8")
+    print(f"wrote {REPORTS / ('gbif-taxonomy-report' + SUFFIX + '.md')}")
     print(f"wrote {TAXONOMY_CSV}")
 
 

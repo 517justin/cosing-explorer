@@ -46,8 +46,8 @@
 | `genus_level_entry` | 17 | INCI 只到屬層級（如 CITRUS SPECIES） |
 | `excluded` | 8 |  |
 | `hyphen_split` | 6 | INCI 把連字號學名拆成兩個詞 |
-| `inci_truncated` | 4 | INCI 截斷了種下名，敘述較完整 |
 | `resolved_by_gbif` | 4 |  |
+| `inci_truncated` | 4 | INCI 截斷了種下名，敘述較完整 |
 | `desc_unparsed` | 1 | 敘述無可解析學名 |
 | `spelling_variant` | 1 | 編輯距離 1 的拼字差異，採用 INCI 寫法 |
 

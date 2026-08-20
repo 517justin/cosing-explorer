@@ -49,9 +49,9 @@
 | Rutaceae | 58 |
 | Pinaceae | 55 |
 | Cupressaceae | 10 |
-| Fabaceae | 7 |
 | Lauraceae | 7 |
 | Apiaceae | 7 |
+| Fabaceae | 7 |
 | Altingiaceae | 4 |
 | Parmeliaceae | 4 |
 

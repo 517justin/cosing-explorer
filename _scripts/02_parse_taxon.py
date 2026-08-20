@@ -23,7 +23,7 @@ import csv
 import re
 from collections import Counter
 
-from common import CORRECTIONS, FAMILY_RE, connect
+from common import CORRECTIONS, FAMILY_RE, T, conflicts_file, connect
 
 FAMILY_TOKEN = re.compile(r"\b" + FAMILY_RE + r"\b")
 # The epithet may contain a hyphen (herba-alba) but must not end on one, so
@@ -34,6 +34,10 @@ INCI_PREFIXES = {
     "HYDROLYZED", "HYDROGENATED", "OXIDIZED", "ACETYLATED", "SULFATED",
     "FERMENTED", "DEHYDRATED", "DISTILLED", "POTASSIUM", "SODIUM", "CALCIUM",
     "MAGNESIUM", "AMMONIUM", "ZINC",
+    # Found by scanning the 2026 inventory for leading tokens ending in -ED /
+    # -IZED that are not in the vocabulary: without these, 'DEFATTED NARCISSUS
+    # TAZETTA FLOWER' parses its genus as "Defatted".
+    "DEFATTED", "OZONIZED", "DEPOLYMERIZED", "CYCLIZED",
 }
 
 INCI_STOP = {
@@ -218,8 +222,8 @@ MANUAL = {"species_mismatch", "genus_mismatch", "unparseable"}
 def main():
     con = connect()
     rows = con.execute(
-        "SELECT ref_no, inci_name, description FROM ingredient ORDER BY ref_no"
-    ).fetchall()
+        f"SELECT ref_no, inci_name, description FROM {T('ingredient')} "
+        f"ORDER BY ref_no").fetchall()
     typos = _read("taxon_typo.csv")
 
     parsed, conflicts, spelling_log = [], [], []
@@ -302,9 +306,9 @@ def main():
     for k, v in sorted(stats.items()):
         if k.startswith("conflict:"):
             print(f"      {k[9:]:20} {v}")
-    print(f"  NEED DECISION        : {manual_n} -> conflicts.csv")
+    print(f"  NEED DECISION        : {manual_n} -> {conflicts_file()}")
     miss = con.execute(
-        "SELECT count(*) FROM extract_parsed WHERE genus_raw IS NULL"
+        f"SELECT count(*) FROM {T('extract_parsed')} WHERE genus_raw IS NULL"
     ).fetchone()[0]
     print(f"  genus resolved       : {(1 - miss/n)*100:.2f}%  ({miss} unresolved)")
     if spelling_log:
@@ -315,10 +319,10 @@ def main():
 
 
 def _write_table(con, parsed):
-    con.execute("DROP TABLE IF EXISTS extract_parsed")
+    con.execute(f"DROP TABLE IF EXISTS {T('extract_parsed')}")
     con.execute(
-        """
-        CREATE TABLE extract_parsed (
+        f"""
+        CREATE TABLE {T('extract_parsed')} (
             ref_no        INTEGER PRIMARY KEY,
             family_raw    VARCHAR,
             genus_raw     VARCHAR,
@@ -332,13 +336,14 @@ def _write_table(con, parsed):
     )
     cols = list(parsed[0])
     con.executemany(
-        f"INSERT INTO extract_parsed VALUES ({','.join(['?'] * len(cols))})",
+        f"INSERT INTO {T('extract_parsed')} VALUES "
+        f"({','.join(['?'] * len(cols))})",
         [[p[c] for c in cols] for p in parsed],
     )
 
 
 def _write_conflicts(conflicts):
-    path = CORRECTIONS / "conflicts.csv"
+    path = CORRECTIONS / conflicts_file()
     existing = {}
     if path.exists():                       # never clobber a human decision
         with open(path, encoding="utf-8") as fh:

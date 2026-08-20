@@ -36,12 +36,12 @@
 | thallus | 8 |
 | sap | 5 |
 | cone | 5 |
+| lees | 2 |
 | cob | 2 |
 | tuber | 2 |
-| lees | 2 |
-| sclerotium | 1 |
 | gall | 1 |
 | cap | 1 |
+| sclerotium | 1 |
 
 ## 二、製程分布
 
@@ -59,18 +59,18 @@
 | seedcake | 9 |
 | starch | 8 |
 | meal | 6 |
+| lipids | 4 |
 | acid | 4 |
 | polysaccharide | 4 |
-| lipids | 4 |
 | fiber | 3 |
-| sterols | 3 |
 | tar | 3 |
-| unsaponifiables | 2 |
+| sterols | 3 |
 | absolute | 2 |
+| unsaponifiables | 2 |
+| malt | 1 |
 | tincture | 1 |
 | catechins | 1 |
 | nonvolatiles | 1 |
-| malt | 1 |
 | ash | 1 |
 
 ## 三、製程修飾語
@@ -87,9 +87,9 @@
 | distilled | 1 |
 | acetylated+sulfated | 1 |
 | sulfurized | 1 |
+| steam_distilled | 1 |
 | acetylated+hydrogenated | 1 |
 | saponified | 1 |
-| steam_distilled | 1 |
 | modified | 1 |
 
 ## 四、科 × 部位的集中處
@@ -104,8 +104,8 @@
 | Rosaceae | fruit | 63 |
 | Rutaceae | peel | 60 |
 | Rosaceae | flower | 56 |
-| Rosaceae | seed | 49 |
 | Poaceae | seed | 49 |
+| Rosaceae | seed | 49 |
 | Fabaceae | seed | 47 |
 | Rutaceae | fruit | 45 |
 | Lamiaceae | flower, leaf, stem | 44 |
@@ -127,8 +127,8 @@
 | Prunus cerasus | 7 | 11 |
 | Cinnamomum camphora | 6 | 19 |
 | Prunus amygdalus | 6 | 18 |
-| Panax ginseng | 6 | 14 |
 | Camellia sinensis | 6 | 14 |
+| Panax ginseng | 6 | 14 |
 
 ## 六、驗收檢查
 

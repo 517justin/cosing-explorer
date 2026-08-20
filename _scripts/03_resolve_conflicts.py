@@ -23,7 +23,7 @@ import sys
 import urllib.error
 
 import gbif
-from common import CORRECTIONS
+from common import CORRECTIONS, conflicts_file
 
 MIN_CONFIDENCE = 90
 
@@ -37,7 +37,7 @@ def accepted_species(rec):
 
 
 def main():
-    path = CORRECTIONS / "conflicts.csv"
+    path = CORRECTIONS / conflicts_file()
     rows = list(csv.DictReader(open(path, encoding="utf-8")))
     cache = gbif.load_cache()
 

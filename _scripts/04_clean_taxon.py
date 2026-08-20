@@ -16,7 +16,7 @@ broke them up, so the right family depends on the genus and only a GBIF lookup
 
 import csv
 
-from common import CORRECTIONS, REPORTS, connect
+from common import CORRECTIONS, REPORTS, SUFFIX, T, conflicts_file, connect
 
 
 def main():
@@ -27,15 +27,15 @@ def main():
     split = {r["raw"]: r for r in _read("split_families.csv")}
     conflicts = {
         int(r["ref_no"]): r
-        for r in _read("conflicts.csv")
+        for r in _read(conflicts_file())
         if r["resolution"] and r["resolution"] != "auto"
     }
 
     rows = con.execute(
-        """
+        f"""
         SELECT ref_no, family_raw, genus_raw, species_raw, binomial_raw,
                taxon_source, taxon_status, typo_applied
-        FROM extract_parsed ORDER BY ref_no
+        FROM {T('extract_parsed')} ORDER BY ref_no
         """
     ).fetchall()
 
@@ -89,10 +89,10 @@ def main():
             }
         )
 
-    con.execute("DROP TABLE IF EXISTS extract")
+    con.execute(f"DROP TABLE IF EXISTS {T('extract')}")
     con.execute(
-        """
-        CREATE TABLE extract (
+        f"""
+        CREATE TABLE {T('extract')} (
             ref_no             INTEGER PRIMARY KEY,
             family_raw         VARCHAR,
             family_accepted    VARCHAR,
@@ -110,7 +110,7 @@ def main():
     )
     cols = list(out[0])
     con.executemany(
-        f"INSERT INTO extract VALUES ({','.join(['?'] * len(cols))})",
+        f"INSERT INTO {T('extract')} VALUES ({','.join(['?'] * len(cols))})",
         [[r[c] for c in cols] for r in out],
     )
 
@@ -134,7 +134,7 @@ def _report(con, out):
 
     REPORTS.mkdir(exist_ok=True)
     lines = [
-        "# Phase 1 清理報告",
+        f"# Phase 1 清理報告{' — 2026 全庫' if SUFFIX else ''}",
         "",
         f"- 生物來源列：**{n}**",
         f"- 科名寫法（原始）：**{raw_fams}** 種",
@@ -148,9 +148,9 @@ def _report(con, out):
         "| --- | --- | --- | --- |",
     ]
     for r in q(
-        """
+        f"""
         SELECT family_raw, coalesce(family_accepted,'(待 GBIF)'), count(*), family_correction
-        FROM extract WHERE family_correction IS NOT NULL
+        FROM {T('extract')} WHERE family_correction IS NOT NULL
         GROUP BY 1,2,4 ORDER BY 3 DESC
         """
     ):
@@ -159,10 +159,10 @@ def _report(con, out):
         lines += [f"| {r[0]} | {r[1]} | {r[2]} | {kind} |"]
 
     lines += ["", "## 解析狀態分布", "", "| taxon_status | 列數 |", "| --- | --- |"]
-    for r in q("SELECT taxon_status, count(*) FROM extract GROUP BY 1 ORDER BY 2 DESC"):
+    for r in q(f"SELECT taxon_status, count(*) FROM {T('extract')} GROUP BY 1 ORDER BY 2 DESC"):
         lines += [f"| {r[0]} | {r[1]} |"]
 
-    gb = q("SELECT ref_no, binomial_raw FROM extract "
+    gb = q(f"SELECT ref_no, binomial_raw FROM {T('extract')} "
            "WHERE taxon_status='resolved_by_gbif' ORDER BY 1")
     if gb:
         lines += ["", "## 經 GBIF 查證後更正", "",
@@ -171,7 +171,8 @@ def _report(con, out):
                   "| ref_no | 更正為 |", "| --- | --- |"]
         lines += [f"| {r[0]} | {r[1]} |" for r in gb]
 
-    ex = q("SELECT e.ref_no, i.inci_name FROM extract e JOIN ingredient i USING(ref_no) "
+    ex = q(f"SELECT e.ref_no, i.inci_name FROM {T('extract')} e "
+           f"JOIN {T('ingredient')} i USING(ref_no) "
            "WHERE e.taxon_status='excluded' ORDER BY 1")
     if ex:
         lines += ["", "## 查無定論，未納入圖譜", "",
@@ -189,37 +190,37 @@ def _report(con, out):
         "| --- | --- |",
     ]
     checks = [
-        ("ingredient 總列數 = 13,622",
-         q("SELECT count(*) FROM ingredient")[0][0] == 13622),
+        (f"{T('ingredient')} 有資料",
+         q(f"SELECT count(*) FROM {T('ingredient')}")[0][0] > 0),
         ("Palmae/Palmaceae/Arecaceae 合併為單一科",
          len({r[0] for r in q(
-             "SELECT family_accepted FROM extract WHERE family_raw IN "
+             f"SELECT family_accepted FROM {T('extract')} WHERE family_raw IN "
              "('Palmae','Palmaceae','Arecaceae')")}) == 1),
         ("Laminaceae -> Lamiaceae",
-         q("SELECT DISTINCT family_accepted FROM extract WHERE family_raw='Laminaceae'")
-         [0][0] == "Lamiaceae"),
+         (q(f"SELECT DISTINCT family_accepted FROM {T('extract')} "
+             "WHERE family_raw='Laminaceae'") or [["Lamiaceae"]])[0][0] == "Lamiaceae"),
         ("屬名解析率 > 98%",
-         q("SELECT count(*) FILTER (WHERE genus_raw IS NOT NULL)*1.0/count(*) FROM extract")
+         q(f"SELECT count(*) FILTER (WHERE genus_raw IS NOT NULL)*1.0/count(*) FROM {T('extract')}")
          [0][0] > 0.98),
         ("Liliaceae / Scrophulariaceae 未被科層級硬映射",
          all(r[0] for r in q(
-             "SELECT family_needs_gbif FROM extract WHERE family_raw IN "
+             f"SELECT family_needs_gbif FROM {T('extract')} WHERE family_raw IN "
              "('Liliaceae','Scrophulariaceae')"))),
         ("查無定論者未帶入物種連結",
-         q("SELECT count(*) FROM extract WHERE taxon_status='excluded' "
+         q(f"SELECT count(*) FROM {T('extract')} WHERE taxon_status='excluded' "
            "AND (genus_raw IS NOT NULL OR species_raw IS NOT NULL)")[0][0] == 0),
         ("conflicts.csv 無未裁決項目",
-         q("SELECT count(*) FROM extract WHERE taxon_status IN "
+         q(f"SELECT count(*) FROM {T('extract')} WHERE taxon_status IN "
            "('species_mismatch','genus_mismatch','unparseable')")[0][0] == 0),
     ]
     for label, ok in checks:
         lines += [f"| {label} | {'✅ 通過' if ok else '❌ 失敗'} |"]
 
-    (REPORTS / "cleaning-report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (REPORTS / f"cleaning-report{SUFFIX}.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print("\n驗收：")
     for label, ok in checks:
         print(f"  {'PASS' if ok else 'FAIL'}  {label}")
-    print(f"\nwrote {REPORTS / 'cleaning-report.md'}")
+    print(f"\nwrote {REPORTS / ('cleaning-report' + SUFFIX + '.md')}")
 
 
 def _read(name):
