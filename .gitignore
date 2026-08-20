@@ -17,3 +17,6 @@ package.json
 
 # 現行法規層（獨立於 2019 唯讀快照）
 _data/cosing_2026/*.json
+
+# 全量 inventory（若抓取，體積大）
+_data/cosing_2026/inventory.csv
