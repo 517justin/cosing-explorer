@@ -14,3 +14,6 @@ _data/lotus/*
 node_modules/
 package-lock.json
 package.json
+
+# 現行法規層（獨立於 2019 唯讀快照）
+_data/cosing_2026/*.json
