@@ -4,6 +4,9 @@ const {
   LevelFormat, PageBreak,
 } = require('docx');
 const fs = require('fs');
+const COMMITS = require('child_process')
+  .execSync('git rev-list --count HEAD', {cwd: __dirname.includes('scratchpad') ? '/Users/justnichen/Documents/cosing' : __dirname + '/..'})
+  .toString().trim();
 
 const FONT = 'Microsoft JhengHei';
 const MONO = 'Courier New';
@@ -101,11 +104,11 @@ const doc = new Document({
       table(
         [{ label: '項目', w: 2200 }, { label: '內容', w: 6826 }],
         [
-          ['文件產生日期', '2026-08-20'],
+          ['文件產生日期', new Date().toISOString().slice(0,10)],
           ['資料來源', '_data/kb.duckdb（由 _data/COSING_CAS.csv 唯讀原檔重建）'],
           ['原始資料', 'EU COSING 化妝品成分資料庫，13,622 筆（2019-11-21 快照）'],
           ['專案位置', '/Users/justnichen/Documents/cosing'],
-          ['版本控制', 'git，15 個 commit'],
+          ['版本控制', `git，${COMMITS} 個 commit`],
           ['重建指令', { text: './run_all.sh（2019）／ ./run_all.sh 2026', bold: true }],
         ],
       ),
@@ -370,7 +373,7 @@ const doc = new Document({
         [{ label: '路徑', w: 2400 }, { label: '說明', w: 6626 }],
         [
           ['LOTUS（物種 → 成分）', '以 GBIF accepted name join；Phase 2 已完成，1,193 個接受名可直接使用'],
-          ['PubChem（CAS → 結構）', '原計劃未想到的第二條路徑；10,008 個唯一 CAS 可直接換結構，對 9,760 筆合成化學品尤其有效'],
+          ['PubChem（CAS → 結構）', '原計劃未想到的第二條路徑；2019 快照有 9,796 個不重複 CAS 主碼（含多值為 10,531），對 9,760 筆合成化學品尤其有效'],
         ],
       ),
       note('LOTUS 查不到 ≠ 該生物沒有成分，只代表文獻未收錄。分析時必須把「無資料」與「無成分」分開統計，否則結論全部偏向被研究得多的物種。'),
