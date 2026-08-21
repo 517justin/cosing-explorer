@@ -32,3 +32,13 @@ node _scripts/gen_status_docx.js 90-Reports/實作階段狀態紀錄.docx
 Node 端要讀 DuckDB 得再裝一套相依套件。對一份人工閱讀的狀態快照而言，
 「產生前先驗證」比「多維護一條資料管線」划算。若日後需要真正的即時同步，
 應改由 Python 直接產生（Python 端本來就連著資料庫）。
+
+## 相依套件
+
+`docx` 是 npm 套件，需先在專案根目錄安裝：
+
+```bash
+npm install docx
+```
+
+安裝後 `node_modules/` 已列入 .gitignore，不進版控。
