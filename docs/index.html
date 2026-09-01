@@ -450,7 +450,7 @@ function buildOverview() {
 
   const sortedCpds = Object.entries(D.ci)
     .sort((a, b) => b[1].n_sp - a[1].n_sp)
-    .slice(0, 100);
+    .slice(0, 200);
   sortedCpds.forEach(([ik, cpd]) => {
     const id = 'cpd:' + ik;
     const r = 4 + Math.sqrt(cpd.n_sp) * 0.5;
@@ -531,25 +531,20 @@ function buildEgoGraph(centerType, centerIdx) {
       if (spIdx !== undefined) edges.push({ source: spIdx, target: nodes.length - 1, weight: 1 });
     });
 
-    const cpdSet = {};
-    for (const [sp, data] of sortedSp) {
-      for (const k of data.refKeys) {
-        const it = D.items[k];
-        if (it.tc) it.tc.forEach(([ik, formula]) => {
-          if (!cpdSet[ik]) cpdSet[ik] = { formula, species: new Set() };
-          cpdSet[ik].species.add(sp);
-        });
-      }
-    }
-    Object.entries(cpdSet).sort((a, b) => b[1].species.size - a[1].species.size).slice(0, 10).forEach(([ik, data]) => {
+    const famName = D.families[centerIdx];
+    const famCpdIks = D.ci_by_fam[famName] || [];
+    famCpdIks.map(ik => [ik, D.ci[ik]]).sort((a, b) => b[1].n_sp - a[1].n_sp).slice(0, 20).forEach(([ik, cpd]) => {
       const cpdId = 'cpd:' + ik;
       if (nodeMap[cpdId] !== undefined) return;
-      nodes.push({ id: cpdId, type: 'compound', label: data.formula || ik.substring(0, 10), r: 6, ik, x: 0, y: 0, vx: 0, vy: 0 });
-      nodeMap[cpdId] = nodes.length - 1;
-      data.species.forEach(sp => {
+      nodes.push({ id: cpdId, type: 'compound', label: cpd.f || ik.substring(0, 10), r: 6, ik, x: 0, y: 0, vx: 0, vy: 0 });
+      const ci = nodes.length - 1;
+      nodeMap[cpdId] = ci;
+      let linked = false;
+      if (cpd.top_sp) cpd.top_sp.forEach(([sp]) => {
         const spIdx = nodeMap['sp:' + sp];
-        if (spIdx !== undefined) edges.push({ source: spIdx, target: nodes.length - 1, weight: 1 });
+        if (spIdx !== undefined) { edges.push({ source: spIdx, target: ci, weight: 1 }); linked = true; }
       });
+      if (!linked) edges.push({ source: 0, target: ci, weight: 1 });
     });
 
   } else if (centerType === 'function') {
@@ -590,6 +585,25 @@ function buildEgoGraph(centerType, centerIdx) {
       }
       ingCount++;
     }
+
+    const fnSpecies = new Set();
+    for (const k of D.order) {
+      const it = D.items[k];
+      if (it.f.includes(centerIdx) && it.sp) fnSpecies.add(it.sp);
+    }
+    const fnCpdCounts = {};
+    fnSpecies.forEach(sp => {
+      const iks = D.ci_by_sp[sp] || [];
+      iks.forEach(ik => { fnCpdCounts[ik] = (fnCpdCounts[ik] || 0) + 1; });
+    });
+    Object.entries(fnCpdCounts).sort((a, b) => b[1] - a[1]).slice(0, 15).forEach(([ik, cnt]) => {
+      const cpd = D.ci[ik];
+      const cpdId = 'cpd:' + ik;
+      if (nodeMap[cpdId] !== undefined) return;
+      nodes.push({ id: cpdId, type: 'compound', label: cpd.f || ik.substring(0, 10), r: 6, ik, x: 0, y: 0, vx: 0, vy: 0 });
+      nodeMap[cpdId] = nodes.length - 1;
+      edges.push({ source: 0, target: nodes.length - 1, weight: cnt });
+    });
 
   } else if (centerType === 'ingredient') {
     const it = D.items[centerIdx];
@@ -633,14 +647,22 @@ function buildEgoGraph(centerType, centerIdx) {
       }
     }
 
-    if (it.tc) {
-      it.tc.slice(0, 6).forEach(([ik, formula]) => {
+    if (it.sp && D.ci_by_sp[it.sp]) {
+      D.ci_by_sp[it.sp].map(ik => [ik, D.ci[ik]]).sort((a, b) => b[1].n_sp - a[1].n_sp).slice(0, 12).forEach(([ik, cpd]) => {
         const cpdId = 'cpd:' + ik;
-        nodes.push({ id: cpdId, type: 'compound', label: formula || ik.substring(0, 10), r: 8, ik, x: 0, y: 0, vx: 0, vy: 0 });
+        if (nodeMap[cpdId] !== undefined) return;
+        nodes.push({ id: cpdId, type: 'compound', label: cpd.f || ik.substring(0, 10), r: 8, ik, x: 0, y: 0, vx: 0, vy: 0 });
         nodeMap[cpdId] = nodes.length - 1;
         const spIdx = nodeMap['sp:' + it.sp];
         if (spIdx !== undefined) edges.push({ source: spIdx, target: nodes.length - 1, weight: 1 });
         else edges.push({ source: 0, target: nodes.length - 1, weight: 1 });
+      });
+    } else if (it.tc) {
+      it.tc.slice(0, 6).forEach(([ik, formula]) => {
+        const cpdId = 'cpd:' + ik;
+        nodes.push({ id: cpdId, type: 'compound', label: formula || ik.substring(0, 10), r: 8, ik, x: 0, y: 0, vx: 0, vy: 0 });
+        nodeMap[cpdId] = nodes.length - 1;
+        edges.push({ source: 0, target: nodes.length - 1, weight: 1 });
       });
     }
   } else if (centerType === 'species') {
@@ -685,17 +707,11 @@ function buildEgoGraph(centerType, centerIdx) {
       edges.push({ source: 0, target: nodes.length - 1, weight: cnt });
     });
 
-    const spCpds = {};
-    relatedIngs.forEach(k => {
-      const it = D.items[k];
-      if (it.tc) it.tc.forEach(([ik, formula]) => {
-        if (!spCpds[ik]) spCpds[ik] = formula;
-      });
-    });
-    Object.entries(spCpds).slice(0, 8).forEach(([ik, formula]) => {
+    const spCpdIks = D.ci_by_sp[centerIdx] || [];
+    spCpdIks.map(ik => [ik, D.ci[ik]]).sort((a, b) => b[1].n_sp - a[1].n_sp).slice(0, 15).forEach(([ik, cpd]) => {
       const cpdId = 'cpd:' + ik;
       if (nodeMap[cpdId] !== undefined) return;
-      nodes.push({ id: cpdId, type: 'compound', label: formula || ik.substring(0, 10), r: 7, ik, x: 0, y: 0, vx: 0, vy: 0 });
+      nodes.push({ id: cpdId, type: 'compound', label: cpd.f || ik.substring(0, 10), r: 7, ik, x: 0, y: 0, vx: 0, vy: 0 });
       nodeMap[cpdId] = nodes.length - 1;
       edges.push({ source: 0, target: nodes.length - 1, weight: 1 });
     });
@@ -1079,6 +1095,9 @@ function showPanel(n) {
     if (it.sp) h += '<span class="sp-tag" style="background:var(--family-dim);color:var(--family)">植物來源</span>';
     if (it.re) h += '<span class="sp-tag" style="background:var(--restrict-dim);color:var(--restrict)">有限制</span>';
     h += '</div>';
+    if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'ingredient') {
+      h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--ingredient);border-radius:6px;background:var(--ingredient-dim);color:var(--ingredient);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navHistory.push({type:GRAPH.view,centerType:GRAPH.centerType,centerIdx:GRAPH.centerIdx});GRAPH=buildEgoGraph(\'ingredient\',\'' + n.refNo + '\');CAM.x=0;CAM.y=0;CAM.scale=1;selectedNode=GRAPH.nodes[0];showPanel(selectedNode);updateBreadcrumb()">展開此原料 →</button></div>';
+    }
     if (it.c) h += '<div style="font-family:var(--mono);font-size:12px;color:var(--text-sec);margin-bottom:8px">CAS ' + esc(it.c) + '</div>';
     if (it.d) h += '<div class="sp-desc">' + esc(it.d) + '</div>';
     if (it.f.length) {
@@ -1103,16 +1122,17 @@ function showPanel(n) {
       if (it.gbif) h += '<div style="margin-top:4px"><a href="https://www.gbif.org/species/' + it.gbif + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">GBIF ↗</a></div>';
       h += '</div>';
     }
-    if (it.tc && it.tc.length) {
-      h += '<div class="sp-section"><h3>化合物' + (it.cc ? ' (' + it.cc + ')' : '') + '</h3><div class="sp-chem-grid">';
-      it.tc.forEach(([ik, f]) => {
+    const panelCpds = (it.sp && D.ci_by_sp[it.sp])
+      ? D.ci_by_sp[it.sp].map(ik => [ik, D.ci[ik].f || '']).sort((a, b) => (D.ci[b[0]].n_sp || 0) - (D.ci[a[0]].n_sp || 0)).slice(0, 20)
+      : (it.tc || []);
+    if (panelCpds.length) {
+      const totalCpds = (it.sp && D.ci_by_sp[it.sp]) ? D.ci_by_sp[it.sp].length : (it.cc || panelCpds.length);
+      h += '<div class="sp-section"><h3>化合物 (' + totalCpds + ')</h3><div class="sp-chem-grid">';
+      panelCpds.forEach(([ik, f]) => {
         h += '<div class="sp-chem-card" onclick="showCompound(\'' + ik + '\')"><div class="sp-chem-svg" id="sv-' + ik + '"><div class="sp-chem-ph">⋯</div></div>';
         h += '<div class="sp-chem-f">' + esc(f) + '</div></div>';
       });
       h += '</div></div>';
-    }
-    if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'ingredient') {
-      h += '<div style="margin-top:10px"><button style="padding:4px 12px;border:1px solid var(--ingredient);border-radius:6px;background:var(--ingredient-dim);color:var(--ingredient);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navHistory.push({type:GRAPH.view,centerType:GRAPH.centerType,centerIdx:GRAPH.centerIdx});GRAPH=buildEgoGraph(\'ingredient\',\'' + n.refNo + '\');CAM.x=0;CAM.y=0;CAM.scale=1;selectedNode=GRAPH.nodes[0];showPanel(selectedNode);updateBreadcrumb()">展開此原料 →</button></div>';
     }
     h += '<div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border);font-size:10px;color:var(--text-sec)">Ref No: ' + esc(n.refNo) + '</div>';
     h += '</div>';
@@ -1121,31 +1141,31 @@ function showPanel(n) {
     h += '<div class="sp-head"><h2>' + esc(n.label) + '</h2><button class="sp-close" onclick="closePanel()">×</button></div>';
     h += '<div class="sp-body">';
     h += '<div class="sp-tags"><span class="sp-tag" style="background:var(--family-dim);color:var(--family)">科 Family</span></div>';
+    if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'family') {
+      h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:var(--accent-dim);color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navToFamily(' + n.famIdx + ')">展開此科 →</button></div>';
+    }
     h += '<div class="sp-row"><span class="sp-lbl">原料數</span><span class="sp-val"><b>' + (n.count || D.fam_counts[n.famIdx]).toLocaleString() + '</b></span></div>';
     if (D.fam_species[n.famIdx]) h += '<div class="sp-row"><span class="sp-lbl">物種數</span><span class="sp-val"><b>' + D.fam_species[n.famIdx] + '</b></span></div>';
-    if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'family') {
-      h += '<div style="margin-top:10px"><button style="padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:var(--accent-dim);color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navToFamily(' + n.famIdx + ')">展開此科 →</button></div>';
-    }
     h += '</div>';
 
   } else if (n.type === 'function') {
     h += '<div class="sp-head"><h2>' + esc(n.label) + '</h2><button class="sp-close" onclick="closePanel()">×</button></div>';
     h += '<div class="sp-body">';
     h += '<div class="sp-tags"><span class="sp-tag" style="background:var(--function-dim);color:var(--function)">用途 Function</span></div>';
-    h += '<div class="sp-row"><span class="sp-lbl">原料數</span><span class="sp-val"><b>' + (n.count || D.fn_counts[n.fnIdx]).toLocaleString() + '</b></span></div>';
     if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'function') {
-      h += '<div style="margin-top:10px"><button style="padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:var(--accent-dim);color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navToFunction(' + n.fnIdx + ')">展開此用途 →</button></div>';
+      h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:var(--accent-dim);color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navToFunction(' + n.fnIdx + ')">展開此用途 →</button></div>';
     }
+    h += '<div class="sp-row"><span class="sp-lbl">原料數</span><span class="sp-val"><b>' + (n.count || D.fn_counts[n.fnIdx]).toLocaleString() + '</b></span></div>';
     h += '</div>';
 
   } else if (n.type === 'species') {
     h += '<div class="sp-head"><h2 style="font-style:italic">' + esc(n.label) + '</h2><button class="sp-close" onclick="closePanel()">×</button></div>';
     h += '<div class="sp-body">';
     h += '<div class="sp-tags"><span class="sp-tag" style="background:var(--species-dim);color:var(--species)">物種 Species</span></div>';
-    if (n.count) h += '<div class="sp-row"><span class="sp-lbl">原料數</span><span class="sp-val"><b>' + n.count + '</b></span></div>';
     if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'species') {
-      h += '<div style="margin-top:10px"><button style="padding:4px 12px;border:1px solid var(--species);border-radius:6px;background:var(--species-dim);color:var(--species);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navHistory.push({type:GRAPH.view,centerType:GRAPH.centerType,centerIdx:GRAPH.centerIdx});GRAPH=buildEgoGraph(\'species\',\'' + n.label.replace(/'/g, "\\'") + '\');CAM.x=0;CAM.y=0;CAM.scale=1;selectedNode=GRAPH.nodes[0];showPanel(selectedNode);updateBreadcrumb()">展開此物種 →</button></div>';
+      h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--species);border-radius:6px;background:var(--species-dim);color:var(--species);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navHistory.push({type:GRAPH.view,centerType:GRAPH.centerType,centerIdx:GRAPH.centerIdx});GRAPH=buildEgoGraph(\'species\',\'' + n.label.replace(/'/g, "\\'") + '\');CAM.x=0;CAM.y=0;CAM.scale=1;selectedNode=GRAPH.nodes[0];showPanel(selectedNode);updateBreadcrumb()">展開此物種 →</button></div>';
     }
+    if (n.count) h += '<div class="sp-row"><span class="sp-lbl">原料數</span><span class="sp-val"><b>' + n.count + '</b></span></div>';
     h += '</div>';
 
   } else if (n.type === 'compound') {
@@ -1153,6 +1173,9 @@ function showPanel(n) {
     h += '<div class="sp-head"><h2>' + esc(n.label) + '</h2><button class="sp-close" onclick="closePanel()">×</button></div>';
     h += '<div class="sp-body">';
     h += '<div class="sp-tags"><span class="sp-tag" style="background:var(--compound-dim);color:var(--compound)">化合物 Compound</span></div>';
+    if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'compound') {
+      h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--compound);border-radius:6px;background:var(--compound-dim);color:var(--compound);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navToCompound(\'' + (n.ik || '') + '\')">展開此化合物 →</button></div>';
+    }
     if (cpd && cpd.f) h += '<div style="font-family:var(--mono);font-size:12px;color:var(--text-sec);margin-bottom:8px">' + esc(cpd.f) + '</div>';
     if (cpd && cpd.iupac) h += '<div class="sp-desc" style="font-size:11px;word-break:break-all">' + esc(cpd.iupac) + '</div>';
     if (n.ik) {
@@ -1181,9 +1204,6 @@ function showPanel(n) {
         h += '</div></div>';
       }
     }
-    if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'compound') {
-      h += '<div style="margin-top:10px"><button style="padding:4px 12px;border:1px solid var(--compound);border-radius:6px;background:var(--compound-dim);color:var(--compound);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navToCompound(\'' + (n.ik || '') + '\')">展開此化合物 →</button></div>';
-    }
     if (n.ik) h += '<div style="margin-top:10px;font-size:10px;color:var(--text-sec);word-break:break-all">InChIKey: ' + esc(n.ik) + '</div>';
     h += '</div>';
   }
@@ -1193,7 +1213,10 @@ function showPanel(n) {
 
   if (n.type === 'ingredient' && n.refNo) {
     const it = D.items[n.refNo];
-    if (it.tc) it.tc.forEach(([ik]) => loadSvgInto(ik, 'sv-' + ik));
+    const svgIks = (it.sp && D.ci_by_sp[it.sp])
+      ? D.ci_by_sp[it.sp].slice(0, 20)
+      : (it.tc ? it.tc.map(([ik]) => ik) : []);
+    svgIks.forEach(ik => loadSvgInto(ik, 'sv-' + ik));
   }
 }
 
@@ -1387,6 +1410,19 @@ async function main() {
   const [ir, cr] = await Promise.all([fetch('data/ingredients.json'), fetch('data/compounds.json')]);
   D = await ir.json();
   D.ci = await cr.json();
+
+  D.ci_by_sp = {};
+  D.ci_by_fam = {};
+  for (const [ik, cpd] of Object.entries(D.ci)) {
+    if (cpd.top_sp) cpd.top_sp.forEach(([sp]) => {
+      if (!D.ci_by_sp[sp]) D.ci_by_sp[sp] = [];
+      D.ci_by_sp[sp].push(ik);
+    });
+    if (cpd.top_fam) cpd.top_fam.forEach(([fam]) => {
+      if (!D.ci_by_fam[fam]) D.ci_by_fam[fam] = [];
+      D.ci_by_fam[fam].push(ik);
+    });
+  }
 
   refreshColors();
 
