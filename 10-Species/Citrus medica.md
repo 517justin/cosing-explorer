@@ -1,0 +1,79 @@
+---
+accepted_name: "Citrus medica"
+gbif_key: 3190157
+genus: Citrus
+family: Rutaceae
+order: Sapindales
+kingdom: Plantae
+extracts: 22
+compounds: 319
+tags:
+  - species
+  - Rutaceae
+---
+
+<!-- AUTO-START -->
+
+## Taxonomy
+
+| | |
+|---|---|
+| Family | [[Rutaceae]] |
+| Order | Sapindales |
+| Kingdom | Plantae |
+| GBIF | [3190157](https://www.gbif.org/species/3190157) |
+
+## COSING Extracts
+
+22 extract(s) in the 2026 inventory.
+
+**INCI names:**
+
+- CITRUS MEDICA ACIDA PEEL EXTRACT
+- CITRUS MEDICA ACIDA PEEL OIL EXPRESSED
+- CITRUS MEDICA FLOWER EXTRACT
+- CITRUS MEDICA FRUIT JUICE EXTRACT
+- CITRUS MEDICA LIMONUM FLOWER/LEAF/STEM EXTRACT
+- CITRUS MEDICA LIMONUM FRUIT EXTRACT
+- CITRUS MEDICA LIMONUM FRUIT OIL
+- CITRUS MEDICA LIMONUM FRUIT POWDER
+- CITRUS MEDICA LIMONUM FRUIT WATER
+- CITRUS MEDICA LIMONUM JUICE
+- CITRUS MEDICA LIMONUM JUICE EXTRACT
+- CITRUS MEDICA LIMONUM JUICE POWDER
+- CITRUS MEDICA LIMONUM LEAF OIL
+- CITRUS MEDICA LIMONUM PEEL
+- CITRUS MEDICA LIMONUM PEEL EXTRACT
+- CITRUS MEDICA LIMONUM PEEL OIL
+- CITRUS MEDICA LIMONUM PEEL POWDER
+- CITRUS MEDICA LIMONUM PEEL WATER
+- CITRUS MEDICA SARCODACTYLIS CALLUS EXTRACT
+- CITRUS MEDICA SARCODACTYLIS FRUIT EXTRACT
+- … and 2 more
+
+**Parts:** flower, fruit, leaf, peel, stem
+
+**Processes:** extract, juice, oil, powder, water
+
+## Functions
+
+- [[Function — ABSORBENT|ABSORBENT]]
+- [[Function — ANTIOXIDANT|ANTIOXIDANT]]
+- [[Function — ASTRINGENT|ASTRINGENT]]
+- [[Function — CHELATING|CHELATING]]
+- [[Function — FRAGRANCE|FRAGRANCE]]
+- [[Function — PERFUMING|PERFUMING]]
+- [[Function — SKIN CONDITIONING|SKIN CONDITIONING]]
+- [[Function — SKIN CONDITIONING - EMOLLIENT|SKIN CONDITIONING - EMOLLIENT]]
+- [[Function — SKIN PROTECTING|SKIN PROTECTING]]
+- [[Function — TONIC|TONIC]]
+- [[Function — VISCOSITY CONTROLLING|VISCOSITY CONTROLLING]]
+
+## Compounds (LOTUS)
+
+319 distinct compounds (InChIKey).
+
+<!-- AUTO-END -->
+
+## My Notes
+

@@ -1,0 +1,81 @@
+---
+accepted_name: "Helianthus annuus"
+gbif_key: 9206251
+genus: Helianthus
+family: Asteraceae
+order: Asterales
+kingdom: Plantae
+extracts: 16
+compounds: 488
+tags:
+  - species
+  - Asteraceae
+---
+
+<!-- AUTO-START -->
+
+## Taxonomy
+
+| | |
+|---|---|
+| Family | [[Asteraceae]] |
+| Order | Asterales |
+| Kingdom | Plantae |
+| GBIF | [9206251](https://www.gbif.org/species/9206251) |
+
+## COSING Extracts
+
+16 extract(s) in the 2026 inventory.
+
+**INCI names:**
+
+- DIMETHICONE PG-SUNFLOWERSEEDATE
+- HELIANTHUS ANNUUS EXTRACT
+- HELIANTHUS ANNUUS FLOWER
+- HELIANTHUS ANNUUS FLOWER EXTRACT
+- HELIANTHUS ANNUUS PETAL EXTRACT
+- HELIANTHUS ANNUUS SEED
+- HELIANTHUS ANNUUS SEED ACID
+- HELIANTHUS ANNUUS SEED BUTTER
+- HELIANTHUS ANNUUS SEED CERA
+- HELIANTHUS ANNUUS SEED EXTRACT
+- HELIANTHUS ANNUUS SEED FLOUR
+- HELIANTHUS ANNUUS SEED WAX
+- HELIANTHUS ANNUUS SEEDCAKE
+- HELIANTHUS ANNUUS SEEDCAKE EXTRACT
+- HELIANTHUS ANNUUS SPROUT EXTRACT
+- HYDROLYZED SUNFLOWER CALLUS CULTURE LYSATE FILTRATE
+
+**Parts:** flower, seed, sprout
+
+**Processes:** acid, butter, extract, flour, seedcake, wax
+
+## Functions
+
+- [[Function — ABRASIVE|ABRASIVE]]
+- [[Function — ABSORBENT|ABSORBENT]]
+- [[Function — ANTIOXIDANT|ANTIOXIDANT]]
+- [[Function — BULKING|BULKING]]
+- [[Function — CLEANSING|CLEANSING]]
+- [[Function — FILM FORMING|FILM FORMING]]
+- [[Function — FRAGRANCE|FRAGRANCE]]
+- [[Function — HAIR CONDITIONING|HAIR CONDITIONING]]
+- [[Function — HAIR WAVING OR STRAIGHTENING|HAIR WAVING OR STRAIGHTENING]]
+- [[Function — HUMECTANT|HUMECTANT]]
+- [[Function — MOISTURISING|MOISTURISING]]
+- [[Function — OPACIFYING|OPACIFYING]]
+- [[Function — SKIN CONDITIONING|SKIN CONDITIONING]]
+- [[Function — SKIN CONDITIONING - EMOLLIENT|SKIN CONDITIONING - EMOLLIENT]]
+- [[Function — SKIN CONDITIONING - MISCELLANEOUS|SKIN CONDITIONING - MISCELLANEOUS]]
+- [[Function — SKIN PROTECTING|SKIN PROTECTING]]
+- [[Function — UV ABSORBER|UV ABSORBER]]
+- [[Function — VISCOSITY CONTROLLING|VISCOSITY CONTROLLING]]
+
+## Compounds (LOTUS)
+
+488 distinct compounds (InChIKey).
+
+<!-- AUTO-END -->
+
+## My Notes
+

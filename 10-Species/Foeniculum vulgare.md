@@ -1,0 +1,71 @@
+---
+accepted_name: "Foeniculum vulgare"
+gbif_key: 3034922
+genus: Foeniculum
+family: Apiaceae
+order: Apiales
+kingdom: Plantae
+extracts: 17
+compounds: 384
+tags:
+  - species
+  - Apiaceae
+---
+
+<!-- AUTO-START -->
+
+## Taxonomy
+
+| | |
+|---|---|
+| Family | [[Apiaceae]] |
+| Order | Apiales |
+| Kingdom | Plantae |
+| GBIF | [3034922](https://www.gbif.org/species/3034922) |
+
+## COSING Extracts
+
+17 extract(s) in the 2026 inventory.
+
+**INCI names:**
+
+- FOENICULUM VULGARE CALLUS CULTURE EXTRACT
+- FOENICULUM VULGARE CAPILLACEUM FRUIT EXTRACT
+- FOENICULUM VULGARE CAPILLACEUM FRUIT OIL
+- FOENICULUM VULGARE DULCE FRUIT EXTRACT
+- FOENICULUM VULGARE DULCE FRUIT OIL
+- FOENICULUM VULGARE FRUIT EXTRACT
+- FOENICULUM VULGARE FRUIT OIL
+- FOENICULUM VULGARE FRUIT POWDER
+- FOENICULUM VULGARE LEAF EXTRACT
+- FOENICULUM VULGARE PIPERITUM FRUIT EXTRACT
+- FOENICULUM VULGARE PIPERITUM FRUIT OIL
+- FOENICULUM VULGARE ROOT EXTRACT
+- FOENICULUM VULGARE SEED
+- FOENICULUM VULGARE SEED EXTRACT
+- FOENICULUM VULGARE VULGARE FRUIT EXTRACT
+- FOENICULUM VULGARE VULGARE FRUIT OIL
+- FOENICULUM VULGARE WATER
+
+**Parts:** fruit, leaf, root, seed
+
+**Processes:** extract, oil, powder, water
+
+## Functions
+
+- [[Function — FRAGRANCE|FRAGRANCE]]
+- [[Function — HUMECTANT|HUMECTANT]]
+- [[Function — PERFUMING|PERFUMING]]
+- [[Function — SKIN CONDITIONING|SKIN CONDITIONING]]
+- [[Function — SKIN CONDITIONING - EMOLLIENT|SKIN CONDITIONING - EMOLLIENT]]
+- [[Function — SOOTHING|SOOTHING]]
+- [[Function — TONIC|TONIC]]
+
+## Compounds (LOTUS)
+
+384 distinct compounds (InChIKey).
+
+<!-- AUTO-END -->
+
+## My Notes
+

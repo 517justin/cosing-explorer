@@ -1,0 +1,81 @@
+---
+accepted_name: "Nelumbo nucifera"
+gbif_key: 2882449
+genus: Nelumbo
+family: Nelumbonaceae
+order: Proteales
+kingdom: Plantae
+extracts: 29
+compounds: 125
+tags:
+  - species
+  - Nelumbonaceae
+---
+
+<!-- AUTO-START -->
+
+## Taxonomy
+
+| | |
+|---|---|
+| Family | [[Nelumbonaceae]] |
+| Order | Proteales |
+| Kingdom | Plantae |
+| GBIF | [2882449](https://www.gbif.org/species/2882449) |
+
+## COSING Extracts
+
+29 extract(s) in the 2026 inventory.
+
+**INCI names:**
+
+- NELUMBIUM SPECIOSUM FLOWER EXTRACT
+- NELUMBIUM SPECIOSUM FLOWER OIL
+- NELUMBIUM SPECIOSUM FLOWER WATER
+- NELUMBIUM SPECIOSUM SEED EXTRACT
+- NELUMBO NUCIFERA CALLUS
+- NELUMBO NUCIFERA CALLUS CULTURE EXTRACT
+- NELUMBO NUCIFERA EXTRACT
+- NELUMBO NUCIFERA FLOWER CERA
+- NELUMBO NUCIFERA FLOWER EXTRACT
+- NELUMBO NUCIFERA FLOWER POWDER
+- NELUMBO NUCIFERA FLOWER WATER
+- NELUMBO NUCIFERA FLOWER WAX
+- NELUMBO NUCIFERA FLOWER/LEAF/STEM JUICE
+- NELUMBO NUCIFERA GERM EXTRACT
+- NELUMBO NUCIFERA LEAF CELL CULTURE POWDER
+- NELUMBO NUCIFERA LEAF CELL EXTRACT
+- NELUMBO NUCIFERA LEAF EXTRACT
+- NELUMBO NUCIFERA LEAF/OROSTACHYS JAPONICA EXTRACT
+- NELUMBO NUCIFERA MERISTEM CELL CULTURE CONDITIONED MEDIA
+- NELUMBO NUCIFERA PHYTOPLACENTA CULTURE EXTRACT
+- … and 9 more
+
+**Parts:** flower, leaf, root, seed, stem, whole_plant
+
+**Processes:** extract, juice, oil, powder, water, wax
+
+## Functions
+
+- [[Function — ANTI-SEBUM|ANTI-SEBUM]]
+- [[Function — ANTIFOAMING|ANTIFOAMING]]
+- [[Function — ANTIMICROBIAL|ANTIMICROBIAL]]
+- [[Function — ANTIOXIDANT|ANTIOXIDANT]]
+- [[Function — ANTISTATIC|ANTISTATIC]]
+- [[Function — ASTRINGENT|ASTRINGENT]]
+- [[Function — HAIR CONDITIONING|HAIR CONDITIONING]]
+- [[Function — HUMECTANT|HUMECTANT]]
+- [[Function — SKIN CONDITIONING|SKIN CONDITIONING]]
+- [[Function — SKIN CONDITIONING - EMOLLIENT|SKIN CONDITIONING - EMOLLIENT]]
+- [[Function — SKIN PROTECTING|SKIN PROTECTING]]
+- [[Function — TONIC|TONIC]]
+- [[Function — VISCOSITY CONTROLLING|VISCOSITY CONTROLLING]]
+
+## Compounds (LOTUS)
+
+125 distinct compounds (InChIKey).
+
+<!-- AUTO-END -->
+
+## My Notes
+

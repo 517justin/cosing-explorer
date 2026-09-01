@@ -1,0 +1,83 @@
+---
+accepted_name: "Camellia sinensis"
+gbif_key: 3189635
+genus: Camellia
+family: Theaceae
+order: Ericales
+kingdom: Plantae
+extracts: 23
+compounds: 715
+tags:
+  - species
+  - Theaceae
+---
+
+<!-- AUTO-START -->
+
+## Taxonomy
+
+| | |
+|---|---|
+| Family | [[Theaceae]] |
+| Order | Ericales |
+| Kingdom | Plantae |
+| GBIF | [3189635](https://www.gbif.org/species/3189635) |
+
+## COSING Extracts
+
+23 extract(s) in the 2026 inventory.
+
+**INCI names:**
+
+- ASPERGILLUS/CAMELLIA SINENSIS LEAF FERMENT EXTRACT
+- CAMELLIA SINENSIS CALLUS CULTURE EXTRACT
+- CAMELLIA SINENSIS CALLUS CULTURE LYSATE
+- CAMELLIA SINENSIS CATECHINS
+- CAMELLIA SINENSIS EXTRACT
+- CAMELLIA SINENSIS FLOWER EXTRACT
+- CAMELLIA SINENSIS FLOWER WATER
+- CAMELLIA SINENSIS FLOWER/LEAF/STEM JUICE
+- CAMELLIA SINENSIS LEAF
+- CAMELLIA SINENSIS LEAF CELL EXTRACT
+- CAMELLIA SINENSIS LEAF EXTRACT
+- CAMELLIA SINENSIS LEAF OIL
+- CAMELLIA SINENSIS LEAF POLYSACCHARIDE
+- CAMELLIA SINENSIS LEAF WATER
+- CAMELLIA SINENSIS LEAF/PANAX GINSENG ROOT EXTRACT
+- CAMELLIA SINENSIS ROOT EXTRACT
+- CAMELLIA SINENSIS SEED EXTRACT
+- CAMELLIA SINENSIS SEED OIL
+- CAMELLIA SINENSIS SEED OIL AMINOPROPANEDIOL AMIDES/ESTERS
+- CAMELLIA SINENSIS SEED POWDER
+- … and 3 more
+
+**Parts:** flower, leaf, root, seed, sprout, stem, whole_plant
+
+**Processes:** catechins, extract, juice, oil, polysaccharide, powder, water
+
+## Functions
+
+- [[Function — ANTI-SEBUM|ANTI-SEBUM]]
+- [[Function — ANTIMICROBIAL|ANTIMICROBIAL]]
+- [[Function — ANTIOXIDANT|ANTIOXIDANT]]
+- [[Function — ASTRINGENT|ASTRINGENT]]
+- [[Function — BLEACHING|BLEACHING]]
+- [[Function — FRAGRANCE|FRAGRANCE]]
+- [[Function — HAIR CONDITIONING|HAIR CONDITIONING]]
+- [[Function — HUMECTANT|HUMECTANT]]
+- [[Function — ORAL CARE|ORAL CARE]]
+- [[Function — PERFUMING|PERFUMING]]
+- [[Function — SKIN CONDITIONING|SKIN CONDITIONING]]
+- [[Function — SKIN CONDITIONING - EMOLLIENT|SKIN CONDITIONING - EMOLLIENT]]
+- [[Function — SKIN PROTECTING|SKIN PROTECTING]]
+- [[Function — TONIC|TONIC]]
+- [[Function — UV ABSORBER|UV ABSORBER]]
+
+## Compounds (LOTUS)
+
+715 distinct compounds (InChIKey).
+
+<!-- AUTO-END -->
+
+## My Notes
+

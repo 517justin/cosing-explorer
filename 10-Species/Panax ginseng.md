@@ -1,0 +1,80 @@
+---
+accepted_name: "Panax ginseng"
+gbif_key: 5372262
+genus: Panax
+family: Araliaceae
+order: Apiales
+kingdom: Plantae
+extracts: 30
+compounds: 653
+tags:
+  - species
+  - Araliaceae
+---
+
+<!-- AUTO-START -->
+
+## Taxonomy
+
+| | |
+|---|---|
+| Family | [[Araliaceae]] |
+| Order | Apiales |
+| Kingdom | Plantae |
+| GBIF | [5372262](https://www.gbif.org/species/5372262) |
+
+## COSING Extracts
+
+30 extract(s) in the 2026 inventory.
+
+**INCI names:**
+
+- HYDROGENATED PANAX GINSENG ROOT OIL
+- HYDROLYZED PANAX GINSENG ROOT EXTRACT
+- PANAX GINSENG ADVENTITIOUS ROOT EXTRACELLULAR VESICLES
+- PANAX GINSENG BERRY EXTRACT
+- PANAX GINSENG BUD EXTRACT
+- PANAX GINSENG CALLUS CULTURE EXTRACT
+- PANAX GINSENG CALLUS EXTRACT
+- PANAX GINSENG CALLUS/ADVENTITIOUS ROOT CELL
+- PANAX GINSENG CELL CULTURE EXTRACT
+- PANAX GINSENG EXTRACT
+- PANAX GINSENG FLOWER EXTRACT
+- PANAX GINSENG FLOWER/LEAF/STEM EXTRACT
+- PANAX GINSENG LEAF/ROOT/STEM EXTRACT
+- PANAX GINSENG LEAF/STEM EXTRACT
+- PANAX GINSENG LEAF/STEM POWDER
+- PANAX GINSENG MERISTEM CELL CULTURE
+- PANAX GINSENG MERISTEM CELL CULTURE CONDITIONED MEDIA EXTRACT
+- PANAX GINSENG MERISTEM CELL EXTRACT
+- PANAX GINSENG ROOT
+- PANAX GINSENG ROOT CULTURE CONDITIONED MEDIA
+- … and 10 more
+
+**Parts:** bud, flower, fruit, leaf, root, seed, sprout, stem, whole_plant
+
+**Processes:** extract, oil, powder, water
+
+## Functions
+
+- [[Function — ANTIMICROBIAL|ANTIMICROBIAL]]
+- [[Function — ANTIOXIDANT|ANTIOXIDANT]]
+- [[Function — ASTRINGENT|ASTRINGENT]]
+- [[Function — EMULSION STABILISING|EMULSION STABILISING]]
+- [[Function — FRAGRANCE|FRAGRANCE]]
+- [[Function — HAIR CONDITIONING|HAIR CONDITIONING]]
+- [[Function — HUMECTANT|HUMECTANT]]
+- [[Function — ORAL CARE|ORAL CARE]]
+- [[Function — SKIN CONDITIONING|SKIN CONDITIONING]]
+- [[Function — SKIN CONDITIONING - EMOLLIENT|SKIN CONDITIONING - EMOLLIENT]]
+- [[Function — SKIN PROTECTING|SKIN PROTECTING]]
+- [[Function — TONIC|TONIC]]
+
+## Compounds (LOTUS)
+
+653 distinct compounds (InChIKey).
+
+<!-- AUTO-END -->
+
+## My Notes
+

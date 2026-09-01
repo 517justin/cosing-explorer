@@ -1,0 +1,79 @@
+---
+accepted_name: "Camellia japonica"
+gbif_key: 3189636
+genus: Camellia
+family: Theaceae
+order: Ericales
+kingdom: Plantae
+extracts: 22
+compounds: 153
+tags:
+  - species
+  - Theaceae
+---
+
+<!-- AUTO-START -->
+
+## Taxonomy
+
+| | |
+|---|---|
+| Family | [[Theaceae]] |
+| Order | Ericales |
+| Kingdom | Plantae |
+| GBIF | [3189636](https://www.gbif.org/species/3189636) |
+
+## COSING Extracts
+
+22 extract(s) in the 2026 inventory.
+
+**INCI names:**
+
+- CAMELLIA JAPONICA ALBIPETALA LEAF EXTRACT
+- CAMELLIA JAPONICA CALLUS EXTRACT
+- CAMELLIA JAPONICA EXTRACT
+- CAMELLIA JAPONICA FLOWER EXTRACT
+- CAMELLIA JAPONICA FLOWER POWDER
+- CAMELLIA JAPONICA FLOWER WATER
+- CAMELLIA JAPONICA FLOWER/LEAF/SEED WATER
+- CAMELLIA JAPONICA LEAF CELL EXTRACT
+- CAMELLIA JAPONICA LEAF EXTRACT
+- CAMELLIA JAPONICA LEAF WATER
+- CAMELLIA JAPONICA LEAF WAX
+- CAMELLIA JAPONICA LEAF/SEED WATER
+- CAMELLIA JAPONICA OVARY POWDER
+- CAMELLIA JAPONICA PHYTOPLACENTA EXTRACT
+- CAMELLIA JAPONICA SEED EXTRACT
+- CAMELLIA JAPONICA SEED OIL
+- CAMELLIA JAPONICA SEED OIL ETHYL ESTERS
+- CAMELLIA JAPONICA SEED POWDER
+- CAMELLIA JAPONICA SEED WATER
+- CAMELLIA JAPONICA SEEDCAKE EXTRACT
+- … and 2 more
+
+**Parts:** flower, leaf, seed, whole_plant
+
+**Processes:** extract, oil, powder, seedcake, water, wax
+
+## Functions
+
+- [[Function — ANTIMICROBIAL|ANTIMICROBIAL]]
+- [[Function — ANTIOXIDANT|ANTIOXIDANT]]
+- [[Function — CLEANSING|CLEANSING]]
+- [[Function — FRAGRANCE|FRAGRANCE]]
+- [[Function — HAIR CONDITIONING|HAIR CONDITIONING]]
+- [[Function — HUMECTANT|HUMECTANT]]
+- [[Function — SKIN CONDITIONING|SKIN CONDITIONING]]
+- [[Function — SKIN CONDITIONING - EMOLLIENT|SKIN CONDITIONING - EMOLLIENT]]
+- [[Function — SKIN PROTECTING|SKIN PROTECTING]]
+- [[Function — SMOOTHING|SMOOTHING]]
+- [[Function — SURFACTANT - CLEANSING|SURFACTANT - CLEANSING]]
+
+## Compounds (LOTUS)
+
+153 distinct compounds (InChIKey).
+
+<!-- AUTO-END -->
+
+## My Notes
+

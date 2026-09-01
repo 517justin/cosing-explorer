@@ -1,0 +1,75 @@
+---
+accepted_name: "Triticum vulgare"
+gbif_key: 7541363
+genus: Triticum
+family: Poaceae
+order: Poales
+kingdom: Plantae
+extracts: 18
+compounds: 0
+tags:
+  - species
+  - Poaceae
+---
+
+<!-- AUTO-START -->
+
+## Taxonomy
+
+| | |
+|---|---|
+| Family | [[Poaceae]] |
+| Order | Poales |
+| Kingdom | Plantae |
+| GBIF | [7541363](https://www.gbif.org/species/7541363) |
+
+## COSING Extracts
+
+18 extract(s) in the 2026 inventory.
+
+**INCI names:**
+
+- TRITICUM VULGARE BRAN
+- TRITICUM VULGARE BRAN EXTRACT
+- TRITICUM VULGARE BRAN LIPIDS
+- TRITICUM VULGARE FLOUR EXTRACT
+- TRITICUM VULGARE FLOUR LIPIDS
+- TRITICUM VULGARE GERM
+- TRITICUM VULGARE GERM EXTRACT
+- TRITICUM VULGARE GERM OIL
+- TRITICUM VULGARE GERM OIL UNSAPONIFIABLES
+- TRITICUM VULGARE GERM POWDER
+- TRITICUM VULGARE GERM PROTEIN
+- TRITICUM VULGARE GLUTEN
+- TRITICUM VULGARE GLUTEN EXTRACT
+- TRITICUM VULGARE KERNEL FLOUR
+- TRITICUM VULGARE PROTEIN
+- TRITICUM VULGARE SEED EXTRACT
+- TRITICUM VULGARE SPROUT EXTRACT
+- TRITICUM VULGARE STARCH
+
+**Parts:** seed, sprout
+
+**Processes:** extract, flour, lipids, oil, powder, protein, starch
+
+## Functions
+
+- [[Function — ABRASIVE|ABRASIVE]]
+- [[Function — ABSORBENT|ABSORBENT]]
+- [[Function — BINDING|BINDING]]
+- [[Function — BLEACHING|BLEACHING]]
+- [[Function — BUFFERING|BUFFERING]]
+- [[Function — BULKING|BULKING]]
+- [[Function — DETANGLING|DETANGLING]]
+- [[Function — FILM FORMING|FILM FORMING]]
+- [[Function — HAIR CONDITIONING|HAIR CONDITIONING]]
+- [[Function — HUMECTANT|HUMECTANT]]
+- [[Function — SKIN CONDITIONING|SKIN CONDITIONING]]
+- [[Function — SKIN CONDITIONING - EMOLLIENT|SKIN CONDITIONING - EMOLLIENT]]
+- [[Function — SKIN PROTECTING|SKIN PROTECTING]]
+- [[Function — VISCOSITY CONTROLLING|VISCOSITY CONTROLLING]]
+
+<!-- AUTO-END -->
+
+## My Notes
+

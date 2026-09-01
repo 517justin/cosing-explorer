@@ -1,0 +1,76 @@
+---
+accepted_name: "Daucus carota"
+gbif_key: 3034742
+genus: Daucus
+family: Apiaceae
+order: Apiales
+kingdom: Plantae
+extracts: 19
+compounds: 416
+tags:
+  - species
+  - Apiaceae
+---
+
+<!-- AUTO-START -->
+
+## Taxonomy
+
+| | |
+|---|---|
+| Family | [[Apiaceae]] |
+| Order | Apiales |
+| Kingdom | Plantae |
+| GBIF | [3034742](https://www.gbif.org/species/3034742) |
+
+## COSING Extracts
+
+19 extract(s) in the 2026 inventory.
+
+**INCI names:**
+
+- DAUCUS CAROTA FRUIT OIL
+- DAUCUS CAROTA LEAF EXTRACT
+- DAUCUS CAROTA SATIVA CALLUS CULTURE EXTRACT
+- DAUCUS CAROTA SATIVA CALLUS LYSATE
+- DAUCUS CAROTA SATIVA EXTRACT
+- DAUCUS CAROTA SATIVA FLOWER EXTRACT
+- DAUCUS CAROTA SATIVA JUICE
+- DAUCUS CAROTA SATIVA LEAF/STEM EXTRACT
+- DAUCUS CAROTA SATIVA ROOT
+- DAUCUS CAROTA SATIVA ROOT CELL CULTURE LYSATE
+- DAUCUS CAROTA SATIVA ROOT EXTRACT
+- DAUCUS CAROTA SATIVA ROOT JUICE
+- DAUCUS CAROTA SATIVA ROOT POWDER
+- DAUCUS CAROTA SATIVA ROOT PROTOPLASTS
+- DAUCUS CAROTA SATIVA ROOT WATER
+- DAUCUS CAROTA SATIVA SEED EXTRACT
+- DAUCUS CAROTA SATIVA SEED OIL
+- DAUCUS CAROTA SATIVA WATER
+- HYDROLYZED CARROT ROOT EXTRACT
+
+**Parts:** flower, fruit, leaf, root, seed, stem
+
+**Processes:** extract, juice, oil, powder, water
+
+## Functions
+
+- [[Function — ANTIMICROBIAL|ANTIMICROBIAL]]
+- [[Function — ANTIOXIDANT|ANTIOXIDANT]]
+- [[Function — DEODORANT|DEODORANT]]
+- [[Function — FRAGRANCE|FRAGRANCE]]
+- [[Function — HUMECTANT|HUMECTANT]]
+- [[Function — PERFUMING|PERFUMING]]
+- [[Function — SKIN CONDITIONING|SKIN CONDITIONING]]
+- [[Function — SKIN CONDITIONING - EMOLLIENT|SKIN CONDITIONING - EMOLLIENT]]
+- [[Function — SKIN CONDITIONING - MISCELLANEOUS|SKIN CONDITIONING - MISCELLANEOUS]]
+- [[Function — SKIN PROTECTING|SKIN PROTECTING]]
+
+## Compounds (LOTUS)
+
+416 distinct compounds (InChIKey).
+
+<!-- AUTO-END -->
+
+## My Notes
+

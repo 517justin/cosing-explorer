@@ -1,0 +1,85 @@
+---
+accepted_name: "Lavandula angustifolia"
+gbif_key: 2927305
+genus: Lavandula
+family: Lamiaceae
+order: Lamiales
+kingdom: Plantae
+extracts: 22
+compounds: 107
+tags:
+  - species
+  - Lamiaceae
+---
+
+<!-- AUTO-START -->
+
+## Taxonomy
+
+| | |
+|---|---|
+| Family | [[Lamiaceae]] |
+| Order | Lamiales |
+| Kingdom | Plantae |
+| GBIF | [2927305](https://www.gbif.org/species/2927305) |
+
+## COSING Extracts
+
+22 extract(s) in the 2026 inventory.
+
+**INCI names:**
+
+- LAVANDULA ANGUSTIFOLIA ANGUSTIFOLIA HERB EXTRACT
+- LAVANDULA ANGUSTIFOLIA ANGUSTIFOLIA HERB EXTRACT ACETYLATED
+- LAVANDULA ANGUSTIFOLIA ANGUSTIFOLIA HERB OIL
+- LAVANDULA ANGUSTIFOLIA EXTRACT
+- LAVANDULA ANGUSTIFOLIA FLOWER
+- LAVANDULA ANGUSTIFOLIA FLOWER CERA
+- LAVANDULA ANGUSTIFOLIA FLOWER EXTRACT
+- LAVANDULA ANGUSTIFOLIA FLOWER OIL
+- LAVANDULA ANGUSTIFOLIA FLOWER POWDER
+- LAVANDULA ANGUSTIFOLIA FLOWER WATER
+- LAVANDULA ANGUSTIFOLIA FLOWER WAX
+- LAVANDULA ANGUSTIFOLIA FLOWER/LEAF/STEM EXTRACT
+- LAVANDULA ANGUSTIFOLIA FLOWER/LEAF/STEM JUICE
+- LAVANDULA ANGUSTIFOLIA FLOWER/LEAF/STEM OIL
+- LAVANDULA ANGUSTIFOLIA FLOWER/LEAF/STEM WATER
+- LAVANDULA ANGUSTIFOLIA HERB EXTRACT
+- LAVANDULA ANGUSTIFOLIA HERB OIL
+- LAVANDULA ANGUSTIFOLIA LEAF CELL EXTRACT
+- LAVANDULA ANGUSTIFOLIA OIL
+- LAVANDULA ANGUSTIFOLIA WATER
+- … and 2 more
+
+**Parts:** aerial_part, flower, leaf, stem, whole_plant
+
+**Processes:** extract, juice, oil, powder, water, wax
+
+## Functions
+
+- [[Function — CLEANSING|CLEANSING]]
+- [[Function — DEODORANT|DEODORANT]]
+- [[Function — FLAVOURING|FLAVOURING]]
+- [[Function — FRAGRANCE|FRAGRANCE]]
+- [[Function — HUMECTANT|HUMECTANT]]
+- [[Function — ORAL CARE|ORAL CARE]]
+- [[Function — PERFUMING|PERFUMING]]
+- [[Function — REFRESHING|REFRESHING]]
+- [[Function — SKIN CONDITIONING|SKIN CONDITIONING]]
+- [[Function — SKIN CONDITIONING - EMOLLIENT|SKIN CONDITIONING - EMOLLIENT]]
+- [[Function — SKIN PROTECTING|SKIN PROTECTING]]
+- [[Function — TONIC|TONIC]]
+
+## Compounds (LOTUS)
+
+107 distinct compounds (InChIKey).
+
+## Regulation
+
+- Annex III/360
+
+<!-- AUTO-END -->
+
+## My Notes
+
+Test note — should survive re-run.

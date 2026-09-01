@@ -1,0 +1,76 @@
+---
+accepted_name: "Salvia rosmarinus"
+gbif_key: 10902460
+genus: Salvia
+family: Lamiaceae
+order: Lamiales
+kingdom: Plantae
+extracts: 17
+compounds: 25
+tags:
+  - species
+  - Lamiaceae
+---
+
+<!-- AUTO-START -->
+
+## Taxonomy
+
+| | |
+|---|---|
+| Family | [[Lamiaceae]] |
+| Order | Lamiales |
+| Kingdom | Plantae |
+| GBIF | [10902460](https://www.gbif.org/species/10902460) |
+
+## COSING Extracts
+
+17 extract(s) in the 2026 inventory.
+
+**INCI names:**
+
+- ROSMARINUS OFFICINALIS CALLUS EXTRACT
+- ROSMARINUS OFFICINALIS EXTRACT
+- ROSMARINUS OFFICINALIS FLOWER CERA
+- ROSMARINUS OFFICINALIS FLOWER EXTRACT
+- ROSMARINUS OFFICINALIS FLOWER OIL
+- ROSMARINUS OFFICINALIS FLOWER/LEAF/STEM EXTRACT
+- ROSMARINUS OFFICINALIS FLOWER/LEAF/STEM WATER
+- ROSMARINUS OFFICINALIS LEAF
+- ROSMARINUS OFFICINALIS LEAF EXTRACT
+- ROSMARINUS OFFICINALIS LEAF OIL
+- ROSMARINUS OFFICINALIS LEAF POWDER
+- ROSMARINUS OFFICINALIS LEAF WATER
+- ROSMARINUS OFFICINALIS LEAF/STEM OIL
+- ROSMARINUS OFFICINALIS LEAF/STEM WATER
+- ROSMARINUS OFFICINALIS PHYTOPLACENTA EXTRACT
+- ROSMARINUS OFFICINALIS STEM OIL
+- ROSMARINUS OFFICINALIS WATER
+
+**Parts:** flower, leaf, stem, whole_plant
+
+**Processes:** extract, oil, powder, water, wax
+
+## Functions
+
+- [[Function — ANTIMICROBIAL|ANTIMICROBIAL]]
+- [[Function — ANTIOXIDANT|ANTIOXIDANT]]
+- [[Function — DEODORANT|DEODORANT]]
+- [[Function — FRAGRANCE|FRAGRANCE]]
+- [[Function — HAIR CONDITIONING|HAIR CONDITIONING]]
+- [[Function — HUMECTANT|HUMECTANT]]
+- [[Function — PERFUMING|PERFUMING]]
+- [[Function — REFRESHING|REFRESHING]]
+- [[Function — SKIN CONDITIONING|SKIN CONDITIONING]]
+- [[Function — SKIN CONDITIONING - EMOLLIENT|SKIN CONDITIONING - EMOLLIENT]]
+- [[Function — SKIN PROTECTING|SKIN PROTECTING]]
+- [[Function — TONIC|TONIC]]
+
+## Compounds (LOTUS)
+
+25 distinct compounds (InChIKey).
+
+<!-- AUTO-END -->
+
+## My Notes
+

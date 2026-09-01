@@ -35,6 +35,8 @@ $PY _scripts/05_gbif_taxonomy.py          # full GBIF hierarchy -> taxon
 $PY _scripts/06_parts.py                  # plant part / process vocabulary
 $PY _scripts/13_lotus.py                  # LOTUS species -> compounds
 $PY _scripts/14_pubchem.py                # PubChem CAS -> structure (cached)
+$PY _scripts/15_associations.py          # Phase 5: hidden associations
+$PY _scripts/16_gen_vault.py             # Phase 6: vault notes
 
 if [ "$COSING_SOURCE" = "2019" ]; then
   $PY _scripts/09_link_regulation.py      # current Annex II-VI text

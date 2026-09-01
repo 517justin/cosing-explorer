@@ -1,0 +1,77 @@
+---
+accepted_name: "Citrus aurantiifolia"
+gbif_key: 3190164
+genus: Citrus
+family: Rutaceae
+order: Sapindales
+kingdom: Plantae
+extracts: 21
+compounds: 0
+tags:
+  - species
+  - Rutaceae
+---
+
+<!-- AUTO-START -->
+
+## Taxonomy
+
+| | |
+|---|---|
+| Family | [[Rutaceae]] |
+| Order | Sapindales |
+| Kingdom | Plantae |
+| GBIF | [3190164](https://www.gbif.org/species/3190164) |
+
+## COSING Extracts
+
+21 extract(s) in the 2026 inventory.
+
+**INCI names:**
+
+- ASCORBIC ACID/ORANGE/CITRUS LIMON/CITRUS AURANTIFOLIA POLYPEPTIDES
+- CITRUS AURANTIFOLIA FIBER
+- CITRUS AURANTIFOLIA FLOWER EXTRACT
+- CITRUS AURANTIFOLIA FLOWER/GALIUM APARINE EXTRACT
+- CITRUS AURANTIFOLIA FRUIT
+- CITRUS AURANTIFOLIA FRUIT EXTRACT
+- CITRUS AURANTIFOLIA FRUIT OIL
+- CITRUS AURANTIFOLIA FRUIT WATER
+- CITRUS AURANTIFOLIA JUICE
+- CITRUS AURANTIFOLIA LEAF EXTRACT
+- CITRUS AURANTIFOLIA LEAF OIL
+- CITRUS AURANTIFOLIA OIL
+- CITRUS AURANTIFOLIA PEEL
+- CITRUS AURANTIFOLIA PEEL EXTRACT
+- CITRUS AURANTIFOLIA PEEL OIL
+- CITRUS AURANTIFOLIA PEEL OIL DISTILLED
+- CITRUS AURANTIFOLIA PEEL OIL EXPRESSED
+- CITRUS AURANTIFOLIA PEEL POWDER
+- CITRUS AURANTIFOLIA PEEL WATER
+- CITRUS AURANTIFOLIA SEED OIL
+- … and 1 more
+
+**Parts:** flower, fruit, leaf, peel, seed
+
+**Processes:** acid, extract, fiber, juice, oil, powder, water
+
+## Functions
+
+- [[Function — ASTRINGENT|ASTRINGENT]]
+- [[Function — CLEANSING|CLEANSING]]
+- [[Function — EMULSION STABILISING|EMULSION STABILISING]]
+- [[Function — FLAVOURING|FLAVOURING]]
+- [[Function — FRAGRANCE|FRAGRANCE]]
+- [[Function — HAIR CONDITIONING|HAIR CONDITIONING]]
+- [[Function — PERFUMING|PERFUMING]]
+- [[Function — SKIN CONDITIONING|SKIN CONDITIONING]]
+- [[Function — TONIC|TONIC]]
+
+## Regulation
+
+- Annex II/358
+
+<!-- AUTO-END -->
+
+## My Notes
+

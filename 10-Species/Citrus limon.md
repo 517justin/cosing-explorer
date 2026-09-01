@@ -1,0 +1,85 @@
+---
+accepted_name: "Citrus limon"
+gbif_key: 7647136
+genus: Citrus
+family: Rutaceae
+order: Sapindales
+kingdom: Plantae
+extracts: 30
+compounds: 0
+tags:
+  - species
+  - Rutaceae
+---
+
+<!-- AUTO-START -->
+
+## Taxonomy
+
+| | |
+|---|---|
+| Family | [[Rutaceae]] |
+| Order | Sapindales |
+| Kingdom | Plantae |
+| GBIF | [7647136](https://www.gbif.org/species/7647136) |
+
+## COSING Extracts
+
+30 extract(s) in the 2026 inventory.
+
+**INCI names:**
+
+- CITRUS BERGAMIA LEAF OIL
+- CITRUS BERGAMIA MELAROSA LEAF OIL
+- CITRUS BERGAMIA MELAROSA PEEL OIL EXPRESSED
+- CITRUS BERGAMIA PEEL OIL EXPRESSED
+- CITRUS LIMON BUD EXTRACT
+- CITRUS LIMON CALLUS CULTURE EXTRACT
+- CITRUS LIMON FIBER
+- CITRUS LIMON FLOWER EXTRACT
+- CITRUS LIMON FLOWER WATER
+- CITRUS LIMON FLOWER/LEAF/STEM EXTRACT
+- CITRUS LIMON FLOWER/LEAF/STEM OIL
+- CITRUS LIMON FRUIT EXTRACT
+- CITRUS LIMON FRUIT OIL
+- CITRUS LIMON FRUIT POWDER
+- CITRUS LIMON FRUIT WATER
+- CITRUS LIMON JUICE
+- CITRUS LIMON JUICE EXTRACT
+- CITRUS LIMON JUICE POWDER
+- CITRUS LIMON LEAF CELL EXTRACT
+- CITRUS LIMON LEAF EXTRACT
+- … and 10 more
+
+**Parts:** bud, flower, fruit, leaf, peel, seed, stem
+
+**Processes:** extract, fiber, juice, oil, powder, water, wax
+
+## Functions
+
+- [[Function — ABSORBENT|ABSORBENT]]
+- [[Function — ANTIMICROBIAL|ANTIMICROBIAL]]
+- [[Function — ANTIOXIDANT|ANTIOXIDANT]]
+- [[Function — ASTRINGENT|ASTRINGENT]]
+- [[Function — EMULSION STABILISING|EMULSION STABILISING]]
+- [[Function — FRAGRANCE|FRAGRANCE]]
+- [[Function — HAIR CONDITIONING|HAIR CONDITIONING]]
+- [[Function — HUMECTANT|HUMECTANT]]
+- [[Function — PERFUMING|PERFUMING]]
+- [[Function — SKIN CONDITIONING|SKIN CONDITIONING]]
+- [[Function — SKIN CONDITIONING - EMOLLIENT|SKIN CONDITIONING - EMOLLIENT]]
+- [[Function — SKIN CONDITIONING - MISCELLANEOUS|SKIN CONDITIONING - MISCELLANEOUS]]
+- [[Function — SKIN CONDITIONING - OCCLUSIVE|SKIN CONDITIONING - OCCLUSIVE]]
+- [[Function — SKIN PROTECTING|SKIN PROTECTING]]
+- [[Function — TONIC|TONIC]]
+- [[Function — VISCOSITY CONTROLLING|VISCOSITY CONTROLLING]]
+
+## Regulation
+
+- Annex II/358
+- Annex III/353
+
+<!-- AUTO-END -->
+
+## My Notes
+

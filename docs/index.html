@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>化妝品成分探索器</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --bg: #faf9f7;
+  --surface: #ffffff;
+  --surface-alt: #f0efed;
+  --text: #1a1a2e;
+  --text-sec: #71717a;
+  --border: #e4e4e7;
+  --accent: #6366f1;
+  --accent-dim: rgba(99,102,241,0.12);
+  --family: #16a34a;
+  --family-dim: rgba(22,163,74,0.12);
+  --function: #e67e22;
+  --function-dim: rgba(230,126,34,0.12);
+  --species: #0891b2;
+  --species-dim: rgba(8,145,178,0.12);
+  --ingredient: #7c3aed;
+  --ingredient-dim: rgba(124,58,237,0.12);
+  --compound: #db2777;
+  --compound-dim: rgba(219,39,119,0.12);
+  --restrict: #dc2626;
+  --restrict-dim: rgba(220,38,38,0.12);
+  --edge: rgba(0,0,0,0.06);
+  --edge-hi: rgba(99,102,241,0.25);
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --font: 'Inter', system-ui, -apple-system, sans-serif;
+  --mono: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  --canvas-bg: #faf9f7;
+  --node-label: #1a1a2e;
+  --node-label-dim: rgba(26,26,46,0.5);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c0c0f;
+    --surface: #18181b;
+    --surface-alt: #27272a;
+    --text: #e4e4e7;
+    --text-sec: #8b8b96;
+    --border: #2e2e33;
+    --accent: #818cf8;
+    --accent-dim: rgba(129,140,248,0.15);
+    --family: #4ade80;
+    --family-dim: rgba(74,222,128,0.15);
+    --function: #fbbf24;
+    --function-dim: rgba(251,191,36,0.15);
+    --species: #22d3ee;
+    --species-dim: rgba(34,211,238,0.15);
+    --ingredient: #a78bfa;
+    --ingredient-dim: rgba(167,139,250,0.15);
+    --compound: #f472b6;
+    --compound-dim: rgba(244,114,182,0.15);
+    --restrict: #f87171;
+    --restrict-dim: rgba(248,113,113,0.15);
+    --edge: rgba(255,255,255,0.05);
+    --edge-hi: rgba(129,140,248,0.3);
+    --shadow: 0 2px 12px rgba(0,0,0,0.4);
+    --canvas-bg: #0c0c0f;
+    --node-label: #e4e4e7;
+    --node-label-dim: rgba(228,228,231,0.4);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c0c0f;
+  --surface: #18181b;
+  --surface-alt: #27272a;
+  --text: #e4e4e7;
+  --text-sec: #8b8b96;
+  --border: #2e2e33;
+  --accent: #818cf8;
+  --accent-dim: rgba(129,140,248,0.15);
+  --family: #4ade80;
+  --family-dim: rgba(74,222,128,0.15);
+  --function: #fbbf24;
+  --function-dim: rgba(251,191,36,0.15);
+  --species: #22d3ee;
+  --species-dim: rgba(34,211,238,0.15);
+  --ingredient: #a78bfa;
+  --ingredient-dim: rgba(167,139,250,0.15);
+  --compound: #f472b6;
+  --compound-dim: rgba(244,114,182,0.15);
+  --restrict: #f87171;
+  --restrict-dim: rgba(248,113,113,0.15);
+  --edge: rgba(255,255,255,0.05);
+  --edge-hi: rgba(129,140,248,0.3);
+  --shadow: 0 2px 12px rgba(0,0,0,0.4);
+  --canvas-bg: #0c0c0f;
+  --node-label: #e4e4e7;
+  --node-label-dim: rgba(228,228,231,0.4);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font); overflow: hidden; height: 100vh; }
+
+#loading {
+  position: fixed; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 14px; z-index: 999;
+  background: var(--bg);
+}
+#loading h1 { font-size: 20px; font-weight: 700; }
+.spinner {
+  width: 32px; height: 32px; border: 3px solid var(--border);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#loading .sub { color: var(--text-sec); font-size: 13px; }
+
+#app { display: none; height: 100vh; position: relative; }
+
+canvas#graph {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  cursor: grab;
+}
+canvas#graph.dragging { cursor: grabbing; }
+
+.toolbar {
+  position: absolute; top: 0; left: 0; right: 0;
+  padding: 12px 16px; display: flex; align-items: center; gap: 12px;
+  pointer-events: none; z-index: 10;
+}
+.toolbar > * { pointer-events: auto; }
+.brand {
+  font-weight: 700; font-size: 15px; white-space: nowrap;
+  background: var(--surface); padding: 7px 14px; border-radius: 10px;
+  box-shadow: var(--shadow); border: 1px solid var(--border);
+}
+.brand small { font-weight: 400; color: var(--text-sec); font-size: 11px; margin-left: 6px; }
+.search-wrap {
+  flex: 1; max-width: 380px; position: relative;
+}
+.search-wrap input {
+  width: 100%; padding: 8px 14px 8px 34px;
+  border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface); color: var(--text);
+  font-size: 13px; font-family: var(--font);
+  box-shadow: var(--shadow); outline: none;
+}
+.search-wrap input:focus { border-color: var(--accent); }
+.search-wrap .si {
+  position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+  color: var(--text-sec); font-size: 14px; pointer-events: none;
+}
+.search-results {
+  position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; box-shadow: var(--shadow);
+  max-height: 320px; overflow-y: auto; display: none;
+}
+.search-results.open { display: block; }
+.sr-item {
+  padding: 8px 14px; cursor: pointer; font-size: 13px;
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.sr-item:last-child { border-bottom: none; }
+.sr-item:hover { background: var(--surface-alt); }
+.sr-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.sr-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sr-type { color: var(--text-sec); font-size: 11px; flex-shrink: 0; }
+.stats-bar {
+  display: flex; gap: 10px; font-size: 11px; color: var(--text-sec);
+  background: var(--surface); padding: 6px 12px; border-radius: 8px;
+  box-shadow: var(--shadow); border: 1px solid var(--border);
+}
+.stats-bar b { color: var(--text); font-variant-numeric: tabular-nums; }
+@media (max-width: 700px) {
+  .stats-bar { display: none; }
+  .brand small { display: none; }
+}
+
+.legend {
+  position: absolute; bottom: 12px; left: 12px;
+  background: var(--surface); padding: 8px 14px; border-radius: 10px;
+  box-shadow: var(--shadow); border: 1px solid var(--border);
+  display: flex; gap: 14px; font-size: 11px; color: var(--text-sec);
+  z-index: 10;
+}
+.legend-item { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+.breadcrumb {
+  position: absolute; top: 56px; left: 16px;
+  background: var(--surface); padding: 5px 12px; border-radius: 8px;
+  box-shadow: var(--shadow); border: 1px solid var(--border);
+  font-size: 12px; display: flex; align-items: center; gap: 6px;
+  z-index: 10;
+}
+.breadcrumb span { color: var(--text-sec); cursor: pointer; }
+.breadcrumb span:hover { color: var(--accent); }
+.breadcrumb .bc-sep { color: var(--border); cursor: default; }
+.breadcrumb .bc-cur { color: var(--text); font-weight: 600; cursor: default; }
+
+.side-panel {
+  position: absolute; top: 0; right: 0; bottom: 0; width: 380px;
+  background: var(--surface); border-left: 1px solid var(--border);
+  box-shadow: -4px 0 20px rgba(0,0,0,0.06);
+  z-index: 20; overflow-y: auto; transform: translateX(100%);
+  transition: transform 0.25s ease;
+}
+.side-panel.open { transform: translateX(0); }
+@media (max-width: 700px) {
+  .side-panel { width: 100%; }
+}
+.sp-head {
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; gap: 10px; position: sticky;
+  top: 0; background: var(--surface); z-index: 1;
+}
+.sp-head h2 { font-size: 14px; line-height: 1.4; word-break: break-word; flex: 1; }
+.sp-close {
+  width: 28px; height: 28px; border: none; background: var(--surface-alt);
+  border-radius: 6px; cursor: pointer; font-size: 16px; color: var(--text-sec);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.sp-close:hover { background: var(--border); color: var(--text); }
+.sp-body { padding: 14px 16px; }
+.sp-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+.sp-tag {
+  padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500;
+}
+.sp-section { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+.sp-section h3 {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--text-sec); margin-bottom: 6px; font-weight: 600;
+}
+.sp-row { display: flex; gap: 8px; margin-bottom: 3px; font-size: 13px; }
+.sp-lbl { color: var(--text-sec); min-width: 50px; flex-shrink: 0; }
+.sp-val { word-break: break-word; }
+.sp-desc { font-size: 13px; color: var(--text-sec); line-height: 1.6; }
+.sp-fn {
+  display: inline-block; padding: 2px 8px; border-radius: 4px; margin: 2px;
+  font-size: 11px; background: var(--function-dim); color: var(--function);
+  cursor: pointer;
+}
+.sp-fn:hover { opacity: 0.8; }
+.sp-taxon {
+  font-size: 13px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+}
+.sp-taxon .rank { color: var(--text-sec); }
+.sp-taxon .sep { color: var(--border); }
+.sp-taxon .link { color: var(--accent); cursor: pointer; }
+.sp-taxon .link:hover { text-decoration: underline; }
+.sp-chem-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 6px;
+}
+.sp-chem-card {
+  border: 1px solid var(--border); border-radius: 6px; padding: 4px;
+  text-align: center; cursor: pointer; background: var(--surface);
+}
+.sp-chem-card:hover { border-color: var(--accent); }
+.sp-chem-svg { width: 72px; height: 72px; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
+.sp-chem-svg svg { max-width: 100%; max-height: 100%; }
+.sp-chem-f { font-size: 9px; color: var(--text-sec); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .sp-chem-svg svg { filter: invert(0.88) hue-rotate(180deg); } }
+:root[data-theme="dark"] .sp-chem-svg svg { filter: invert(0.88) hue-rotate(180deg); }
+.sp-chem-ph { width: 72px; height: 72px; background: var(--surface-alt); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--text-sec); font-size: 16px; }
+
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+}
+.overlay-box {
+  background: var(--surface); border-radius: 14px; padding: 20px;
+  max-width: 520px; width: 92%; max-height: 80vh; overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.overlay-box h3 { font-size: 14px; margin-bottom: 4px; }
+.overlay-box .meta { font-size: 12px; color: var(--text-sec); margin-bottom: 10px; }
+.overlay-svg { text-align: center; margin: 10px 0; }
+.overlay-svg svg { max-width: 260px; max-height: 260px; }
+.overlay-sp { font-size: 12px; }
+.overlay-sp li { margin-bottom: 2px; }
+.close-btn {
+  float: right; background: none; border: none; font-size: 20px;
+  color: var(--text-sec); cursor: pointer; line-height: 1;
+}
+.close-btn:hover { color: var(--text); }
+
+.view-controls {
+  position: absolute; bottom: 36px; right: 12px;
+  display: flex; gap: 4px; z-index: 10;
+}
+.view-btn {
+  width: 36px; height: 36px; border: 1px solid var(--border);
+  border-radius: 8px; background: var(--surface); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: var(--text-sec); box-shadow: var(--shadow);
+}
+.view-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.site-footer {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 6px 16px; font-size: 10px; color: var(--text-sec);
+  background: var(--surface); border-top: 1px solid var(--border);
+  display: flex; flex-wrap: wrap; gap: 4px 16px; z-index: 5;
+  line-height: 1.6;
+}
+.site-footer a { color: var(--accent); text-decoration: none; }
+.site-footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <h1>化妝品成分探索器</h1>
+  <div class="spinner"></div>
+  <div class="sub">載入資料中...</div>
+</div>
+
+<div id="app">
+  <canvas id="graph"></canvas>
+
+  <div class="toolbar">
+    <div class="brand">化妝品成分探索器<small>EU Cosmetic Ingredients</small></div>
+    <div class="search-wrap">
+      <span class="si">⌕</span>
+      <input type="text" id="search" placeholder="搜尋原料、科、用途、物種..." autocomplete="off">
+      <div class="search-results" id="sr"></div>
+    </div>
+    <div class="stats-bar" id="stats"></div>
+  </div>
+
+  <div class="breadcrumb" id="bc" style="display:none"></div>
+
+  <div class="legend" id="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--family)"></div>科 Family</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--function)"></div>用途 Function</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--ingredient)"></div>原料 Ingredient</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--species)"></div>物種 Species</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--compound)"></div>化合物 Compound</div>
+  </div>
+
+  <div class="view-controls">
+    <button class="view-btn" id="zoomIn" title="放大">+</button>
+    <button class="view-btn" id="zoomOut" title="縮小">−</button>
+    <button class="view-btn" id="resetView" title="重置視圖">⌂</button>
+  </div>
+
+  <div class="side-panel" id="panel"></div>
+
+  <footer class="site-footer">
+    <span>資料來源：<a href="https://data.europa.eu/data/datasets/cosing-list-ingredients-and-fragrance-inventory?locale=en" target="_blank" rel="noopener">EU CosIng — Cosmetic Ingredient Database</a>（European Commission）</span>
+    <span>分類階層：<a href="https://www.gbif.org/" target="_blank" rel="noopener">GBIF</a></span>
+    <span>化合物：<a href="https://lotus.naturalproducts.net/" target="_blank" rel="noopener">LOTUS</a> · <a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">PubChem</a></span>
+    <span>作者：Chia-Hsiu CHEN · <a href="https://github.com/517justin/cosing-explorer" target="_blank" rel="noopener">GitHub</a></span>
+    <span>授權條款：<a href="https://github.com/517justin/cosing-explorer/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a></span>
+  </footer>
+</div>
+
+<script>
+const TYPE_COLORS = {};
+const SVG_CACHE = {};
+let D, GRAPH, SIM, CAM, CTX, CANVAS;
+let W, H, DPR;
+let dragNode = null, hovNode = null, panStart = null, selectedNode = null;
+let animId = null;
+
+function getColor(name) {
+  const s = getComputedStyle(document.documentElement);
+  return s.getPropertyValue('--' + name).trim();
+}
+function refreshColors() {
+  TYPE_COLORS.family = getColor('family');
+  TYPE_COLORS.function = getColor('function');
+  TYPE_COLORS.ingredient = getColor('ingredient');
+  TYPE_COLORS.species = getColor('species');
+  TYPE_COLORS.compound = getColor('compound');
+  TYPE_COLORS.restrict = getColor('restrict');
+  TYPE_COLORS.edge = getColor('edge');
+  TYPE_COLORS.edgeHi = getColor('edge-hi');
+  TYPE_COLORS.canvasBg = getColor('canvas-bg');
+  TYPE_COLORS.label = getColor('node-label');
+  TYPE_COLORS.labelDim = getColor('node-label-dim');
+  TYPE_COLORS.border = getColor('border');
+}
+
+function hexToRgba(hex, a) {
+  hex = hex.replace('#', '');
+  if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+  const r = parseInt(hex.substring(0,2),16), g = parseInt(hex.substring(2,4),16), b = parseInt(hex.substring(4,6),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+class Camera {
+  constructor() { this.x = 0; this.y = 0; this.scale = 1; }
+  screenToWorld(sx, sy) {
+    return [(sx / DPR - W / 2 / DPR) / this.scale + this.x, (sy / DPR - H / 2 / DPR) / this.scale + this.y];
+  }
+  worldToScreen(wx, wy) {
+    return [((wx - this.x) * this.scale + W / 2 / DPR) * DPR, ((wy - this.y) * this.scale + H / 2 / DPR) * DPR];
+  }
+  zoom(factor, cx, cy) {
+    const [wx, wy] = this.screenToWorld(cx, cy);
+    this.scale *= factor;
+    this.scale = Math.max(0.1, Math.min(8, this.scale));
+    const [nx, ny] = this.screenToWorld(cx, cy);
+    this.x += wx - nx;
+    this.y += wy - ny;
+  }
+}
+
+function buildOverview() {
+  const nodes = [], edges = [];
+  const nodeMap = {};
+
+  const topFams = D.families.slice(0, 60);
+  topFams.forEach((name, i) => {
+    const id = 'fam:' + i;
+    const r = 8 + Math.sqrt(D.fam_counts[i]) * 0.8;
+    nodes.push({ id, type: 'family', label: name, count: D.fam_counts[i], r: Math.min(r, 35), famIdx: i, x: 0, y: 0, vx: 0, vy: 0 });
+    nodeMap[id] = nodes.length - 1;
+  });
+
+  const topFns = D.functions.slice(0, 40);
+  topFns.forEach((name, i) => {
+    const id = 'fn:' + i;
+    const r = 6 + Math.sqrt(D.fn_counts[i]) * 0.15;
+    nodes.push({ id, type: 'function', label: name, count: D.fn_counts[i], r: Math.min(r, 28), fnIdx: i, x: 0, y: 0, vx: 0, vy: 0 });
+    nodeMap[id] = nodes.length - 1;
+  });
+
+  const famFnCounts = {};
+  for (const k of D.order) {
+    const it = D.items[k];
+    if (it.fm === undefined || it.fm >= 60) continue;
+    for (const fi of it.f) {
+      if (fi >= 40) continue;
+      const key = it.fm + ':' + fi;
+      famFnCounts[key] = (famFnCounts[key] || 0) + 1;
+    }
+  }
+
+  for (const [key, count] of Object.entries(famFnCounts)) {
+    if (count < 3) continue;
+    const [fi, fni] = key.split(':').map(Number);
+    const src = nodeMap['fam:' + fi], tgt = nodeMap['fn:' + fni];
+    if (src !== undefined && tgt !== undefined) {
+      edges.push({ source: src, target: tgt, weight: count });
+    }
+  }
+
+  const sortedCpds = Object.entries(D.ci)
+    .sort((a, b) => b[1].n_sp - a[1].n_sp)
+    .slice(0, 100);
+  sortedCpds.forEach(([ik, cpd]) => {
+    const id = 'cpd:' + ik;
+    const r = 4 + Math.sqrt(cpd.n_sp) * 0.5;
+    nodes.push({ id, type: 'compound', label: cpd.f || ik.substring(0, 10), r: Math.min(r, 16), ik, x: 0, y: 0, vx: 0, vy: 0 });
+    const cpdIdx = nodes.length - 1;
+    nodeMap[id] = cpdIdx;
+    if (cpd.top_fam) {
+      cpd.top_fam.slice(0, 3).forEach(([fam, cnt]) => {
+        const famI = D.families.indexOf(fam);
+        if (famI >= 0 && famI < 60 && nodeMap['fam:' + famI] !== undefined) {
+          edges.push({ source: nodeMap['fam:' + famI], target: cpdIdx, weight: cnt });
+        }
+      });
+    }
+  });
+
+  const angle = (2 * Math.PI) / nodes.length;
+  const radius = Math.max(300, nodes.length * 5);
+  nodes.forEach((n, i) => {
+    const a = angle * i + (Math.random() - 0.5) * 0.3;
+    const r = radius * (0.6 + Math.random() * 0.4);
+    n.x = Math.cos(a) * r;
+    n.y = Math.sin(a) * r;
+  });
+
+  return { nodes, edges, nodeMap, view: 'overview' };
+}
+
+function buildEgoGraph(centerType, centerIdx) {
+  const nodes = [], edges = [];
+  const nodeMap = {};
+  let centerLabel = '';
+
+  if (centerType === 'family') {
+    centerLabel = D.families[centerIdx];
+    const cid = 'fam:' + centerIdx;
+    nodes.push({ id: cid, type: 'family', label: centerLabel, count: D.fam_counts[centerIdx], r: 30, famIdx: centerIdx, x: 0, y: 0, vx: 0, vy: 0 });
+    nodeMap[cid] = 0;
+
+    const speciesMap = {};
+    const fnCounts = {};
+    for (const k of D.order) {
+      const it = D.items[k];
+      if (it.fm !== centerIdx) continue;
+      if (it.sp && !speciesMap[it.sp]) {
+        speciesMap[it.sp] = { refKeys: [], fns: new Set() };
+      }
+      if (it.sp) {
+        speciesMap[it.sp].refKeys.push(k);
+        it.f.forEach(f => { speciesMap[it.sp].fns.add(f); fnCounts[f] = (fnCounts[f] || 0) + 1; });
+      }
+    }
+
+    const sortedSp = Object.entries(speciesMap).sort((a, b) => b[1].refKeys.length - a[1].refKeys.length).slice(0, 30);
+    sortedSp.forEach(([sp, data]) => {
+      const sid = 'sp:' + sp;
+      nodes.push({ id: sid, type: 'species', label: sp, count: data.refKeys.length, r: 8 + Math.min(data.refKeys.length * 2, 14), x: 0, y: 0, vx: 0, vy: 0, refKeys: data.refKeys });
+      nodeMap[sid] = nodes.length - 1;
+      edges.push({ source: 0, target: nodes.length - 1, weight: data.refKeys.length });
+    });
+
+    const topFns = Object.entries(fnCounts).sort((a, b) => b[1] - a[1]).slice(0, 15);
+    topFns.forEach(([fi, cnt]) => {
+      const fnId = 'fn:' + fi;
+      nodes.push({ id: fnId, type: 'function', label: D.functions[fi], count: cnt, r: 7 + Math.min(cnt * 0.5, 12), fnIdx: parseInt(fi), x: 0, y: 0, vx: 0, vy: 0 });
+      nodeMap[fnId] = nodes.length - 1;
+      edges.push({ source: 0, target: nodes.length - 1, weight: cnt });
+    });
+
+    sortedSp.slice(0, 15).forEach(([sp, data]) => {
+      const k = data.refKeys[0];
+      const it = D.items[k];
+      const iid = 'ing:' + k;
+      if (nodeMap[iid] !== undefined) return;
+      nodes.push({ id: iid, type: 'ingredient', label: it.n, r: 5, refNo: k, x: 0, y: 0, vx: 0, vy: 0 });
+      nodeMap[iid] = nodes.length - 1;
+      const spIdx = nodeMap['sp:' + sp];
+      if (spIdx !== undefined) edges.push({ source: spIdx, target: nodes.length - 1, weight: 1 });
+    });
+
+    const cpdSet = {};
+    for (const [sp, data] of sortedSp) {
+      for (const k of data.refKeys) {
+        const it = D.items[k];
+        if (it.tc) it.tc.forEach(([ik, formula]) => {
+          if (!cpdSet[ik]) cpdSet[ik] = { formula, species: new Set() };
+          cpdSet[ik].species.add(sp);
+        });
+      }
+    }
+    Object.entries(cpdSet).sort((a, b) => b[1].species.size - a[1].species.size).slice(0, 10).forEach(([ik, data]) => {
+      const cpdId = 'cpd:' + ik;
+      if (nodeMap[cpdId] !== undefined) return;
+      nodes.push({ id: cpdId, type: 'compound', label: data.formula || ik.substring(0, 10), r: 6, ik, x: 0, y: 0, vx: 0, vy: 0 });
+      nodeMap[cpdId] = nodes.length - 1;
+      data.species.forEach(sp => {
+        const spIdx = nodeMap['sp:' + sp];
+        if (spIdx !== undefined) edges.push({ source: spIdx, target: nodes.length - 1, weight: 1 });
+      });
+    });
+
+  } else if (centerType === 'function') {
+    centerLabel = D.functions[centerIdx];
+    const cid = 'fn:' + centerIdx;
+    nodes.push({ id: cid, type: 'function', label: centerLabel, count: D.fn_counts[centerIdx], r: 30, fnIdx: centerIdx, x: 0, y: 0, vx: 0, vy: 0 });
+    nodeMap[cid] = 0;
+
+    const famCounts = {};
+    for (const k of D.order) {
+      const it = D.items[k];
+      if (!it.f.includes(centerIdx)) continue;
+      if (it.fm !== undefined) famCounts[it.fm] = (famCounts[it.fm] || 0) + 1;
+    }
+
+    const topFams = Object.entries(famCounts).sort((a, b) => b[1] - a[1]).slice(0, 35);
+    topFams.forEach(([fi, cnt]) => {
+      const famId = 'fam:' + fi;
+      if (nodeMap[famId] !== undefined) return;
+      nodes.push({ id: famId, type: 'family', label: D.families[fi], count: cnt, r: 8 + Math.min(Math.sqrt(cnt) * 2, 16), famIdx: parseInt(fi), x: 0, y: 0, vx: 0, vy: 0 });
+      nodeMap[famId] = nodes.length - 1;
+      edges.push({ source: 0, target: nodes.length - 1, weight: cnt });
+    });
+
+    let ingCount = 0;
+    for (const k of D.order) {
+      if (ingCount >= 15) break;
+      const it = D.items[k];
+      if (!it.f.includes(centerIdx)) continue;
+      const iid = 'ing:' + k;
+      if (nodeMap[iid] !== undefined) continue;
+      nodes.push({ id: iid, type: 'ingredient', label: it.n, r: 5, refNo: k, x: 0, y: 0, vx: 0, vy: 0 });
+      nodeMap[iid] = nodes.length - 1;
+      edges.push({ source: 0, target: nodes.length - 1, weight: 1 });
+      if (it.fm !== undefined) {
+        const famId = 'fam:' + it.fm;
+        if (nodeMap[famId] !== undefined) edges.push({ source: nodeMap[famId], target: nodes.length - 1, weight: 1 });
+      }
+      ingCount++;
+    }
+
+  } else if (centerType === 'ingredient') {
+    const it = D.items[centerIdx];
+    centerLabel = it.n;
+    const cid = 'ing:' + centerIdx;
+    nodes.push({ id: cid, type: 'ingredient', label: it.n, r: 24, refNo: centerIdx, x: 0, y: 0, vx: 0, vy: 0 });
+    nodeMap[cid] = 0;
+
+    it.f.forEach(fi => {
+      const fnId = 'fn:' + fi;
+      if (nodeMap[fnId] !== undefined) return;
+      nodes.push({ id: fnId, type: 'function', label: D.functions[fi], count: D.fn_counts[fi], r: 10, fnIdx: fi, x: 0, y: 0, vx: 0, vy: 0 });
+      nodeMap[fnId] = nodes.length - 1;
+      edges.push({ source: 0, target: nodes.length - 1, weight: 1 });
+    });
+
+    if (it.sp) {
+      const sid = 'sp:' + it.sp;
+      nodes.push({ id: sid, type: 'species', label: it.sp, r: 14, x: 0, y: 0, vx: 0, vy: 0 });
+      nodeMap[sid] = nodes.length - 1;
+      edges.push({ source: 0, target: nodes.length - 1, weight: 2 });
+
+      if (it.fm !== undefined) {
+        const famId = 'fam:' + it.fm;
+        nodes.push({ id: famId, type: 'family', label: D.families[it.fm], count: D.fam_counts[it.fm], r: 12, famIdx: it.fm, x: 0, y: 0, vx: 0, vy: 0 });
+        nodeMap[famId] = nodes.length - 1;
+        edges.push({ source: nodeMap[sid], target: nodes.length - 1, weight: 2 });
+      }
+
+      let sibCount = 0;
+      for (const k of D.order) {
+        if (sibCount >= 8 || k === centerIdx) continue;
+        const sib = D.items[k];
+        if (sib.sp === it.sp) {
+          const sibId = 'ing:' + k;
+          nodes.push({ id: sibId, type: 'ingredient', label: sib.n, r: 5, refNo: k, x: 0, y: 0, vx: 0, vy: 0 });
+          nodeMap[sibId] = nodes.length - 1;
+          edges.push({ source: nodeMap[sid], target: nodes.length - 1, weight: 1 });
+          sibCount++;
+        }
+      }
+    }
+
+    if (it.tc) {
+      it.tc.slice(0, 6).forEach(([ik, formula]) => {
+        const cpdId = 'cpd:' + ik;
+        nodes.push({ id: cpdId, type: 'compound', label: formula || ik.substring(0, 10), r: 8, ik, x: 0, y: 0, vx: 0, vy: 0 });
+        nodeMap[cpdId] = nodes.length - 1;
+        const spIdx = nodeMap['sp:' + it.sp];
+        if (spIdx !== undefined) edges.push({ source: spIdx, target: nodes.length - 1, weight: 1 });
+        else edges.push({ source: 0, target: nodes.length - 1, weight: 1 });
+      });
+    }
+  } else if (centerType === 'species') {
+    centerLabel = centerIdx;
+    const cid = 'sp:' + centerIdx;
+    nodes.push({ id: cid, type: 'species', label: centerIdx, r: 24, x: 0, y: 0, vx: 0, vy: 0 });
+    nodeMap[cid] = 0;
+
+    const relatedIngs = [];
+    const fnCounts = {};
+    let famIdx = -1;
+    for (const k of D.order) {
+      const it = D.items[k];
+      if (it.sp === centerIdx) {
+        relatedIngs.push(k);
+        it.f.forEach(fi => { fnCounts[fi] = (fnCounts[fi] || 0) + 1; });
+        if (famIdx < 0 && it.fm !== undefined) famIdx = it.fm;
+      }
+    }
+
+    if (famIdx >= 0) {
+      const famId = 'fam:' + famIdx;
+      nodes.push({ id: famId, type: 'family', label: D.families[famIdx], count: D.fam_counts[famIdx], r: 14, famIdx, x: 0, y: 0, vx: 0, vy: 0 });
+      nodeMap[famId] = nodes.length - 1;
+      edges.push({ source: 0, target: nodes.length - 1, weight: 2 });
+    }
+
+    relatedIngs.slice(0, 15).forEach(k => {
+      const it = D.items[k];
+      const iid = 'ing:' + k;
+      nodes.push({ id: iid, type: 'ingredient', label: it.n, r: 7, refNo: k, x: 0, y: 0, vx: 0, vy: 0 });
+      nodeMap[iid] = nodes.length - 1;
+      edges.push({ source: 0, target: nodes.length - 1, weight: 1 });
+    });
+
+    const topSpFns = Object.entries(fnCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    topSpFns.forEach(([fi, cnt]) => {
+      const fnId = 'fn:' + fi;
+      if (nodeMap[fnId] !== undefined) return;
+      nodes.push({ id: fnId, type: 'function', label: D.functions[fi], count: cnt, r: 7 + Math.min(cnt, 10), fnIdx: parseInt(fi), x: 0, y: 0, vx: 0, vy: 0 });
+      nodeMap[fnId] = nodes.length - 1;
+      edges.push({ source: 0, target: nodes.length - 1, weight: cnt });
+    });
+
+    const spCpds = {};
+    relatedIngs.forEach(k => {
+      const it = D.items[k];
+      if (it.tc) it.tc.forEach(([ik, formula]) => {
+        if (!spCpds[ik]) spCpds[ik] = formula;
+      });
+    });
+    Object.entries(spCpds).slice(0, 8).forEach(([ik, formula]) => {
+      const cpdId = 'cpd:' + ik;
+      if (nodeMap[cpdId] !== undefined) return;
+      nodes.push({ id: cpdId, type: 'compound', label: formula || ik.substring(0, 10), r: 7, ik, x: 0, y: 0, vx: 0, vy: 0 });
+      nodeMap[cpdId] = nodes.length - 1;
+      edges.push({ source: 0, target: nodes.length - 1, weight: 1 });
+    });
+
+  } else if (centerType === 'compound') {
+    const cpd = D.ci[centerIdx];
+    centerLabel = cpd ? (cpd.iupac || cpd.f || centerIdx.substring(0, 14)) : centerIdx;
+    const cid = 'cpd:' + centerIdx;
+    nodes.push({ id: cid, type: 'compound', label: cpd ? cpd.f : centerIdx.substring(0, 14), r: 28, ik: centerIdx, x: 0, y: 0, vx: 0, vy: 0 });
+    nodeMap[cid] = 0;
+
+    if (cpd && cpd.top_sp) {
+      const cpdSpSet = new Set(cpd.top_sp.map(([sp]) => sp));
+      cpd.top_sp.slice(0, 20).forEach(([sp]) => {
+        const sid = 'sp:' + sp;
+        if (nodeMap[sid] !== undefined) return;
+        nodes.push({ id: sid, type: 'species', label: sp, r: 7, x: 0, y: 0, vx: 0, vy: 0 });
+        nodeMap[sid] = nodes.length - 1;
+        edges.push({ source: 0, target: nodes.length - 1, weight: 1 });
+      });
+
+      const cpdFnCounts = {};
+      let cIngCount = 0;
+      for (const k of D.order) {
+        const it = D.items[k];
+        if (!it.sp || !cpdSpSet.has(it.sp)) continue;
+        if (cIngCount < 12) {
+          const iid = 'ing:' + k;
+          if (nodeMap[iid] === undefined) {
+            nodes.push({ id: iid, type: 'ingredient', label: it.n, r: 5, refNo: k, x: 0, y: 0, vx: 0, vy: 0 });
+            nodeMap[iid] = nodes.length - 1;
+            const spIdx = nodeMap['sp:' + it.sp];
+            if (spIdx !== undefined) edges.push({ source: spIdx, target: nodes.length - 1, weight: 1 });
+            cIngCount++;
+          }
+        }
+        it.f.forEach(fi => { cpdFnCounts[fi] = (cpdFnCounts[fi] || 0) + 1; });
+      }
+
+      Object.entries(cpdFnCounts).sort((a, b) => b[1] - a[1]).slice(0, 10).forEach(([fi, cnt]) => {
+        const fnId = 'fn:' + fi;
+        if (nodeMap[fnId] !== undefined) return;
+        nodes.push({ id: fnId, type: 'function', label: D.functions[fi], count: cnt, r: 7 + Math.min(cnt, 12), fnIdx: parseInt(fi), x: 0, y: 0, vx: 0, vy: 0 });
+        nodeMap[fnId] = nodes.length - 1;
+        edges.push({ source: 0, target: nodes.length - 1, weight: cnt });
+      });
+    }
+  }
+
+  const angle = (2 * Math.PI) / Math.max(nodes.length - 1, 1);
+  for (let i = 1; i < nodes.length; i++) {
+    const a = angle * (i - 1) - Math.PI / 2;
+    const r = 120 + Math.random() * 60;
+    nodes[i].x = Math.cos(a) * r;
+    nodes[i].y = Math.sin(a) * r;
+  }
+
+  return { nodes, edges, nodeMap, view: 'ego', centerType, centerIdx, centerLabel };
+}
+
+function simulate(graph) {
+  const { nodes, edges } = graph;
+  const N = nodes.length;
+  if (N === 0) return;
+  const REP = 3000, SPR = 0.005, REST = 140, GRAV = 0.01, DAMP = 0.85, MAX_V = 8;
+
+  for (let iter = 0; iter < 2; iter++) {
+    for (let i = 0; i < N; i++) {
+      for (let j = i + 1; j < N; j++) {
+        let dx = nodes[j].x - nodes[i].x, dy = nodes[j].y - nodes[i].y;
+        let d2 = dx * dx + dy * dy;
+        if (d2 < 1) d2 = 1;
+        const d = Math.sqrt(d2);
+        const f = REP / d2;
+        const fx = (dx / d) * f, fy = (dy / d) * f;
+        nodes[i].vx -= fx; nodes[i].vy -= fy;
+        nodes[j].vx += fx; nodes[j].vy += fy;
+      }
+    }
+
+    for (const e of edges) {
+      const a = nodes[e.source], b = nodes[e.target];
+      let dx = b.x - a.x, dy = b.y - a.y;
+      const d = Math.sqrt(dx * dx + dy * dy) || 1;
+      const f = (d - REST) * SPR;
+      const fx = (dx / d) * f, fy = (dy / d) * f;
+      a.vx += fx; a.vy += fy;
+      b.vx -= fx; b.vy -= fy;
+    }
+
+    for (const n of nodes) {
+      n.vx -= n.x * GRAV;
+      n.vy -= n.y * GRAV;
+      n.vx *= DAMP; n.vy *= DAMP;
+      const speed = Math.sqrt(n.vx * n.vx + n.vy * n.vy);
+      if (speed > MAX_V) { n.vx = (n.vx / speed) * MAX_V; n.vy = (n.vy / speed) * MAX_V; }
+      if (n !== dragNode) { n.x += n.vx; n.y += n.vy; }
+    }
+  }
+}
+
+function draw() {
+  if (!GRAPH) return;
+  refreshColors();
+  CTX.setTransform(DPR, 0, 0, DPR, 0, 0);
+  CTX.clearRect(0, 0, W / DPR, H / DPR);
+  CTX.fillStyle = TYPE_COLORS.canvasBg;
+  CTX.fillRect(0, 0, W / DPR, H / DPR);
+
+  const { nodes, edges } = GRAPH;
+  const s = CAM.scale;
+  const ox = W / 2 / DPR - CAM.x * s, oy = H / 2 / DPR - CAM.y * s;
+
+  CTX.save();
+  CTX.translate(ox, oy);
+  CTX.scale(s, s);
+
+  for (const e of edges) {
+    const a = nodes[e.source], b = nodes[e.target];
+    const isHi = hovNode && (a === hovNode || b === hovNode);
+    const isSel = selectedNode && (a === selectedNode || b === selectedNode);
+    CTX.beginPath();
+    CTX.moveTo(a.x, a.y);
+    CTX.lineTo(b.x, b.y);
+    CTX.strokeStyle = (isHi || isSel) ? TYPE_COLORS.edgeHi : TYPE_COLORS.edge;
+    CTX.lineWidth = (isHi || isSel) ? Math.min(1.5 + (e.weight || 1) * 0.15, 3) / s : Math.min(0.5 + (e.weight || 1) * 0.08, 2) / s;
+    CTX.stroke();
+  }
+
+  for (const n of nodes) {
+    const col = TYPE_COLORS[n.type] || TYPE_COLORS.ingredient;
+    const isHov = n === hovNode;
+    const isSel = n === selectedNode;
+    const r = n.r / s * (isHov ? 1.15 : 1);
+
+    if (isSel) {
+      CTX.beginPath();
+      CTX.arc(n.x, n.y, r + 4 / s, 0, Math.PI * 2);
+      CTX.fillStyle = hexToRgba(col.startsWith('#') ? col : '#6366f1', 0.2);
+      CTX.fill();
+    }
+
+    CTX.beginPath();
+    CTX.arc(n.x, n.y, r, 0, Math.PI * 2);
+    CTX.fillStyle = col;
+    CTX.fill();
+
+    if (isSel || isHov) {
+      CTX.lineWidth = 2 / s;
+      CTX.strokeStyle = '#fff';
+      CTX.stroke();
+    }
+
+    if (s > 0.3 || n.r > 14 || isHov || isSel) {
+      const fontSize = Math.max(Math.min(11 / s, 40), 6);
+      CTX.font = `500 ${fontSize}px Inter, system-ui, sans-serif`;
+      CTX.textAlign = 'center';
+      CTX.textBaseline = 'top';
+      const label = n.label.length > 24 ? n.label.substring(0, 22) + '…' : n.label;
+      const ty = n.y + r + 3 / s;
+
+      CTX.fillStyle = TYPE_COLORS.canvasBg;
+      const m = CTX.measureText(label);
+      const pad = 2 / s;
+      CTX.fillRect(n.x - m.width / 2 - pad, ty - pad / 2, m.width + pad * 2, fontSize + pad);
+
+      CTX.fillStyle = (isHov || isSel) ? TYPE_COLORS.label : TYPE_COLORS.labelDim;
+      CTX.fillText(label, n.x, ty);
+
+      if (n.count !== undefined && s > 0.5) {
+        CTX.font = `400 ${Math.max(fontSize * 0.7, 5)}px Inter, system-ui, sans-serif`;
+        CTX.fillStyle = TYPE_COLORS.labelDim;
+        CTX.fillText(n.count.toLocaleString(), n.x, ty + fontSize + 1 / s);
+      }
+    }
+  }
+
+  CTX.restore();
+  simulate(GRAPH);
+  animId = requestAnimationFrame(draw);
+}
+
+function hitTest(mx, my) {
+  if (!GRAPH) return null;
+  const [wx, wy] = CAM.screenToWorld(mx * DPR, my * DPR);
+  let best = null, bestDist = Infinity;
+  for (const n of GRAPH.nodes) {
+    const dx = n.x - wx, dy = n.y - wy;
+    const d = Math.sqrt(dx * dx + dy * dy);
+    const r = n.r / CAM.scale;
+    if (d < r + 5 / CAM.scale && d < bestDist) {
+      bestDist = d; best = n;
+    }
+  }
+  return best;
+}
+
+function setupInteraction() {
+  const c = CANVAS;
+  let lastClick = 0;
+
+  c.addEventListener('mousedown', e => {
+    const n = hitTest(e.offsetX, e.offsetY);
+    if (n) {
+      dragNode = n;
+      c.classList.add('dragging');
+    } else {
+      panStart = { x: e.offsetX, y: e.offsetY, cx: CAM.x, cy: CAM.y };
+      c.classList.add('dragging');
+    }
+  });
+
+  c.addEventListener('mousemove', e => {
+    if (dragNode) {
+      const [wx, wy] = CAM.screenToWorld(e.offsetX * DPR, e.offsetY * DPR);
+      dragNode.x = wx; dragNode.y = wy;
+      dragNode.vx = 0; dragNode.vy = 0;
+    } else if (panStart) {
+      const dx = (e.offsetX - panStart.x) / CAM.scale;
+      const dy = (e.offsetY - panStart.y) / CAM.scale;
+      CAM.x = panStart.cx - dx;
+      CAM.y = panStart.cy - dy;
+    } else {
+      const n = hitTest(e.offsetX, e.offsetY);
+      hovNode = n;
+      c.style.cursor = n ? 'pointer' : 'grab';
+    }
+  });
+
+  c.addEventListener('mouseup', e => {
+    const wasDrag = dragNode || panStart;
+    if (dragNode) {
+      const n = dragNode;
+      dragNode = null;
+      c.classList.remove('dragging');
+      const now = Date.now();
+      if (now - lastClick < 350) {
+        navigateNode(n);
+        lastClick = 0;
+      } else {
+        selectNode(n);
+        lastClick = now;
+      }
+      return;
+    }
+    if (panStart) {
+      const dx = Math.abs(e.offsetX - panStart.x), dy = Math.abs(e.offsetY - panStart.y);
+      panStart = null;
+      c.classList.remove('dragging');
+      if (dx < 3 && dy < 3) {
+        selectedNode = null;
+        closePanel();
+      }
+    }
+  });
+
+  c.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.12 : 0.89;
+    CAM.zoom(factor, e.offsetX * DPR, e.offsetY * DPR);
+  }, { passive: false });
+
+  let touches = [];
+  c.addEventListener('touchstart', e => {
+    e.preventDefault();
+    touches = Array.from(e.touches);
+    if (touches.length === 1) {
+      const t = touches[0];
+      const rect = c.getBoundingClientRect();
+      const n = hitTest(t.clientX - rect.left, t.clientY - rect.top);
+      if (n) { dragNode = n; }
+      else { panStart = { x: t.clientX - rect.left, y: t.clientY - rect.top, cx: CAM.x, cy: CAM.y }; }
+    }
+  }, { passive: false });
+
+  c.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const rect = c.getBoundingClientRect();
+    if (e.touches.length === 1 && dragNode) {
+      const t = e.touches[0];
+      const [wx, wy] = CAM.screenToWorld((t.clientX - rect.left) * DPR, (t.clientY - rect.top) * DPR);
+      dragNode.x = wx; dragNode.y = wy; dragNode.vx = 0; dragNode.vy = 0;
+    } else if (e.touches.length === 1 && panStart) {
+      const t = e.touches[0];
+      const dx = (t.clientX - rect.left - panStart.x) / CAM.scale;
+      const dy = (t.clientY - rect.top - panStart.y) / CAM.scale;
+      CAM.x = panStart.cx - dx; CAM.y = panStart.cy - dy;
+    }
+  }, { passive: false });
+
+  c.addEventListener('touchend', e => {
+    if (dragNode) {
+      selectNode(dragNode);
+      dragNode = null;
+    }
+    panStart = null;
+  });
+
+  document.getElementById('zoomIn').addEventListener('click', () => CAM.zoom(1.3, W / 2, H / 2));
+  document.getElementById('zoomOut').addEventListener('click', () => CAM.zoom(0.77, W / 2, H / 2));
+  document.getElementById('resetView').addEventListener('click', () => { showOverview(); });
+}
+
+const navHistory = [];
+
+function navigateNode(n) {
+  if (n.type === 'family') {
+    navHistory.push({ type: GRAPH.view, centerType: GRAPH.centerType, centerIdx: GRAPH.centerIdx });
+    GRAPH = buildEgoGraph('family', n.famIdx);
+    CAM.x = 0; CAM.y = 0; CAM.scale = 1;
+    selectedNode = GRAPH.nodes[0];
+    showPanel(selectedNode);
+    updateBreadcrumb();
+  } else if (n.type === 'function') {
+    navHistory.push({ type: GRAPH.view, centerType: GRAPH.centerType, centerIdx: GRAPH.centerIdx });
+    GRAPH = buildEgoGraph('function', n.fnIdx);
+    CAM.x = 0; CAM.y = 0; CAM.scale = 1;
+    selectedNode = GRAPH.nodes[0];
+    showPanel(selectedNode);
+    updateBreadcrumb();
+  } else if (n.type === 'species') {
+    navHistory.push({ type: GRAPH.view, centerType: GRAPH.centerType, centerIdx: GRAPH.centerIdx });
+    GRAPH = buildEgoGraph('species', n.label);
+    CAM.x = 0; CAM.y = 0; CAM.scale = 1;
+    selectedNode = GRAPH.nodes[0];
+    showPanel(selectedNode);
+    updateBreadcrumb();
+  } else if (n.type === 'ingredient' && n.refNo) {
+    navHistory.push({ type: GRAPH.view, centerType: GRAPH.centerType, centerIdx: GRAPH.centerIdx });
+    GRAPH = buildEgoGraph('ingredient', n.refNo);
+    CAM.x = 0; CAM.y = 0; CAM.scale = 1;
+    selectedNode = GRAPH.nodes[0];
+    showPanel(selectedNode);
+    updateBreadcrumb();
+  } else if (n.type === 'compound' && n.ik) {
+    navHistory.push({ type: GRAPH.view, centerType: GRAPH.centerType, centerIdx: GRAPH.centerIdx });
+    GRAPH = buildEgoGraph('compound', n.ik);
+    CAM.x = 0; CAM.y = 0; CAM.scale = 1;
+    selectedNode = GRAPH.nodes[0];
+    showPanel(selectedNode);
+    updateBreadcrumb();
+  }
+}
+
+function selectNode(n) {
+  selectedNode = n;
+  showPanel(n);
+}
+
+function showOverview() {
+  navHistory.length = 0;
+  GRAPH = buildOverview();
+  CAM.x = 0; CAM.y = 0; CAM.scale = 0.7;
+  selectedNode = null;
+  closePanel();
+  updateBreadcrumb();
+}
+
+function updateBreadcrumb() {
+  const bc = document.getElementById('bc');
+  if (!GRAPH || GRAPH.view === 'overview') {
+    bc.style.display = 'none'; return;
+  }
+  bc.style.display = 'flex';
+  let h = '<span onclick="showOverview()">總覽</span>';
+  h += '<span class="bc-sep">›</span>';
+  h += '<span class="bc-cur">' + esc(GRAPH.centerLabel || '') + '</span>';
+  bc.innerHTML = h;
+}
+
+function showPanel(n) {
+  const panel = document.getElementById('panel');
+  let h = '';
+
+  if (n.type === 'ingredient' && n.refNo) {
+    const it = D.items[n.refNo];
+    h += '<div class="sp-head"><h2>' + esc(it.n) + '</h2><button class="sp-close" onclick="closePanel()">×</button></div>';
+    h += '<div class="sp-body">';
+    h += '<div class="sp-tags">';
+    h += '<span class="sp-tag" style="background:var(--ingredient-dim);color:var(--ingredient)">原料</span>';
+    if (it.sp) h += '<span class="sp-tag" style="background:var(--family-dim);color:var(--family)">植物來源</span>';
+    if (it.re) h += '<span class="sp-tag" style="background:var(--restrict-dim);color:var(--restrict)">有限制</span>';
+    h += '</div>';
+    if (it.c) h += '<div style="font-family:var(--mono);font-size:12px;color:var(--text-sec);margin-bottom:8px">CAS ' + esc(it.c) + '</div>';
+    if (it.d) h += '<div class="sp-desc">' + esc(it.d) + '</div>';
+    if (it.f.length) {
+      h += '<div class="sp-section"><h3>用途 Functions</h3><div>';
+      it.f.forEach(i => { h += '<span class="sp-fn" onclick="navToFunction(' + i + ')">' + esc(D.functions[i]) + '</span>'; });
+      h += '</div></div>';
+    }
+    if (it.re) {
+      h += '<div class="sp-section"><h3>法規限制</h3>';
+      h += '<div class="sp-row"><span class="sp-lbl">Annex</span><span class="sp-val" style="color:var(--restrict);font-weight:600">' + esc(it.re) + '</span></div>';
+      if (it.mc) h += '<div class="sp-row"><span class="sp-lbl">最大濃度</span><span class="sp-val">' + esc(it.mc) + '</span></div>';
+      h += '</div>';
+    }
+    if (it.sp) {
+      h += '<div class="sp-section"><h3>植物來源</h3><div class="sp-taxon">';
+      if (it.k) h += '<span class="rank">' + esc(it.k) + '</span><span class="sep">›</span>';
+      if (it.ord) h += '<span class="rank">' + esc(it.ord) + '</span><span class="sep">›</span>';
+      if (it.fm !== undefined) h += '<span class="link" onclick="navToFamily(' + it.fm + ')">' + esc(D.families[it.fm]) + '</span><span class="sep">›</span>';
+      h += '<span style="font-style:italic;font-weight:600">' + esc(it.sp) + '</span></div>';
+      if (it.pt) h += '<div class="sp-row" style="margin-top:6px"><span class="sp-lbl">部位</span><span class="sp-val">' + (Array.isArray(it.pt) ? it.pt.join(', ') : it.pt) + '</span></div>';
+      if (it.pr) h += '<div class="sp-row"><span class="sp-lbl">製程</span><span class="sp-val">' + esc(it.pr) + '</span></div>';
+      if (it.gbif) h += '<div style="margin-top:4px"><a href="https://www.gbif.org/species/' + it.gbif + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">GBIF ↗</a></div>';
+      h += '</div>';
+    }
+    if (it.tc && it.tc.length) {
+      h += '<div class="sp-section"><h3>化合物' + (it.cc ? ' (' + it.cc + ')' : '') + '</h3><div class="sp-chem-grid">';
+      it.tc.forEach(([ik, f]) => {
+        h += '<div class="sp-chem-card" onclick="showCompound(\'' + ik + '\')"><div class="sp-chem-svg" id="sv-' + ik + '"><div class="sp-chem-ph">⋯</div></div>';
+        h += '<div class="sp-chem-f">' + esc(f) + '</div></div>';
+      });
+      h += '</div></div>';
+    }
+    if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'ingredient') {
+      h += '<div style="margin-top:10px"><button style="padding:4px 12px;border:1px solid var(--ingredient);border-radius:6px;background:var(--ingredient-dim);color:var(--ingredient);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navHistory.push({type:GRAPH.view,centerType:GRAPH.centerType,centerIdx:GRAPH.centerIdx});GRAPH=buildEgoGraph(\'ingredient\',\'' + n.refNo + '\');CAM.x=0;CAM.y=0;CAM.scale=1;selectedNode=GRAPH.nodes[0];showPanel(selectedNode);updateBreadcrumb()">展開此原料 →</button></div>';
+    }
+    h += '<div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border);font-size:10px;color:var(--text-sec)">Ref No: ' + esc(n.refNo) + '</div>';
+    h += '</div>';
+
+  } else if (n.type === 'family') {
+    h += '<div class="sp-head"><h2>' + esc(n.label) + '</h2><button class="sp-close" onclick="closePanel()">×</button></div>';
+    h += '<div class="sp-body">';
+    h += '<div class="sp-tags"><span class="sp-tag" style="background:var(--family-dim);color:var(--family)">科 Family</span></div>';
+    h += '<div class="sp-row"><span class="sp-lbl">原料數</span><span class="sp-val"><b>' + (n.count || D.fam_counts[n.famIdx]).toLocaleString() + '</b></span></div>';
+    if (D.fam_species[n.famIdx]) h += '<div class="sp-row"><span class="sp-lbl">物種數</span><span class="sp-val"><b>' + D.fam_species[n.famIdx] + '</b></span></div>';
+    if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'family') {
+      h += '<div style="margin-top:10px"><button style="padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:var(--accent-dim);color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navToFamily(' + n.famIdx + ')">展開此科 →</button></div>';
+    }
+    h += '</div>';
+
+  } else if (n.type === 'function') {
+    h += '<div class="sp-head"><h2>' + esc(n.label) + '</h2><button class="sp-close" onclick="closePanel()">×</button></div>';
+    h += '<div class="sp-body">';
+    h += '<div class="sp-tags"><span class="sp-tag" style="background:var(--function-dim);color:var(--function)">用途 Function</span></div>';
+    h += '<div class="sp-row"><span class="sp-lbl">原料數</span><span class="sp-val"><b>' + (n.count || D.fn_counts[n.fnIdx]).toLocaleString() + '</b></span></div>';
+    if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'function') {
+      h += '<div style="margin-top:10px"><button style="padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:var(--accent-dim);color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navToFunction(' + n.fnIdx + ')">展開此用途 →</button></div>';
+    }
+    h += '</div>';
+
+  } else if (n.type === 'species') {
+    h += '<div class="sp-head"><h2 style="font-style:italic">' + esc(n.label) + '</h2><button class="sp-close" onclick="closePanel()">×</button></div>';
+    h += '<div class="sp-body">';
+    h += '<div class="sp-tags"><span class="sp-tag" style="background:var(--species-dim);color:var(--species)">物種 Species</span></div>';
+    if (n.count) h += '<div class="sp-row"><span class="sp-lbl">原料數</span><span class="sp-val"><b>' + n.count + '</b></span></div>';
+    if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'species') {
+      h += '<div style="margin-top:10px"><button style="padding:4px 12px;border:1px solid var(--species);border-radius:6px;background:var(--species-dim);color:var(--species);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navHistory.push({type:GRAPH.view,centerType:GRAPH.centerType,centerIdx:GRAPH.centerIdx});GRAPH=buildEgoGraph(\'species\',\'' + n.label.replace(/'/g, "\\'") + '\');CAM.x=0;CAM.y=0;CAM.scale=1;selectedNode=GRAPH.nodes[0];showPanel(selectedNode);updateBreadcrumb()">展開此物種 →</button></div>';
+    }
+    h += '</div>';
+
+  } else if (n.type === 'compound') {
+    const cpd = n.ik ? D.ci[n.ik] : null;
+    h += '<div class="sp-head"><h2>' + esc(n.label) + '</h2><button class="sp-close" onclick="closePanel()">×</button></div>';
+    h += '<div class="sp-body">';
+    h += '<div class="sp-tags"><span class="sp-tag" style="background:var(--compound-dim);color:var(--compound)">化合物 Compound</span></div>';
+    if (cpd && cpd.f) h += '<div style="font-family:var(--mono);font-size:12px;color:var(--text-sec);margin-bottom:8px">' + esc(cpd.f) + '</div>';
+    if (cpd && cpd.iupac) h += '<div class="sp-desc" style="font-size:11px;word-break:break-all">' + esc(cpd.iupac) + '</div>';
+    if (n.ik) {
+      h += '<div class="sp-section"><div class="sp-chem-svg" id="sv-' + n.ik + '" style="width:200px;height:200px;margin:0 auto"><div class="sp-chem-ph" style="width:200px;height:200px">⋯</div></div></div>';
+      setTimeout(() => loadSvgInto(n.ik, 'sv-' + n.ik), 50);
+    }
+    if (cpd) {
+      h += '<div class="sp-row"><span class="sp-lbl">出現物種</span><span class="sp-val"><b>' + (cpd.n_sp || 0) + '</b></span></div>';
+      h += '<div class="sp-row"><span class="sp-lbl">涵蓋科數</span><span class="sp-val"><b>' + (cpd.n_fam || 0) + '</b></span></div>';
+      if (cpd.top_fam && cpd.top_fam.length) {
+        h += '<div class="sp-section"><h3>主要科 Top Families</h3><div>';
+        cpd.top_fam.forEach(([fam, cnt]) => {
+          const fi = D.families.indexOf(fam);
+          if (fi >= 0) h += '<span class="sp-fn" onclick="navToFamily(' + fi + ')">' + esc(fam) + ' <small>(' + cnt + ')</small></span>';
+          else h += '<span class="sp-fn">' + esc(fam) + ' <small>(' + cnt + ')</small></span>';
+        });
+        h += '</div></div>';
+      }
+      if (cpd.top_sp && cpd.top_sp.length) {
+        h += '<div class="sp-section"><h3>相關物種 (' + Math.min(cpd.top_sp.length, 20) + '/' + cpd.n_sp + ')</h3><div style="max-height:200px;overflow-y:auto">';
+        cpd.top_sp.slice(0, 20).forEach(([sp, fam]) => {
+          h += '<div style="font-size:12px;padding:2px 0;border-bottom:1px solid var(--border)"><span style="font-style:italic;cursor:pointer;color:var(--species)" onclick="navHistory.push({type:GRAPH.view,centerType:GRAPH.centerType,centerIdx:GRAPH.centerIdx});GRAPH=buildEgoGraph(\'species\',\'' + sp.replace(/'/g, "\\'") + '\');CAM.x=0;CAM.y=0;CAM.scale=1;selectedNode=GRAPH.nodes[0];showPanel(selectedNode);updateBreadcrumb()">' + esc(sp) + '</span>';
+          if (fam) h += ' <small style="color:var(--text-sec)">' + esc(fam) + '</small>';
+          h += '</div>';
+        });
+        h += '</div></div>';
+      }
+    }
+    if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'compound') {
+      h += '<div style="margin-top:10px"><button style="padding:4px 12px;border:1px solid var(--compound);border-radius:6px;background:var(--compound-dim);color:var(--compound);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navToCompound(\'' + (n.ik || '') + '\')">展開此化合物 →</button></div>';
+    }
+    if (n.ik) h += '<div style="margin-top:10px;font-size:10px;color:var(--text-sec);word-break:break-all">InChIKey: ' + esc(n.ik) + '</div>';
+    h += '</div>';
+  }
+
+  panel.innerHTML = h;
+  panel.classList.add('open');
+
+  if (n.type === 'ingredient' && n.refNo) {
+    const it = D.items[n.refNo];
+    if (it.tc) it.tc.forEach(([ik]) => loadSvgInto(ik, 'sv-' + ik));
+  }
+}
+
+function closePanel() {
+  document.getElementById('panel').classList.remove('open');
+  selectedNode = null;
+}
+
+function navToFamily(idx) {
+  navHistory.push({ type: GRAPH.view, centerType: GRAPH.centerType, centerIdx: GRAPH.centerIdx });
+  GRAPH = buildEgoGraph('family', idx);
+  CAM.x = 0; CAM.y = 0; CAM.scale = 1;
+  selectedNode = GRAPH.nodes[0];
+  showPanel(selectedNode);
+  updateBreadcrumb();
+}
+function navToFunction(idx) {
+  navHistory.push({ type: GRAPH.view, centerType: GRAPH.centerType, centerIdx: GRAPH.centerIdx });
+  GRAPH = buildEgoGraph('function', idx);
+  CAM.x = 0; CAM.y = 0; CAM.scale = 1;
+  selectedNode = GRAPH.nodes[0];
+  showPanel(selectedNode);
+  updateBreadcrumb();
+}
+function navToCompound(ik) {
+  navHistory.push({ type: GRAPH.view, centerType: GRAPH.centerType, centerIdx: GRAPH.centerIdx });
+  GRAPH = buildEgoGraph('compound', ik);
+  CAM.x = 0; CAM.y = 0; CAM.scale = 1;
+  selectedNode = GRAPH.nodes[0];
+  showPanel(selectedNode);
+  updateBreadcrumb();
+}
+
+async function decompressSvg(b64) {
+  const b = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const ds = new DecompressionStream('gzip');
+  const w = ds.writable.getWriter();
+  w.write(b); w.close();
+  const r = ds.readable.getReader();
+  const p = [];
+  while (true) { const { done, value } = await r.read(); if (done) break; p.push(value); }
+  const t = p.reduce((a, b) => a + b.length, 0);
+  const m = new Uint8Array(t);
+  let o = 0;
+  for (const c of p) { m.set(c, o); o += c.length; }
+  return new TextDecoder().decode(m);
+}
+
+async function getSvg(ik) {
+  if (!ik) return null;
+  const px = ik.substring(0, 2);
+  if (!SVG_CACHE[px]) {
+    try {
+      const r = await fetch('svg/' + px + '.json');
+      if (!r.ok) return null;
+      SVG_CACHE[px] = await r.json();
+    } catch { return null; }
+  }
+  const b = SVG_CACHE[px]?.[ik];
+  return b ? await decompressSvg(b) : null;
+}
+
+async function loadSvgInto(ik, elId) {
+  const svg = await getSvg(ik);
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.innerHTML = svg || '<div class="sp-chem-ph">?</div>';
+}
+
+function showCompound(ik) {
+  const c = D.ci[ik];
+  const ov = document.createElement('div');
+  ov.className = 'overlay';
+  ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+  let h = '<div class="overlay-box"><button class="close-btn" onclick="this.closest(\'.overlay\').remove()">×</button>';
+  if (c) {
+    h += '<h3>' + esc(c.iupac || ik) + '</h3>';
+    h += '<div class="meta">' + esc(c.f) + ' · ' + c.n_sp + ' species · ' + c.n_fam + ' families</div>';
+  } else {
+    h += '<h3>' + esc(ik) + '</h3>';
+  }
+  h += '<div class="overlay-svg" id="ov-' + ik + '"><div class="sp-chem-ph" style="width:180px;height:180px;margin:0 auto">⋯</div></div>';
+  if (c && c.top_sp) {
+    h += '<div class="overlay-sp"><h3 style="font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-sec);margin:10px 0 4px">Species</h3><ul style="margin:0;padding-left:18px">';
+    c.top_sp.forEach(([sp, fm]) => {
+      h += '<li><i>' + esc(sp) + '</i>' + (fm ? ' <span style="color:var(--text-sec)">(' + esc(fm) + ')</span>' : '') + '</li>';
+    });
+    if (c.n_sp > c.top_sp.length) h += '<li style="color:var(--text-sec)">… +' + (c.n_sp - c.top_sp.length) + ' more</li>';
+    h += '</ul></div>';
+  }
+  h += '</div>';
+  ov.innerHTML = h;
+  document.body.appendChild(ov);
+  loadSvgInto(ik, 'ov-' + ik);
+}
+
+function setupSearch() {
+  const input = document.getElementById('search');
+  const sr = document.getElementById('sr');
+  let tm;
+
+  input.addEventListener('input', () => {
+    clearTimeout(tm);
+    tm = setTimeout(() => {
+      const q = input.value.trim().toLowerCase();
+      if (q.length < 2) { sr.classList.remove('open'); return; }
+      const results = [];
+      D.families.forEach((name, i) => {
+        if (name.toLowerCase().includes(q)) results.push({ type: 'family', label: name, idx: i, count: D.fam_counts[i] });
+      });
+      D.functions.forEach((name, i) => {
+        if (name.toLowerCase().includes(q)) results.push({ type: 'function', label: name, idx: i, count: D.fn_counts[i] });
+      });
+      const seen = new Set();
+      for (const k of D.order) {
+        if (results.length >= 20) break;
+        const it = D.items[k];
+        if (it.n.toLowerCase().includes(q) || (it.c && it.c.includes(q))) {
+          results.push({ type: 'ingredient', label: it.n, idx: k });
+        }
+        if (it.sp && it.sp.toLowerCase().includes(q) && !seen.has(it.sp)) {
+          seen.add(it.sp);
+          results.push({ type: 'species', label: it.sp, idx: it.sp });
+        }
+      }
+
+      if (D.ci && results.length < 20) {
+        for (const [ik, cpd] of Object.entries(D.ci)) {
+          if (results.length >= 20) break;
+          const name = cpd.f || '';
+          const iupac = cpd.iupac || '';
+          if (name.toLowerCase().includes(q) || iupac.toLowerCase().includes(q) || ik.toLowerCase().includes(q)) {
+            results.push({ type: 'compound', label: name || ik.substring(0, 14), idx: ik, count: cpd.n_sp });
+          }
+        }
+      }
+
+      if (results.length === 0) { sr.classList.remove('open'); return; }
+      sr.innerHTML = results.slice(0, 15).map((r, i) => {
+        const col = TYPE_COLORS[r.type] || 'var(--accent)';
+        const typeLabel = { family: '科', function: '用途', ingredient: '原料', species: '物種', compound: '化合物' }[r.type] || '';
+        return '<div class="sr-item" data-i="' + i + '"><div class="sr-dot" style="background:' + col + '"></div><span class="sr-label">' + esc(r.label) + '</span><span class="sr-type">' + typeLabel + (r.count ? ' · ' + r.count : '') + '</span></div>';
+      }).join('');
+      sr.classList.add('open');
+
+      sr.querySelectorAll('.sr-item').forEach((el, i) => {
+        el.addEventListener('click', () => {
+          const r = results[i];
+          sr.classList.remove('open');
+          input.value = '';
+          if (r.type === 'family') navToFamily(r.idx);
+          else if (r.type === 'function') navToFunction(r.idx);
+          else if (r.type === 'ingredient') {
+            navHistory.push({ type: GRAPH.view, centerType: GRAPH.centerType, centerIdx: GRAPH.centerIdx });
+            GRAPH = buildEgoGraph('ingredient', r.idx);
+            CAM.x = 0; CAM.y = 0; CAM.scale = 1;
+            selectedNode = GRAPH.nodes[0]; showPanel(selectedNode); updateBreadcrumb();
+          } else if (r.type === 'species') {
+            navHistory.push({ type: GRAPH.view, centerType: GRAPH.centerType, centerIdx: GRAPH.centerIdx });
+            GRAPH = buildEgoGraph('species', r.idx);
+            CAM.x = 0; CAM.y = 0; CAM.scale = 1;
+            selectedNode = GRAPH.nodes[0]; showPanel(selectedNode); updateBreadcrumb();
+          } else if (r.type === 'compound') {
+            navToCompound(r.idx);
+          }
+        });
+      });
+    }, 150);
+  });
+
+  input.addEventListener('blur', () => { setTimeout(() => sr.classList.remove('open'), 200); });
+  input.addEventListener('focus', () => { if (sr.children.length) sr.classList.add('open'); });
+}
+
+function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+
+function resize() {
+  DPR = window.devicePixelRatio || 1;
+  const rect = CANVAS.getBoundingClientRect();
+  W = rect.width * DPR;
+  H = rect.height * DPR;
+  CANVAS.width = W;
+  CANVAS.height = H;
+}
+
+async function main() {
+  CANVAS = document.getElementById('graph');
+  CTX = CANVAS.getContext('2d');
+  CAM = new Camera();
+
+  const [ir, cr] = await Promise.all([fetch('data/ingredients.json'), fetch('data/compounds.json')]);
+  D = await ir.json();
+  D.ci = await cr.json();
+
+  refreshColors();
+
+  const bc = D.order.filter(k => D.items[k].sp).length;
+  const ss = new Set(); D.order.forEach(k => { if (D.items[k].sp) ss.add(D.items[k].sp); });
+  document.getElementById('stats').innerHTML =
+    '<span><b>' + D.order.length.toLocaleString() + '</b> 原料</span>' +
+    '<span><b>' + bc.toLocaleString() + '</b> 植物來源</span>' +
+    '<span><b>' + ss.size.toLocaleString() + '</b> 物種</span>' +
+    '<span><b>' + D.families.length + '</b> 科</span>' +
+    '<span><b>' + D.functions.length + '</b> 用途</span>' +
+    '<span><b>' + Object.keys(D.ci).length.toLocaleString() + '</b> 化合物</span>';
+
+  GRAPH = buildOverview();
+  CAM.scale = 0.7;
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  resize();
+  window.addEventListener('resize', resize);
+  setupInteraction();
+  setupSearch();
+
+  draw();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const ov = document.querySelector('.overlay');
+    if (ov) { ov.remove(); return; }
+    if (document.getElementById('panel').classList.contains('open')) { closePanel(); return; }
+    if (navHistory.length) {
+      const prev = navHistory.pop();
+      if (prev.type === 'overview') showOverview();
+      else GRAPH = buildEgoGraph(prev.centerType, prev.centerIdx);
+      CAM.x = 0; CAM.y = 0; CAM.scale = prev.type === 'overview' ? 0.7 : 1;
+      selectedNode = null; closePanel(); updateBreadcrumb();
+    }
+  }
+});
+
+const mq = window.matchMedia('(prefers-color-scheme: dark)');
+mq.addEventListener('change', refreshColors);
+
+main();
+</script>
+</body>
+</html>
