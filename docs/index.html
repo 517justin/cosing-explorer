@@ -1119,7 +1119,10 @@ function showPanel(n) {
       h += '<span style="font-style:italic;font-weight:600">' + esc(it.sp) + '</span></div>';
       if (it.pt) h += '<div class="sp-row" style="margin-top:6px"><span class="sp-lbl">部位</span><span class="sp-val">' + (Array.isArray(it.pt) ? it.pt.join(', ') : it.pt) + '</span></div>';
       if (it.pr) h += '<div class="sp-row"><span class="sp-lbl">製程</span><span class="sp-val">' + esc(it.pr) + '</span></div>';
-      if (it.gbif) h += '<div style="margin-top:4px"><a href="https://www.gbif.org/species/' + it.gbif + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">GBIF ↗</a></div>';
+      h += '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 10px">';
+      if (it.gbif) h += '<a href="https://www.gbif.org/species/' + it.gbif + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">GBIF ↗</a>';
+      h += '<a href="https://powo.science.kew.org/results?q=' + encodeURIComponent(it.sp) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">POWO ↗</a>';
+      h += '</div>';
       h += '</div>';
     }
     const panelCpds = (it.sp && D.ci_by_sp[it.sp])
@@ -1134,7 +1137,7 @@ function showPanel(n) {
       });
       h += '</div></div>';
     }
-    h += '<div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border);font-size:10px;color:var(--text-sec)">Ref No: ' + esc(n.refNo) + '</div>';
+    h += '<div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border);font-size:10px;color:var(--text-sec)">Ref No: ' + esc(n.refNo) + ' · <a href="https://ec.europa.eu/growth/tools-databases/cosing/details/' + encodeURIComponent(n.refNo) + '" target="_blank" rel="noopener" style="color:var(--accent)">CosIng ↗</a></div>';
     h += '</div>';
 
   } else if (n.type === 'family') {
@@ -1146,6 +1149,10 @@ function showPanel(n) {
     }
     h += '<div class="sp-row"><span class="sp-lbl">原料數</span><span class="sp-val"><b>' + (n.count || D.fam_counts[n.famIdx]).toLocaleString() + '</b></span></div>';
     if (D.fam_species[n.famIdx]) h += '<div class="sp-row"><span class="sp-lbl">物種數</span><span class="sp-val"><b>' + D.fam_species[n.famIdx] + '</b></span></div>';
+    h += '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 10px">';
+    h += '<a href="https://www.gbif.org/species/search?q=' + encodeURIComponent(n.label) + '&rank=FAMILY" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">GBIF ↗</a>';
+    h += '<a href="https://powo.science.kew.org/results?q=' + encodeURIComponent(n.label) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">POWO ↗</a>';
+    h += '</div>';
     h += '</div>';
 
   } else if (n.type === 'function') {
@@ -1166,6 +1173,10 @@ function showPanel(n) {
       h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--species);border-radius:6px;background:var(--species-dim);color:var(--species);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navHistory.push({type:GRAPH.view,centerType:GRAPH.centerType,centerIdx:GRAPH.centerIdx});GRAPH=buildEgoGraph(\'species\',\'' + n.label.replace(/'/g, "\\'") + '\');CAM.x=0;CAM.y=0;CAM.scale=1;selectedNode=GRAPH.nodes[0];showPanel(selectedNode);updateBreadcrumb()">展開此物種 →</button></div>';
     }
     if (n.count) h += '<div class="sp-row"><span class="sp-lbl">原料數</span><span class="sp-val"><b>' + n.count + '</b></span></div>';
+    h += '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 10px">';
+    h += '<a href="https://www.gbif.org/species/search?q=' + encodeURIComponent(n.label) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">GBIF ↗</a>';
+    h += '<a href="https://powo.science.kew.org/results?q=' + encodeURIComponent(n.label) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">POWO ↗</a>';
+    h += '</div>';
     h += '</div>';
 
   } else if (n.type === 'compound') {
@@ -1204,7 +1215,13 @@ function showPanel(n) {
         h += '</div></div>';
       }
     }
-    if (n.ik) h += '<div style="margin-top:10px;font-size:10px;color:var(--text-sec);word-break:break-all">InChIKey: ' + esc(n.ik) + '</div>';
+    if (n.ik) {
+      h += '<div style="margin-top:10px;font-size:10px;color:var(--text-sec);word-break:break-all">InChIKey: ' + esc(n.ik) + '</div>';
+      h += '<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 10px">';
+      h += '<a href="https://pubchem.ncbi.nlm.nih.gov/#query=' + encodeURIComponent(n.ik) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">PubChem ↗</a>';
+      h += '<a href="https://lotus.naturalproducts.net/simple-search?query=' + encodeURIComponent(n.ik) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">LOTUS ↗</a>';
+      h += '</div>';
+    }
     h += '</div>';
   }
 
