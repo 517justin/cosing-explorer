@@ -263,6 +263,12 @@ canvas#graph.dragging { cursor: grabbing; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .sp-chem-svg svg { filter: invert(0.88) hue-rotate(180deg); } }
 :root[data-theme="dark"] .sp-chem-svg svg { filter: invert(0.88) hue-rotate(180deg); }
 .sp-chem-ph { width: 72px; height: 72px; background: var(--surface-alt); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--text-sec); font-size: 16px; }
+.sp-photo { margin-top: 10px; border-radius: 8px; overflow: hidden; background: var(--surface-alt); }
+.sp-photo img { width: 100%; display: block; object-fit: cover; max-height: 200px; }
+.sp-photo-credit { font-size: 10px; color: var(--text-sec); padding: 4px 8px; display: flex; justify-content: space-between; align-items: center; }
+.sp-photo-credit a { color: var(--accent); }
+.sp-photo-sm { margin-top: 8px; border-radius: 6px; overflow: hidden; background: var(--surface-alt); }
+.sp-photo-sm img { width: 100%; display: block; object-fit: cover; max-height: 140px; }
 
 .overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
@@ -377,7 +383,8 @@ const I18N = {
     dataSrc: '資料來源', taxonomy: '分類階層', author: '作者', license: '授權條款',
     statsIng: '原料', statsBotanical: '植物來源', statsSp: '物種',
     statsFam: '科', statsFn: '用途', statsCpd: '化合物',
-    tag: '原料'
+    tag: '原料',
+    photo: '照片', photoBy: '攝影'
   },
   en: {
     title: 'Cosmetic Ingredient Explorer', subtitle: 'EU CosIng Database',
@@ -397,7 +404,8 @@ const I18N = {
     dataSrc: 'Data', taxonomy: 'Taxonomy', author: 'Author', license: 'License',
     statsIng: 'ingredients', statsBotanical: 'botanical', statsSp: 'species',
     statsFam: 'families', statsFn: 'functions', statsCpd: 'compounds',
-    tag: 'Ingredient'
+    tag: 'Ingredient',
+    photo: 'Photo', photoBy: 'Photo'
   }
 };
 let LANG = 'zh';
@@ -473,6 +481,7 @@ function refreshStats() {
 
 const TYPE_COLORS = {};
 const SVG_CACHE = {};
+const SP_IMG = {};
 let D, GRAPH, SIM, CAM, CTX, CANVAS;
 let W, H, DPR;
 let dragNode = null, hovNode = null, panStart = null, selectedNode = null;
@@ -1237,6 +1246,7 @@ function showPanel(n) {
       if (it.gbif) h += '<a href="https://www.gbif.org/species/' + it.gbif + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">GBIF ↗</a>';
       h += '<a href="https://powo.science.kew.org/results?q=' + encodeURIComponent(it.sp) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">POWO ↗</a>';
       h += '</div>';
+      if (it.gbif) h += '<div class="sp-photo-sm" id="sp-img-' + it.gbif + '"></div>';
       h += '</div>';
     }
     const panelCpds = (it.sp && D.ci_by_sp[it.sp])
@@ -1291,6 +1301,7 @@ function showPanel(n) {
     h += '<a href="https://www.gbif.org/species/search?q=' + encodeURIComponent(n.label) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">GBIF ↗</a>';
     h += '<a href="https://powo.science.kew.org/results?q=' + encodeURIComponent(n.label) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">POWO ↗</a>';
     h += '</div>';
+    if (D.sp_gbif[n.label]) h += '<div class="sp-photo" id="sp-img-' + D.sp_gbif[n.label] + '"></div>';
     h += '</div>';
 
   } else if (n.type === 'compound') {
@@ -1348,6 +1359,10 @@ function showPanel(n) {
       ? D.ci_by_sp[it.sp].slice(0, 20)
       : (it.tc ? it.tc.map(([ik]) => ik) : []);
     svgIks.forEach(ik => loadSvgInto(ik, 'sv-' + ik));
+    if (it.gbif) loadSpeciesImage(it.gbif, 'sp-img-' + it.gbif);
+  }
+  if (n.type === 'species' && D.sp_gbif[n.label]) {
+    loadSpeciesImage(D.sp_gbif[n.label], 'sp-img-' + D.sp_gbif[n.label]);
   }
 }
 
@@ -1415,6 +1430,42 @@ async function loadSvgInto(ik, elId) {
   const el = document.getElementById(elId);
   if (!el) return;
   el.innerHTML = svg || '<div class="sp-chem-ph">?</div>';
+}
+
+async function loadSpeciesImage(gbifKey, elId) {
+  if (!gbifKey) return;
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const k = String(gbifKey);
+  if (SP_IMG[k] !== undefined) {
+    if (SP_IMG[k]) renderSpeciesImage(SP_IMG[k], el);
+    return;
+  }
+  SP_IMG[k] = null;
+  try {
+    const r = await fetch('https://api.gbif.org/v1/occurrence/search?taxonKey=' + k + '&mediaType=StillImage&limit=5');
+    const data = await r.json();
+    for (const occ of (data.results || [])) {
+      for (const m of (occ.media || [])) {
+        if (m.identifier && m.type === 'StillImage') {
+          const lic = m.license || '';
+          const info = { url: m.identifier, creator: m.creator || m.rightsHolder || '', license: lic };
+          if (info.url.includes('inaturalist-open-data.s3')) info.url = info.url.replace('/original.', '/medium.');
+          SP_IMG[k] = info;
+          const el2 = document.getElementById(elId);
+          if (el2) renderSpeciesImage(info, el2);
+          return;
+        }
+      }
+    }
+  } catch {}
+}
+
+function renderSpeciesImage(info, el) {
+  const licShort = info.license.includes('by-nc') ? 'CC BY-NC' : info.license.includes('by-sa') ? 'CC BY-SA' : info.license.includes('/by/') ? 'CC BY' : info.license.includes('cc0') || info.license.includes('CC0') ? 'CC0' : info.license.includes('publicdomain') ? 'PD' : '';
+  el.innerHTML = '<img src="' + esc(info.url) + '" alt="" loading="lazy">' +
+    '<div class="sp-photo-credit"><span>' + (info.creator ? T('photoBy') + ' ' + esc(info.creator) : '') + '</span>' +
+    (licShort ? '<span>' + licShort + '</span>' : '') + '</div>';
 }
 
 function showCompound(ik) {
@@ -1553,6 +1604,11 @@ async function main() {
       if (!D.ci_by_fam[fam]) D.ci_by_fam[fam] = [];
       D.ci_by_fam[fam].push(ik);
     });
+  }
+
+  D.sp_gbif = {};
+  for (const it of Object.values(D.items)) {
+    if (it.sp && it.gbif && !D.sp_gbif[it.sp]) D.sp_gbif[it.sp] = it.gbif;
   }
 
   refreshColors();
