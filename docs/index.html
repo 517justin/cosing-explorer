@@ -311,9 +311,9 @@ canvas#graph.dragging { cursor: grabbing; }
 <body>
 
 <div id="loading">
-  <h1>化妝品成分探索器</h1>
+  <h1 id="loadingTitle">化妝品成分探索器</h1>
   <div class="spinner"></div>
-  <div class="sub">載入資料中...</div>
+  <div class="sub" id="loadingSub">載入資料中...</div>
 </div>
 
 <div id="app">
@@ -327,6 +327,7 @@ canvas#graph.dragging { cursor: grabbing; }
       <div class="search-results" id="sr"></div>
     </div>
     <div class="stats-bar" id="stats"></div>
+    <button id="langBtn" class="view-btn" style="position:static;font-size:11px;font-weight:600;width:28px;padding:0" onclick="setLang(LANG==='zh'?'en':'zh')">EN</button>
   </div>
 
   <div class="breadcrumb" id="bc" style="display:none"></div>
@@ -357,6 +358,119 @@ canvas#graph.dragging { cursor: grabbing; }
 </div>
 
 <script>
+const I18N = {
+  zh: {
+    title: '化妝品成分探索器', subtitle: 'EU Cosmetic Ingredients',
+    loading: '載入資料中...', search: '搜尋原料、科、用途、物種...',
+    family: '科', func: '用途', ingredient: '原料', species: '物種', compound: '化合物',
+    familyTag: '科 Family', funcTag: '用途 Function', ingredientTag: '原料 Ingredient',
+    speciesTag: '物種 Species', compoundTag: '化合物 Compound',
+    overview: '總覽', zoomIn: '放大', zoomOut: '縮小', resetView: '重置視圖',
+    botanical: '植物來源', restricted: '有限制',
+    expandFamily: '展開此科 →', expandFunc: '展開此用途 →',
+    expandIng: '展開此原料 →', expandSp: '展開此物種 →', expandCpd: '展開此化合物 →',
+    functions: '用途 Functions', regulation: '法規限制', origin: '植物來源',
+    part: '部位', process: '製程', ingCount: '原料數', spCount: '物種數',
+    spInCpd: '出現物種', famInCpd: '涵蓋科數',
+    topFam: '主要科 Top Families', relatedSp: '相關物種',
+    compounds: '化合物', annex: 'Annex', maxConc: '最大濃度',
+    dataSrc: '資料來源', taxonomy: '分類階層', author: '作者', license: '授權條款',
+    statsIng: '原料', statsBotanical: '植物來源', statsSp: '物種',
+    statsFam: '科', statsFn: '用途', statsCpd: '化合物',
+    tag: '原料'
+  },
+  en: {
+    title: 'Cosmetic Ingredient Explorer', subtitle: 'EU CosIng Database',
+    loading: 'Loading data...', search: 'Search ingredients, families, functions, species...',
+    family: 'Family', func: 'Function', ingredient: 'Ingredient', species: 'Species', compound: 'Compound',
+    familyTag: 'Family', funcTag: 'Function', ingredientTag: 'Ingredient',
+    speciesTag: 'Species', compoundTag: 'Compound',
+    overview: 'Overview', zoomIn: 'Zoom in', zoomOut: 'Zoom out', resetView: 'Reset view',
+    botanical: 'Botanical', restricted: 'Restricted',
+    expandFamily: 'Expand family →', expandFunc: 'Expand function →',
+    expandIng: 'Expand ingredient →', expandSp: 'Expand species →', expandCpd: 'Expand compound →',
+    functions: 'Functions', regulation: 'Regulation', origin: 'Botanical Origin',
+    part: 'Part', process: 'Process', ingCount: 'Ingredients', spCount: 'Species',
+    spInCpd: 'Species', famInCpd: 'Families',
+    topFam: 'Top Families', relatedSp: 'Related Species',
+    compounds: 'Compounds', annex: 'Annex', maxConc: 'Max conc.',
+    dataSrc: 'Data', taxonomy: 'Taxonomy', author: 'Author', license: 'License',
+    statsIng: 'ingredients', statsBotanical: 'botanical', statsSp: 'species',
+    statsFam: 'families', statsFn: 'functions', statsCpd: 'compounds',
+    tag: 'Ingredient'
+  }
+};
+let LANG = 'zh';
+try { const s = localStorage.getItem('lang'); if (s === 'en') LANG = 'en'; } catch {}
+function T(k) { return (I18N[LANG] || I18N.zh)[k] || k; }
+document.documentElement.lang = LANG === 'en' ? 'en' : 'zh-Hant';
+document.getElementById('loadingTitle').textContent = T('title');
+document.getElementById('loadingSub').textContent = T('loading');
+if (LANG !== 'zh') {
+  document.title = T('title');
+  document.querySelector('.brand').innerHTML = T('title') + '<small>' + T('subtitle') + '</small>';
+  document.getElementById('search').placeholder = T('search');
+  document.getElementById('zoomIn').title = T('zoomIn');
+  document.getElementById('zoomOut').title = T('zoomOut');
+  document.getElementById('resetView').title = T('resetView');
+  document.getElementById('langBtn').textContent = '中';
+  var leg = document.getElementById('legend');
+  if (leg) leg.innerHTML =
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--family)"></div>' + T('familyTag') + '</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--function)"></div>' + T('funcTag') + '</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--ingredient)"></div>' + T('ingredientTag') + '</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--species)"></div>' + T('speciesTag') + '</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--compound)"></div>' + T('compoundTag') + '</div>';
+  var ft = document.querySelector('.site-footer');
+  if (ft) ft.innerHTML =
+    '<span>' + T('dataSrc') + '：<a href="https://data.europa.eu/data/datasets/cosing-list-ingredients-and-fragrance-inventory?locale=en" target="_blank" rel="noopener">EU CosIng</a>（European Commission）</span>' +
+    '<span>' + T('taxonomy') + '：<a href="https://www.gbif.org/" target="_blank" rel="noopener">GBIF</a></span>' +
+    '<span>' + T('compounds') + '：<a href="https://lotus.naturalproducts.net/" target="_blank" rel="noopener">LOTUS</a> · <a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">PubChem</a></span>' +
+    '<span>' + T('author') + '：Chia-Hsiu CHEN · <a href="https://github.com/517justin/cosing-explorer" target="_blank" rel="noopener">GitHub</a></span>' +
+    '<span>' + T('license') + '：<a href="https://github.com/517justin/cosing-explorer/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a></span>';
+}
+function setLang(l) {
+  LANG = l;
+  try { localStorage.setItem('lang', l); } catch {}
+  document.documentElement.lang = l === 'en' ? 'en' : 'zh-Hant';
+  document.title = T('title');
+  document.querySelector('.brand').innerHTML = T('title') + '<small>' + T('subtitle') + '</small>';
+  document.getElementById('search').placeholder = T('search');
+  document.getElementById('zoomIn').title = T('zoomIn');
+  document.getElementById('zoomOut').title = T('zoomOut');
+  document.getElementById('resetView').title = T('resetView');
+  const leg = document.getElementById('legend');
+  if (leg) leg.innerHTML =
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--family)"></div>' + T('familyTag') + '</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--function)"></div>' + T('funcTag') + '</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--ingredient)"></div>' + T('ingredientTag') + '</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--species)"></div>' + T('speciesTag') + '</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--compound)"></div>' + T('compoundTag') + '</div>';
+  const ft = document.querySelector('.site-footer');
+  if (ft) ft.innerHTML =
+    '<span>' + T('dataSrc') + '：<a href="https://data.europa.eu/data/datasets/cosing-list-ingredients-and-fragrance-inventory?locale=en" target="_blank" rel="noopener">EU CosIng</a>（European Commission）</span>' +
+    '<span>' + T('taxonomy') + '：<a href="https://www.gbif.org/" target="_blank" rel="noopener">GBIF</a></span>' +
+    '<span>' + T('compounds') + '：<a href="https://lotus.naturalproducts.net/" target="_blank" rel="noopener">LOTUS</a> · <a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">PubChem</a></span>' +
+    '<span>' + T('author') + '：Chia-Hsiu CHEN · <a href="https://github.com/517justin/cosing-explorer" target="_blank" rel="noopener">GitHub</a></span>' +
+    '<span>' + T('license') + '：<a href="https://github.com/517justin/cosing-explorer/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a></span>';
+  const lb = document.getElementById('langBtn');
+  if (lb) lb.textContent = LANG === 'zh' ? 'EN' : '中';
+  if (D) refreshStats();
+  if (GRAPH) updateBreadcrumb();
+  if (selectedNode) showPanel(selectedNode);
+}
+function refreshStats() {
+  const bc = D.order.filter(k => D.items[k].sp).length;
+  const ss = new Set(); D.order.forEach(k => { if (D.items[k].sp) ss.add(D.items[k].sp); });
+  document.getElementById('stats').innerHTML =
+    '<span><b>' + D.order.length.toLocaleString() + '</b> ' + T('statsIng') + '</span>' +
+    '<span><b>' + bc.toLocaleString() + '</b> ' + T('statsBotanical') + '</span>' +
+    '<span><b>' + ss.size.toLocaleString() + '</b> ' + T('statsSp') + '</span>' +
+    '<span><b>' + D.families.length + '</b> ' + T('statsFam') + '</span>' +
+    '<span><b>' + D.functions.length + '</b> ' + T('statsFn') + '</span>' +
+    '<span><b>' + Object.keys(D.ci).length.toLocaleString() + '</b> ' + T('statsCpd') + '</span>';
+}
+
 const TYPE_COLORS = {};
 const SVG_CACHE = {};
 let D, GRAPH, SIM, CAM, CTX, CANVAS;
@@ -1076,7 +1190,7 @@ function updateBreadcrumb() {
     bc.style.display = 'none'; return;
   }
   bc.style.display = 'flex';
-  let h = '<span onclick="showOverview()">總覽</span>';
+  let h = '<span onclick="showOverview()">' + T('overview') + '</span>';
   h += '<span class="bc-sep">›</span>';
   h += '<span class="bc-cur">' + esc(GRAPH.centerLabel || '') + '</span>';
   bc.innerHTML = h;
@@ -1091,34 +1205,34 @@ function showPanel(n) {
     h += '<div class="sp-head"><h2>' + esc(it.n) + '</h2><button class="sp-close" onclick="closePanel()">×</button></div>';
     h += '<div class="sp-body">';
     h += '<div class="sp-tags">';
-    h += '<span class="sp-tag" style="background:var(--ingredient-dim);color:var(--ingredient)">原料</span>';
-    if (it.sp) h += '<span class="sp-tag" style="background:var(--family-dim);color:var(--family)">植物來源</span>';
-    if (it.re) h += '<span class="sp-tag" style="background:var(--restrict-dim);color:var(--restrict)">有限制</span>';
+    h += '<span class="sp-tag" style="background:var(--ingredient-dim);color:var(--ingredient)">' + T('tag') + '</span>';
+    if (it.sp) h += '<span class="sp-tag" style="background:var(--family-dim);color:var(--family)">' + T('botanical') + '</span>';
+    if (it.re) h += '<span class="sp-tag" style="background:var(--restrict-dim);color:var(--restrict)">' + T('restricted') + '</span>';
     h += '</div>';
     if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'ingredient') {
-      h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--ingredient);border-radius:6px;background:var(--ingredient-dim);color:var(--ingredient);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navHistory.push({type:GRAPH.view,centerType:GRAPH.centerType,centerIdx:GRAPH.centerIdx});GRAPH=buildEgoGraph(\'ingredient\',\'' + n.refNo + '\');CAM.x=0;CAM.y=0;CAM.scale=1;selectedNode=GRAPH.nodes[0];showPanel(selectedNode);updateBreadcrumb()">展開此原料 →</button></div>';
+      h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--ingredient);border-radius:6px;background:var(--ingredient-dim);color:var(--ingredient);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navHistory.push({type:GRAPH.view,centerType:GRAPH.centerType,centerIdx:GRAPH.centerIdx});GRAPH=buildEgoGraph(\'ingredient\',\'' + n.refNo + '\');CAM.x=0;CAM.y=0;CAM.scale=1;selectedNode=GRAPH.nodes[0];showPanel(selectedNode);updateBreadcrumb()">' + T('expandIng') + '</button></div>';
     }
     if (it.c) h += '<div style="font-family:var(--mono);font-size:12px;color:var(--text-sec);margin-bottom:8px">CAS ' + esc(it.c) + '</div>';
     if (it.d) h += '<div class="sp-desc">' + esc(it.d) + '</div>';
     if (it.f.length) {
-      h += '<div class="sp-section"><h3>用途 Functions</h3><div>';
+      h += '<div class="sp-section"><h3>' + T('functions') + '</h3><div>';
       it.f.forEach(i => { h += '<span class="sp-fn" onclick="navToFunction(' + i + ')">' + esc(D.functions[i]) + '</span>'; });
       h += '</div></div>';
     }
     if (it.re) {
-      h += '<div class="sp-section"><h3>法規限制</h3>';
-      h += '<div class="sp-row"><span class="sp-lbl">Annex</span><span class="sp-val" style="color:var(--restrict);font-weight:600">' + esc(it.re) + '</span></div>';
-      if (it.mc) h += '<div class="sp-row"><span class="sp-lbl">最大濃度</span><span class="sp-val">' + esc(it.mc) + '</span></div>';
+      h += '<div class="sp-section"><h3>' + T('regulation') + '</h3>';
+      h += '<div class="sp-row"><span class="sp-lbl">' + T('annex') + '</span><span class="sp-val" style="color:var(--restrict);font-weight:600">' + esc(it.re) + '</span></div>';
+      if (it.mc) h += '<div class="sp-row"><span class="sp-lbl">' + T('maxConc') + '</span><span class="sp-val">' + esc(it.mc) + '</span></div>';
       h += '</div>';
     }
     if (it.sp) {
-      h += '<div class="sp-section"><h3>植物來源</h3><div class="sp-taxon">';
+      h += '<div class="sp-section"><h3>' + T('origin') + '</h3><div class="sp-taxon">';
       if (it.k) h += '<span class="rank">' + esc(it.k) + '</span><span class="sep">›</span>';
       if (it.ord) h += '<span class="rank">' + esc(it.ord) + '</span><span class="sep">›</span>';
       if (it.fm !== undefined) h += '<span class="link" onclick="navToFamily(' + it.fm + ')">' + esc(D.families[it.fm]) + '</span><span class="sep">›</span>';
       h += '<span style="font-style:italic;font-weight:600">' + esc(it.sp) + '</span></div>';
-      if (it.pt) h += '<div class="sp-row" style="margin-top:6px"><span class="sp-lbl">部位</span><span class="sp-val">' + (Array.isArray(it.pt) ? it.pt.join(', ') : it.pt) + '</span></div>';
-      if (it.pr) h += '<div class="sp-row"><span class="sp-lbl">製程</span><span class="sp-val">' + esc(it.pr) + '</span></div>';
+      if (it.pt) h += '<div class="sp-row" style="margin-top:6px"><span class="sp-lbl">' + T('part') + '</span><span class="sp-val">' + (Array.isArray(it.pt) ? it.pt.join(', ') : it.pt) + '</span></div>';
+      if (it.pr) h += '<div class="sp-row"><span class="sp-lbl">' + T('process') + '</span><span class="sp-val">' + esc(it.pr) + '</span></div>';
       h += '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 10px">';
       if (it.gbif) h += '<a href="https://www.gbif.org/species/' + it.gbif + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">GBIF ↗</a>';
       h += '<a href="https://powo.science.kew.org/results?q=' + encodeURIComponent(it.sp) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">POWO ↗</a>';
@@ -1130,7 +1244,7 @@ function showPanel(n) {
       : (it.tc || []);
     if (panelCpds.length) {
       const totalCpds = (it.sp && D.ci_by_sp[it.sp]) ? D.ci_by_sp[it.sp].length : (it.cc || panelCpds.length);
-      h += '<div class="sp-section"><h3>化合物 (' + totalCpds + ')</h3><div class="sp-chem-grid">';
+      h += '<div class="sp-section"><h3>' + T('compounds') + ' (' + totalCpds + ')</h3><div class="sp-chem-grid">';
       panelCpds.forEach(([ik, f]) => {
         h += '<div class="sp-chem-card" onclick="showCompound(\'' + ik + '\')"><div class="sp-chem-svg" id="sv-' + ik + '"><div class="sp-chem-ph">⋯</div></div>';
         h += '<div class="sp-chem-f">' + esc(f) + '</div></div>';
@@ -1143,12 +1257,12 @@ function showPanel(n) {
   } else if (n.type === 'family') {
     h += '<div class="sp-head"><h2>' + esc(n.label) + '</h2><button class="sp-close" onclick="closePanel()">×</button></div>';
     h += '<div class="sp-body">';
-    h += '<div class="sp-tags"><span class="sp-tag" style="background:var(--family-dim);color:var(--family)">科 Family</span></div>';
+    h += '<div class="sp-tags"><span class="sp-tag" style="background:var(--family-dim);color:var(--family)">' + T('familyTag') + '</span></div>';
     if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'family') {
-      h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:var(--accent-dim);color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navToFamily(' + n.famIdx + ')">展開此科 →</button></div>';
+      h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:var(--accent-dim);color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navToFamily(' + n.famIdx + ')">' + T('expandFamily') + '</button></div>';
     }
-    h += '<div class="sp-row"><span class="sp-lbl">原料數</span><span class="sp-val"><b>' + (n.count || D.fam_counts[n.famIdx]).toLocaleString() + '</b></span></div>';
-    if (D.fam_species[n.famIdx]) h += '<div class="sp-row"><span class="sp-lbl">物種數</span><span class="sp-val"><b>' + D.fam_species[n.famIdx] + '</b></span></div>';
+    h += '<div class="sp-row"><span class="sp-lbl">' + T('ingCount') + '</span><span class="sp-val"><b>' + (n.count || D.fam_counts[n.famIdx]).toLocaleString() + '</b></span></div>';
+    if (D.fam_species[n.famIdx]) h += '<div class="sp-row"><span class="sp-lbl">' + T('spCount') + '</span><span class="sp-val"><b>' + D.fam_species[n.famIdx] + '</b></span></div>';
     h += '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 10px">';
     h += '<a href="https://www.gbif.org/species/search?q=' + encodeURIComponent(n.label) + '&rank=FAMILY" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">GBIF ↗</a>';
     h += '<a href="https://powo.science.kew.org/results?q=' + encodeURIComponent(n.label) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">POWO ↗</a>';
@@ -1158,21 +1272,21 @@ function showPanel(n) {
   } else if (n.type === 'function') {
     h += '<div class="sp-head"><h2>' + esc(n.label) + '</h2><button class="sp-close" onclick="closePanel()">×</button></div>';
     h += '<div class="sp-body">';
-    h += '<div class="sp-tags"><span class="sp-tag" style="background:var(--function-dim);color:var(--function)">用途 Function</span></div>';
+    h += '<div class="sp-tags"><span class="sp-tag" style="background:var(--function-dim);color:var(--function)">' + T('funcTag') + '</span></div>';
     if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'function') {
-      h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:var(--accent-dim);color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navToFunction(' + n.fnIdx + ')">展開此用途 →</button></div>';
+      h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:var(--accent-dim);color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navToFunction(' + n.fnIdx + ')">' + T('expandFunc') + '</button></div>';
     }
-    h += '<div class="sp-row"><span class="sp-lbl">原料數</span><span class="sp-val"><b>' + (n.count || D.fn_counts[n.fnIdx]).toLocaleString() + '</b></span></div>';
+    h += '<div class="sp-row"><span class="sp-lbl">' + T('ingCount') + '</span><span class="sp-val"><b>' + (n.count || D.fn_counts[n.fnIdx]).toLocaleString() + '</b></span></div>';
     h += '</div>';
 
   } else if (n.type === 'species') {
     h += '<div class="sp-head"><h2 style="font-style:italic">' + esc(n.label) + '</h2><button class="sp-close" onclick="closePanel()">×</button></div>';
     h += '<div class="sp-body">';
-    h += '<div class="sp-tags"><span class="sp-tag" style="background:var(--species-dim);color:var(--species)">物種 Species</span></div>';
+    h += '<div class="sp-tags"><span class="sp-tag" style="background:var(--species-dim);color:var(--species)">' + T('speciesTag') + '</span></div>';
     if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'species') {
-      h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--species);border-radius:6px;background:var(--species-dim);color:var(--species);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navHistory.push({type:GRAPH.view,centerType:GRAPH.centerType,centerIdx:GRAPH.centerIdx});GRAPH=buildEgoGraph(\'species\',\'' + n.label.replace(/'/g, "\\'") + '\');CAM.x=0;CAM.y=0;CAM.scale=1;selectedNode=GRAPH.nodes[0];showPanel(selectedNode);updateBreadcrumb()">展開此物種 →</button></div>';
+      h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--species);border-radius:6px;background:var(--species-dim);color:var(--species);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navHistory.push({type:GRAPH.view,centerType:GRAPH.centerType,centerIdx:GRAPH.centerIdx});GRAPH=buildEgoGraph(\'species\',\'' + n.label.replace(/'/g, "\\'") + '\');CAM.x=0;CAM.y=0;CAM.scale=1;selectedNode=GRAPH.nodes[0];showPanel(selectedNode);updateBreadcrumb()">' + T('expandSp') + '</button></div>';
     }
-    if (n.count) h += '<div class="sp-row"><span class="sp-lbl">原料數</span><span class="sp-val"><b>' + n.count + '</b></span></div>';
+    if (n.count) h += '<div class="sp-row"><span class="sp-lbl">' + T('ingCount') + '</span><span class="sp-val"><b>' + n.count + '</b></span></div>';
     h += '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 10px">';
     h += '<a href="https://www.gbif.org/species/search?q=' + encodeURIComponent(n.label) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">GBIF ↗</a>';
     h += '<a href="https://powo.science.kew.org/results?q=' + encodeURIComponent(n.label) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">POWO ↗</a>';
@@ -1183,9 +1297,9 @@ function showPanel(n) {
     const cpd = n.ik ? D.ci[n.ik] : null;
     h += '<div class="sp-head"><h2>' + esc(n.label) + '</h2><button class="sp-close" onclick="closePanel()">×</button></div>';
     h += '<div class="sp-body">';
-    h += '<div class="sp-tags"><span class="sp-tag" style="background:var(--compound-dim);color:var(--compound)">化合物 Compound</span></div>';
+    h += '<div class="sp-tags"><span class="sp-tag" style="background:var(--compound-dim);color:var(--compound)">' + T('compoundTag') + '</span></div>';
     if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'compound') {
-      h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--compound);border-radius:6px;background:var(--compound-dim);color:var(--compound);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navToCompound(\'' + (n.ik || '') + '\')">展開此化合物 →</button></div>';
+      h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--compound);border-radius:6px;background:var(--compound-dim);color:var(--compound);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navToCompound(\'' + (n.ik || '') + '\')">' + T('expandCpd') + '</button></div>';
     }
     if (cpd && cpd.f) h += '<div style="font-family:var(--mono);font-size:12px;color:var(--text-sec);margin-bottom:8px">' + esc(cpd.f) + '</div>';
     if (cpd && cpd.iupac) h += '<div class="sp-desc" style="font-size:11px;word-break:break-all">' + esc(cpd.iupac) + '</div>';
@@ -1194,10 +1308,10 @@ function showPanel(n) {
       setTimeout(() => loadSvgInto(n.ik, 'sv-' + n.ik), 50);
     }
     if (cpd) {
-      h += '<div class="sp-row"><span class="sp-lbl">出現物種</span><span class="sp-val"><b>' + (cpd.n_sp || 0) + '</b></span></div>';
-      h += '<div class="sp-row"><span class="sp-lbl">涵蓋科數</span><span class="sp-val"><b>' + (cpd.n_fam || 0) + '</b></span></div>';
+      h += '<div class="sp-row"><span class="sp-lbl">' + T('spInCpd') + '</span><span class="sp-val"><b>' + (cpd.n_sp || 0) + '</b></span></div>';
+      h += '<div class="sp-row"><span class="sp-lbl">' + T('famInCpd') + '</span><span class="sp-val"><b>' + (cpd.n_fam || 0) + '</b></span></div>';
       if (cpd.top_fam && cpd.top_fam.length) {
-        h += '<div class="sp-section"><h3>主要科 Top Families</h3><div>';
+        h += '<div class="sp-section"><h3>' + T('topFam') + '</h3><div>';
         cpd.top_fam.forEach(([fam, cnt]) => {
           const fi = D.families.indexOf(fam);
           if (fi >= 0) h += '<span class="sp-fn" onclick="navToFamily(' + fi + ')">' + esc(fam) + ' <small>(' + cnt + ')</small></span>';
@@ -1206,7 +1320,7 @@ function showPanel(n) {
         h += '</div></div>';
       }
       if (cpd.top_sp && cpd.top_sp.length) {
-        h += '<div class="sp-section"><h3>相關物種 (' + Math.min(cpd.top_sp.length, 20) + '/' + cpd.n_sp + ')</h3><div style="max-height:200px;overflow-y:auto">';
+        h += '<div class="sp-section"><h3>' + T('relatedSp') + ' (' + Math.min(cpd.top_sp.length, 20) + '/' + cpd.n_sp + ')</h3><div style="max-height:200px;overflow-y:auto">';
         cpd.top_sp.slice(0, 20).forEach(([sp, fam]) => {
           h += '<div style="font-size:12px;padding:2px 0;border-bottom:1px solid var(--border)"><span style="font-style:italic;cursor:pointer;color:var(--species)" onclick="navHistory.push({type:GRAPH.view,centerType:GRAPH.centerType,centerIdx:GRAPH.centerIdx});GRAPH=buildEgoGraph(\'species\',\'' + sp.replace(/'/g, "\\'") + '\');CAM.x=0;CAM.y=0;CAM.scale=1;selectedNode=GRAPH.nodes[0];showPanel(selectedNode);updateBreadcrumb()">' + esc(sp) + '</span>';
           if (fam) h += ' <small style="color:var(--text-sec)">' + esc(fam) + '</small>';
@@ -1374,7 +1488,7 @@ function setupSearch() {
       if (results.length === 0) { sr.classList.remove('open'); return; }
       sr.innerHTML = results.slice(0, 15).map((r, i) => {
         const col = TYPE_COLORS[r.type] || 'var(--accent)';
-        const typeLabel = { family: '科', function: '用途', ingredient: '原料', species: '物種', compound: '化合物' }[r.type] || '';
+        const typeLabel = { family: T('family'), function: T('func'), ingredient: T('ingredient'), species: T('species'), compound: T('compound') }[r.type] || '';
         return '<div class="sr-item" data-i="' + i + '"><div class="sr-dot" style="background:' + col + '"></div><span class="sr-label">' + esc(r.label) + '</span><span class="sr-type">' + typeLabel + (r.count ? ' · ' + r.count : '') + '</span></div>';
       }).join('');
       sr.classList.add('open');
@@ -1442,16 +1556,7 @@ async function main() {
   }
 
   refreshColors();
-
-  const bc = D.order.filter(k => D.items[k].sp).length;
-  const ss = new Set(); D.order.forEach(k => { if (D.items[k].sp) ss.add(D.items[k].sp); });
-  document.getElementById('stats').innerHTML =
-    '<span><b>' + D.order.length.toLocaleString() + '</b> 原料</span>' +
-    '<span><b>' + bc.toLocaleString() + '</b> 植物來源</span>' +
-    '<span><b>' + ss.size.toLocaleString() + '</b> 物種</span>' +
-    '<span><b>' + D.families.length + '</b> 科</span>' +
-    '<span><b>' + D.functions.length + '</b> 用途</span>' +
-    '<span><b>' + Object.keys(D.ci).length.toLocaleString() + '</b> 化合物</span>';
+  refreshStats();
 
   GRAPH = buildOverview();
   CAM.scale = 0.7;
