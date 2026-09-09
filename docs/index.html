@@ -365,6 +365,23 @@ canvas#graph.dragging { cursor: grabbing; }
 }
 .site-footer a { color: var(--accent); text-decoration: none; }
 .site-footer a:hover { text-decoration: underline; }
+
+.help-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+}
+.help-overlay[hidden] { display: none !important; }
+.help-box {
+  background: var(--surface); border-radius: 12px; box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+  max-width: 640px; width: 90%; max-height: 80vh; overflow-y: auto;
+  padding: 24px 28px; font-size: 13px; line-height: 1.7; color: var(--text);
+}
+.help-box h2 { font-size: 18px; margin: 0 0 12px; }
+.help-box h3 { font-size: 14px; margin: 16px 0 6px; color: var(--accent); }
+.help-box table { width: 100%; border-collapse: collapse; margin: 6px 0 12px; font-size: 12px; }
+.help-box th { text-align: left; padding: 4px 8px; border-bottom: 2px solid var(--border); font-weight: 600; }
+.help-box td { padding: 4px 8px; border-bottom: 1px solid var(--border); }
+.help-box .help-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
 </style>
 </head>
 <body>
@@ -386,6 +403,7 @@ canvas#graph.dragging { cursor: grabbing; }
       <div class="search-results" id="sr"></div>
     </div>
     <div class="stats-bar" id="stats"></div>
+    <button id="helpBtn" class="view-btn" style="position:static;font-size:13px;font-weight:600;width:28px;padding:0" onclick="document.getElementById('helpOverlay').hidden=false" title="說明">?</button>
     <button id="langBtn" class="view-btn" style="position:static;font-size:11px;font-weight:600;width:28px;padding:0" onclick="setLang(LANG==='zh'?'en':'zh')">EN</button>
   </div>
 
@@ -406,6 +424,10 @@ canvas#graph.dragging { cursor: grabbing; }
   </div>
 
   <div class="side-panel" id="panel"></div>
+
+  <div class="help-overlay" id="helpOverlay" hidden onclick="if(event.target===this)this.hidden=true">
+    <div class="help-box" id="helpBox"></div>
+  </div>
 
   <footer class="site-footer">
     <span>資料來源：<a href="https://data.europa.eu/data/datasets/cosing-list-ingredients-and-fragrance-inventory?locale=en" target="_blank" rel="noopener">EU CosIng — Cosmetic Ingredient Database</a>（European Commission）</span>
@@ -438,6 +460,10 @@ const I18N = {
     statsFam: '科', statsFn: '用途', statsCpd: '化合物',
     statsRestricted: '受限',
     tag: '原料',
+    ingFilterAll: '預設', ingFilterRestricted: '法規限制優先', ingFilterBotanical: '植物來源優先',
+    ingFilterLabel: '原料排序',
+    helpTitle: '使用說明',
+    helpBtn: '說明',
     photo: '照片', photoBy: '攝影',
     annexII: '禁用物質', annexIII: '限制使用', annexIV: '准用色素',
     annexV: '准用防腐劑', annexVI: '准用防曬劑',
@@ -465,6 +491,10 @@ const I18N = {
     statsFam: 'families', statsFn: 'functions', statsCpd: 'compounds',
     statsRestricted: 'restricted',
     tag: 'Ingredient',
+    ingFilterAll: 'Default', ingFilterRestricted: 'Regulated first', ingFilterBotanical: 'Botanical first',
+    ingFilterLabel: 'Sort ingredients',
+    helpTitle: 'Help',
+    helpBtn: 'Help',
     photo: 'Photo', photoBy: 'Photo',
     annexII: 'Prohibited', annexIII: 'Restricted use', annexIV: 'Colourants',
     annexV: 'Preservatives', annexVI: 'UV Filters',
@@ -528,10 +558,89 @@ function setLang(l) {
     '<span>' + T('license') + '：<a href="https://github.com/517justin/cosing-explorer/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a></span>';
   const lb = document.getElementById('langBtn');
   if (lb) lb.textContent = LANG === 'zh' ? 'EN' : '中';
+  document.getElementById('helpBtn').title = T('helpBtn');
+  renderHelp();
   if (D) refreshStats();
   if (GRAPH) updateBreadcrumb();
   if (selectedNode) showPanel(selectedNode);
 }
+function renderHelp() {
+  var hb = document.getElementById('helpBox');
+  if (!hb) return;
+  var zh = LANG === 'zh';
+  var dot = function(c) { return '<span class="help-dot" style="background:var(--' + c + ')"></span>'; };
+  var h = '<button class="close-btn" onclick="document.getElementById(\'helpOverlay\').hidden=true">&times;</button>';
+  h += '<h2>' + T('helpTitle') + '</h2>';
+  if (zh) {
+    h += '<p>本工具以互動式知識圖譜呈現歐盟 CosIng 資料庫中 33,638 種化妝品原料的關聯。點擊節點可展開其關聯網絡（Ego Graph），面板顯示詳細資訊。</p>';
+    h += '<h3>節點類型</h3>';
+    h += '<p>' + dot('family') + '<b>科 Family</b> — 植物分類學科別（APG IV 標準）<br>';
+    h += dot('function') + '<b>用途 Function</b> — 化妝品用途分類（EU CosIng 受控詞彙）<br>';
+    h += dot('ingredient') + '<b>原料 Ingredient</b> — 化妝品原料（INCI 名稱）<br>';
+    h += dot('species') + '<b>物種 Species</b> — 生物來源物種（拉丁二名法）<br>';
+    h += dot('compound') + '<b>化合物 Compound</b> — 天然產物化學成分</p>';
+    h += '<h3>圖譜顯示邏輯</h3>';
+    h += '<p>每個節點展開時，會依據以下規則選取周圍節點。節點大小反映關聯原料數量。</p>';
+    h += '<table><tr><th>中心節點</th><th>相鄰節點</th><th>選取邏輯</th><th>上限</th></tr>';
+    h += '<tr><td rowspan="3">' + dot('family') + '科</td><td>物種</td><td>按原料數排序</td><td>30</td></tr>';
+    h += '<tr><td>用途</td><td>按使用次數排序</td><td>15</td></tr>';
+    h += '<tr><td>化合物</td><td>按物種出現數排序</td><td>20</td></tr>';
+    h += '<tr><td rowspan="3">' + dot('function') + '用途</td><td>科</td><td>按原料數排序</td><td>35</td></tr>';
+    h += '<tr><td>原料</td><td>可切換：預設 / 法規限制優先 / 植物來源優先</td><td>15</td></tr>';
+    h += '<tr><td>化合物</td><td>按關聯物種數排序</td><td>15</td></tr>';
+    h += '<tr><td rowspan="2">' + dot('ingredient') + '原料</td><td>用途</td><td>該原料全部用途</td><td>全部</td></tr>';
+    h += '<tr><td>化合物</td><td>按物種出現數排序</td><td>12</td></tr>';
+    h += '<tr><td rowspan="2">' + dot('species') + '物種</td><td>用途</td><td>按使用次數排序</td><td>10</td></tr>';
+    h += '<tr><td>化合物</td><td>按物種出現數排序</td><td>15</td></tr>';
+    h += '<tr><td rowspan="2">' + dot('compound') + '化合物</td><td>物種</td><td>含該化合物的物種</td><td>20</td></tr>';
+    h += '<tr><td>用途</td><td>按使用次數排序</td><td>10</td></tr>';
+    h += '</table>';
+    h += '<h3>法規資料</h3>';
+    h += '<p>法規限制依據歐盟化妝品法規 EC 1223/2009 的附錄（Annex）分類：</p>';
+    h += '<p><span style="color:var(--annex-ii);font-weight:600">Annex II</span> 禁用物質 · ';
+    h += '<span style="color:var(--annex-iii);font-weight:600">Annex III</span> 限制使用 · ';
+    h += '<span style="color:var(--annex-iv);font-weight:600">Annex IV</span> 准用色素 · ';
+    h += '<span style="color:var(--annex-v);font-weight:600">Annex V</span> 准用防腐劑 · ';
+    h += '<span style="color:var(--annex-vi);font-weight:600">Annex VI</span> 准用防曬劑</p>';
+    h += '<h3>操作方式</h3>';
+    h += '<p>滾輪或 +/- 按鈕縮放 · 拖曳平移 · 點擊節點展開 · 麵包屑導航回溯 · 搜尋欄支援 INCI 名稱、CAS、科名、物種名</p>';
+  } else {
+    h += '<p>This tool visualizes the relationships among 33,638 cosmetic ingredients from the EU CosIng database as an interactive knowledge graph. Click any node to expand its ego graph; the side panel shows details.</p>';
+    h += '<h3>Node Types</h3>';
+    h += '<p>' + dot('family') + '<b>Family</b> — Botanical family (APG IV)<br>';
+    h += dot('function') + '<b>Function</b> — Cosmetic function (EU CosIng controlled vocabulary)<br>';
+    h += dot('ingredient') + '<b>Ingredient</b> — Cosmetic ingredient (INCI name)<br>';
+    h += dot('species') + '<b>Species</b> — Botanical source species (Latin binomial)<br>';
+    h += dot('compound') + '<b>Compound</b> — Natural product chemical compound</p>';
+    h += '<h3>Graph Display Logic</h3>';
+    h += '<p>When a node is expanded, neighboring nodes are selected by the rules below. Node size reflects the number of related ingredients.</p>';
+    h += '<table><tr><th>Center</th><th>Neighbors</th><th>Selection</th><th>Max</th></tr>';
+    h += '<tr><td rowspan="3">' + dot('family') + 'Family</td><td>Species</td><td>By ingredient count</td><td>30</td></tr>';
+    h += '<tr><td>Functions</td><td>By usage count</td><td>15</td></tr>';
+    h += '<tr><td>Compounds</td><td>By species occurrence</td><td>20</td></tr>';
+    h += '<tr><td rowspan="3">' + dot('function') + 'Function</td><td>Families</td><td>By ingredient count</td><td>35</td></tr>';
+    h += '<tr><td>Ingredients</td><td>Sortable: Default / Regulated first / Botanical first</td><td>15</td></tr>';
+    h += '<tr><td>Compounds</td><td>By species occurrence</td><td>15</td></tr>';
+    h += '<tr><td rowspan="2">' + dot('ingredient') + 'Ingredient</td><td>Functions</td><td>All functions of this ingredient</td><td>All</td></tr>';
+    h += '<tr><td>Compounds</td><td>By species occurrence</td><td>12</td></tr>';
+    h += '<tr><td rowspan="2">' + dot('species') + 'Species</td><td>Functions</td><td>By usage count</td><td>10</td></tr>';
+    h += '<tr><td>Compounds</td><td>By species occurrence</td><td>15</td></tr>';
+    h += '<tr><td rowspan="2">' + dot('compound') + 'Compound</td><td>Species</td><td>Species containing this compound</td><td>20</td></tr>';
+    h += '<tr><td>Functions</td><td>By usage count</td><td>10</td></tr>';
+    h += '</table>';
+    h += '<h3>Regulation Data</h3>';
+    h += '<p>Regulatory restrictions follow the Annexes of EU Cosmetics Regulation EC 1223/2009:</p>';
+    h += '<p><span style="color:var(--annex-ii);font-weight:600">Annex II</span> Prohibited · ';
+    h += '<span style="color:var(--annex-iii);font-weight:600">Annex III</span> Restricted use · ';
+    h += '<span style="color:var(--annex-iv);font-weight:600">Annex IV</span> Colourants · ';
+    h += '<span style="color:var(--annex-v);font-weight:600">Annex V</span> Preservatives · ';
+    h += '<span style="color:var(--annex-vi);font-weight:600">Annex VI</span> UV Filters</p>';
+    h += '<h3>Controls</h3>';
+    h += '<p>Scroll to zoom · Drag to pan · Click nodes to expand · Breadcrumb to navigate back · Search by INCI name, CAS, family, or species</p>';
+  }
+  hb.innerHTML = h;
+}
+renderHelp();
 function refreshStats() {
   const bc = D.order.filter(k => D.items[k].sp).length;
   const ss = new Set(); D.order.forEach(k => { if (D.items[k].sp) ss.add(D.items[k].sp); });
@@ -669,6 +778,20 @@ function buildOverview() {
   return { nodes, edges, nodeMap, view: 'overview' };
 }
 
+var ingFilter = 'all';
+try { const sf = localStorage.getItem('ingFilter'); if (sf === 'restricted' || sf === 'botanical') ingFilter = sf; } catch {}
+
+function setIngFilter(v) {
+  ingFilter = v;
+  try { localStorage.setItem('ingFilter', v); } catch {}
+  if (GRAPH && GRAPH.centerType === 'function') {
+    GRAPH = buildEgoGraph('function', GRAPH.centerIdx);
+    selectedNode = GRAPH.nodes[0];
+    showPanel(selectedNode);
+    updateBreadcrumb();
+  }
+}
+
 function buildEgoGraph(centerType, centerIdx) {
   const nodes = [], edges = [];
   const nodeMap = {};
@@ -759,13 +882,19 @@ function buildEgoGraph(centerType, centerIdx) {
       edges.push({ source: 0, target: nodes.length - 1, weight: cnt });
     });
 
-    let ingCount = 0;
-    for (const k of D.order) {
-      if (ingCount >= 15) break;
+    const fnIngs = D.order.filter(k => D.items[k].f.includes(centerIdx));
+    let sortedIngs;
+    if (ingFilter === 'restricted') {
+      sortedIngs = fnIngs.slice().sort((a, b) => (D.items[b].re ? 1 : 0) - (D.items[a].re ? 1 : 0));
+    } else if (ingFilter === 'botanical') {
+      sortedIngs = fnIngs.slice().sort((a, b) => (D.items[b].sp ? 1 : 0) - (D.items[a].sp ? 1 : 0));
+    } else {
+      sortedIngs = fnIngs;
+    }
+    sortedIngs.slice(0, 15).forEach(k => {
       const it = D.items[k];
-      if (!it.f.includes(centerIdx)) continue;
       const iid = 'ing:' + k;
-      if (nodeMap[iid] !== undefined) continue;
+      if (nodeMap[iid] !== undefined) return;
       nodes.push({ id: iid, type: 'ingredient', label: it.n, r: 5, refNo: k, x: 0, y: 0, vx: 0, vy: 0 });
       nodeMap[iid] = nodes.length - 1;
       edges.push({ source: 0, target: nodes.length - 1, weight: 1 });
@@ -773,8 +902,7 @@ function buildEgoGraph(centerType, centerIdx) {
         const famId = 'fam:' + it.fm;
         if (nodeMap[famId] !== undefined) edges.push({ source: nodeMap[famId], target: nodes.length - 1, weight: 1 });
       }
-      ingCount++;
-    }
+    });
 
     const fnSpecies = new Set();
     for (const k of D.order) {
@@ -1435,6 +1563,16 @@ function showPanel(n) {
       h += '<span style="color:var(--restrict);font-weight:600">' + fnRestricted + '</span>';
       h += '<div class="sp-restrict-meter"><div class="sp-restrict-fill" style="width:' + pct + '%;background:var(--restrict)"></div></div>';
       h += '<span>' + pct + '%</span></div>';
+    }
+    if (GRAPH.view === 'ego' && GRAPH.centerType === 'function') {
+      h += '<div style="margin-top:8px"><div style="font-size:11px;color:var(--text-sec);margin-bottom:4px">' + T('ingFilterLabel') + '</div>';
+      h += '<div style="display:flex;gap:4px;flex-wrap:wrap">';
+      var _fs = [['all','ingFilterAll'],['restricted','ingFilterRestricted'],['botanical','ingFilterBotanical']];
+      _fs.forEach(function(p){
+        var act = ingFilter === p[0];
+        h += '<button style="padding:2px 8px;border-radius:4px;font-size:11px;font-family:var(--font);cursor:pointer;border:1px solid ' + (act ? 'var(--accent)' : 'var(--border)') + ';background:' + (act ? 'var(--accent-dim)' : 'transparent') + ';color:' + (act ? 'var(--accent)' : 'var(--text-sec)') + '" onclick="setIngFilter(\'' + p[0] + '\')">' + T(p[1]) + '</button>';
+      });
+      h += '</div></div>';
     }
     h += '</div>';
 
