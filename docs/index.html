@@ -27,6 +27,16 @@
   --compound-dim: rgba(219,39,119,0.12);
   --restrict: #dc2626;
   --restrict-dim: rgba(220,38,38,0.12);
+  --annex-ii: #dc2626;
+  --annex-ii-dim: rgba(220,38,38,0.10);
+  --annex-iii: #d97706;
+  --annex-iii-dim: rgba(217,119,6,0.10);
+  --annex-iv: #2563eb;
+  --annex-iv-dim: rgba(37,99,235,0.10);
+  --annex-v: #059669;
+  --annex-v-dim: rgba(5,150,105,0.10);
+  --annex-vi: #7c3aed;
+  --annex-vi-dim: rgba(124,58,237,0.10);
   --edge: rgba(0,0,0,0.06);
   --edge-hi: rgba(99,102,241,0.25);
   --shadow: 0 2px 12px rgba(0,0,0,0.08);
@@ -58,6 +68,16 @@
     --compound-dim: rgba(244,114,182,0.15);
     --restrict: #f87171;
     --restrict-dim: rgba(248,113,113,0.15);
+    --annex-ii: #f87171;
+    --annex-ii-dim: rgba(248,113,113,0.12);
+    --annex-iii: #fbbf24;
+    --annex-iii-dim: rgba(251,191,36,0.12);
+    --annex-iv: #60a5fa;
+    --annex-iv-dim: rgba(96,165,250,0.12);
+    --annex-v: #34d399;
+    --annex-v-dim: rgba(52,211,153,0.12);
+    --annex-vi: #a78bfa;
+    --annex-vi-dim: rgba(167,139,250,0.12);
     --edge: rgba(255,255,255,0.05);
     --edge-hi: rgba(129,140,248,0.3);
     --shadow: 0 2px 12px rgba(0,0,0,0.4);
@@ -87,6 +107,16 @@
   --compound-dim: rgba(244,114,182,0.15);
   --restrict: #f87171;
   --restrict-dim: rgba(248,113,113,0.15);
+  --annex-ii: #f87171;
+  --annex-ii-dim: rgba(248,113,113,0.12);
+  --annex-iii: #fbbf24;
+  --annex-iii-dim: rgba(251,191,36,0.12);
+  --annex-iv: #60a5fa;
+  --annex-iv-dim: rgba(96,165,250,0.12);
+  --annex-v: #34d399;
+  --annex-v-dim: rgba(52,211,153,0.12);
+  --annex-vi: #a78bfa;
+  --annex-vi-dim: rgba(167,139,250,0.12);
   --edge: rgba(255,255,255,0.05);
   --edge-hi: rgba(129,140,248,0.3);
   --shadow: 0 2px 12px rgba(0,0,0,0.4);
@@ -263,6 +293,29 @@ canvas#graph.dragging { cursor: grabbing; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .sp-chem-svg svg { filter: invert(0.88) hue-rotate(180deg); } }
 :root[data-theme="dark"] .sp-chem-svg svg { filter: invert(0.88) hue-rotate(180deg); }
 .sp-chem-ph { width: 72px; height: 72px; background: var(--surface-alt); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--text-sec); font-size: 16px; }
+.sp-reg { margin-top: 4px; }
+.sp-reg-card {
+  border-radius: 8px; padding: 10px 12px; margin-bottom: 6px;
+  border: 1px solid var(--border);
+}
+.sp-reg-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.sp-reg-badge {
+  padding: 1px 7px; border-radius: 4px; font-size: 11px; font-weight: 600;
+  white-space: nowrap;
+}
+.sp-reg-type { font-size: 11px; color: var(--text-sec); }
+.sp-reg-entry { font-size: 13px; font-weight: 600; }
+.sp-reg-note { font-size: 12px; color: var(--text-sec); line-height: 1.5; margin-top: 4px; }
+.sp-reg-link { font-size: 11px; color: var(--accent); margin-top: 4px; display: inline-block; }
+.sp-restrict-bar {
+  display: flex; align-items: center; gap: 6px; margin-top: 4px;
+  font-size: 12px; color: var(--text-sec);
+}
+.sp-restrict-meter {
+  flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;
+  max-width: 80px;
+}
+.sp-restrict-fill { height: 100%; border-radius: 2px; }
 .sp-photo { margin-top: 10px; border-radius: 8px; overflow: hidden; background: var(--surface-alt); }
 .sp-photo img { width: 100%; display: block; object-fit: cover; max-height: 200px; }
 .sp-photo-credit { font-size: 10px; color: var(--text-sec); padding: 4px 8px; display: flex; justify-content: space-between; align-items: center; }
@@ -383,8 +436,14 @@ const I18N = {
     dataSrc: '資料來源', taxonomy: '分類階層', author: '作者', license: '授權條款',
     statsIng: '原料', statsBotanical: '植物來源', statsSp: '物種',
     statsFam: '科', statsFn: '用途', statsCpd: '化合物',
+    statsRestricted: '受限',
     tag: '原料',
-    photo: '照片', photoBy: '攝影'
+    photo: '照片', photoBy: '攝影',
+    annexII: '禁用物質', annexIII: '限制使用', annexIV: '准用色素',
+    annexV: '准用防腐劑', annexVI: '准用防曬劑',
+    annexEntry: '條目', regNote: '備註',
+    restrictedCount: '受限原料', restrictedRatio: '受限比例',
+    viewRegulation: '查看法規 ↗'
   },
   en: {
     title: 'Cosmetic Ingredient Explorer', subtitle: 'EU CosIng Database',
@@ -404,8 +463,14 @@ const I18N = {
     dataSrc: 'Data', taxonomy: 'Taxonomy', author: 'Author', license: 'License',
     statsIng: 'ingredients', statsBotanical: 'botanical', statsSp: 'species',
     statsFam: 'families', statsFn: 'functions', statsCpd: 'compounds',
+    statsRestricted: 'restricted',
     tag: 'Ingredient',
-    photo: 'Photo', photoBy: 'Photo'
+    photo: 'Photo', photoBy: 'Photo',
+    annexII: 'Prohibited', annexIII: 'Restricted use', annexIV: 'Colourants',
+    annexV: 'Preservatives', annexVI: 'UV Filters',
+    annexEntry: 'Entry', regNote: 'Note',
+    restrictedCount: 'Restricted', restrictedRatio: 'Restricted ratio',
+    viewRegulation: 'View regulation ↗'
   }
 };
 let LANG = 'zh';
@@ -470,9 +535,11 @@ function setLang(l) {
 function refreshStats() {
   const bc = D.order.filter(k => D.items[k].sp).length;
   const ss = new Set(); D.order.forEach(k => { if (D.items[k].sp) ss.add(D.items[k].sp); });
+  const rc = D.order.filter(k => D.items[k].re).length;
   document.getElementById('stats').innerHTML =
     '<span><b>' + D.order.length.toLocaleString() + '</b> ' + T('statsIng') + '</span>' +
     '<span><b>' + bc.toLocaleString() + '</b> ' + T('statsBotanical') + '</span>' +
+    '<span><b>' + rc.toLocaleString() + '</b> ' + T('statsRestricted') + '</span>' +
     '<span><b>' + ss.size.toLocaleString() + '</b> ' + T('statsSp') + '</span>' +
     '<span><b>' + D.families.length + '</b> ' + T('statsFam') + '</span>' +
     '<span><b>' + D.functions.length + '</b> ' + T('statsFn') + '</span>' +
@@ -1205,6 +1272,64 @@ function updateBreadcrumb() {
   bc.innerHTML = h;
 }
 
+const ANNEX_INFO = {
+  'II': { key: 'annexII', color: 'annex-ii' },
+  'III': { key: 'annexIII', color: 'annex-iii' },
+  'IV': { key: 'annexIV', color: 'annex-iv' },
+  'V': { key: 'annexV', color: 'annex-v' },
+  'VI': { key: 'annexVI', color: 'annex-vi' }
+};
+
+function parseRestriction(re) {
+  if (!re) return [];
+  const results = [];
+  const rxStructured = /\b(II|III|IV|V|VI)\s*\/\s*(\d+)/g;
+  let m;
+  while ((m = rxStructured.exec(re)) !== null) {
+    results.push({ annex: m[1], entry: m[2] });
+  }
+  if (results.length) return results;
+  const rxMention = /(?:Annex|entry)\s+(II|III|IV|V|VI)\b/gi;
+  while ((m = rxMention.exec(re)) !== null) {
+    const a = m[1].toUpperCase();
+    if (!results.some(r => r.annex === a)) results.push({ annex: a, entry: null });
+  }
+  if (!results.length && re.length > 0) results.push({ annex: null, entry: null, note: re });
+  return results;
+}
+
+function renderRegulation(re) {
+  const parsed = parseRestriction(re);
+  if (!parsed.length) return '';
+  let h = '<div class="sp-section"><h3>' + T('regulation') + '</h3><div class="sp-reg">';
+  const hasStructured = parsed.some(p => p.annex);
+  for (const p of parsed) {
+    if (p.annex) {
+      const info = ANNEX_INFO[p.annex] || {};
+      const col = info.color || 'restrict';
+      h += '<div class="sp-reg-card" style="background:var(--' + col + '-dim);border-color:var(--' + col + ')">';
+      h += '<div class="sp-reg-head">';
+      h += '<span class="sp-reg-badge" style="background:var(--' + col + ');color:#fff">Annex ' + p.annex + '</span>';
+      h += '<span class="sp-reg-type">' + T(info.key || 'regulation') + '</span>';
+      if (p.entry) h += '<span class="sp-reg-entry">#' + p.entry + '</span>';
+      h += '</div>';
+      h += '<a class="sp-reg-link" href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A02009R1223-20231201" target="_blank" rel="noopener">EC 1223/2009 ↗</a>';
+      h += '</div>';
+    } else if (p.note) {
+      h += '<div class="sp-reg-card" style="background:var(--restrict-dim);border-color:var(--restrict)">';
+      h += '<div class="sp-reg-head"><span class="sp-reg-badge" style="background:var(--restrict);color:#fff">' + T('regulation') + '</span></div>';
+      h += '<div class="sp-reg-note">' + esc(p.note) + '</div>';
+      h += '</div>';
+    }
+  }
+  if (hasStructured) {
+    const raw = re.replace(/\b(II|III|IV|V|VI)\s*\/\s*\d+/g, '').replace(/\s+/g, ' ').trim();
+    if (raw.length > 3) h += '<div class="sp-reg-note">' + esc(re) + '</div>';
+  }
+  h += '</div></div>';
+  return h;
+}
+
 function showPanel(n) {
   const panel = document.getElementById('panel');
   let h = '';
@@ -1216,7 +1341,16 @@ function showPanel(n) {
     h += '<div class="sp-tags">';
     h += '<span class="sp-tag" style="background:var(--ingredient-dim);color:var(--ingredient)">' + T('tag') + '</span>';
     if (it.sp) h += '<span class="sp-tag" style="background:var(--family-dim);color:var(--family)">' + T('botanical') + '</span>';
-    if (it.re) h += '<span class="sp-tag" style="background:var(--restrict-dim);color:var(--restrict)">' + T('restricted') + '</span>';
+    if (it.re) {
+      const _rp = parseRestriction(it.re);
+      const _ra = _rp.find(p => p.annex);
+      if (_ra && ANNEX_INFO[_ra.annex]) {
+        const _ai = ANNEX_INFO[_ra.annex];
+        h += '<span class="sp-tag" style="background:var(--' + _ai.color + '-dim);color:var(--' + _ai.color + ')">Annex ' + _ra.annex + '</span>';
+      } else {
+        h += '<span class="sp-tag" style="background:var(--restrict-dim);color:var(--restrict)">' + T('restricted') + '</span>';
+      }
+    }
     h += '</div>';
     if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'ingredient') {
       h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--ingredient);border-radius:6px;background:var(--ingredient-dim);color:var(--ingredient);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navHistory.push({type:GRAPH.view,centerType:GRAPH.centerType,centerIdx:GRAPH.centerIdx});GRAPH=buildEgoGraph(\'ingredient\',\'' + n.refNo + '\');CAM.x=0;CAM.y=0;CAM.scale=1;selectedNode=GRAPH.nodes[0];showPanel(selectedNode);updateBreadcrumb()">' + T('expandIng') + '</button></div>';
@@ -1229,10 +1363,7 @@ function showPanel(n) {
       h += '</div></div>';
     }
     if (it.re) {
-      h += '<div class="sp-section"><h3>' + T('regulation') + '</h3>';
-      h += '<div class="sp-row"><span class="sp-lbl">' + T('annex') + '</span><span class="sp-val" style="color:var(--restrict);font-weight:600">' + esc(it.re) + '</span></div>';
-      if (it.mc) h += '<div class="sp-row"><span class="sp-lbl">' + T('maxConc') + '</span><span class="sp-val">' + esc(it.mc) + '</span></div>';
-      h += '</div>';
+      h += renderRegulation(it.re);
     }
     if (it.sp) {
       h += '<div class="sp-section"><h3>' + T('origin') + '</h3><div class="sp-taxon">';
@@ -1271,8 +1402,17 @@ function showPanel(n) {
     if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'family') {
       h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:var(--accent-dim);color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navToFamily(' + n.famIdx + ')">' + T('expandFamily') + '</button></div>';
     }
-    h += '<div class="sp-row"><span class="sp-lbl">' + T('ingCount') + '</span><span class="sp-val"><b>' + (n.count || D.fam_counts[n.famIdx]).toLocaleString() + '</b></span></div>';
+    const famTotal = n.count || D.fam_counts[n.famIdx];
+    h += '<div class="sp-row"><span class="sp-lbl">' + T('ingCount') + '</span><span class="sp-val"><b>' + famTotal.toLocaleString() + '</b></span></div>';
     if (D.fam_species[n.famIdx]) h += '<div class="sp-row"><span class="sp-lbl">' + T('spCount') + '</span><span class="sp-val"><b>' + D.fam_species[n.famIdx] + '</b></span></div>';
+    const famRestricted = D.order.filter(k => D.items[k].fm === n.famIdx && D.items[k].re).length;
+    if (famRestricted) {
+      const pct = Math.round(famRestricted / famTotal * 100);
+      h += '<div class="sp-restrict-bar"><span class="sp-lbl">' + T('restrictedCount') + '</span>';
+      h += '<span style="color:var(--restrict);font-weight:600">' + famRestricted + '</span>';
+      h += '<div class="sp-restrict-meter"><div class="sp-restrict-fill" style="width:' + pct + '%;background:var(--restrict)"></div></div>';
+      h += '<span>' + pct + '%</span></div>';
+    }
     h += '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 10px">';
     h += '<a href="https://www.gbif.org/species/search?q=' + encodeURIComponent(n.label) + '&rank=FAMILY" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">GBIF ↗</a>';
     h += '<a href="https://powo.science.kew.org/results?q=' + encodeURIComponent(n.label) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">POWO ↗</a>';
@@ -1286,7 +1426,16 @@ function showPanel(n) {
     if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'function') {
       h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:var(--accent-dim);color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navToFunction(' + n.fnIdx + ')">' + T('expandFunc') + '</button></div>';
     }
-    h += '<div class="sp-row"><span class="sp-lbl">' + T('ingCount') + '</span><span class="sp-val"><b>' + (n.count || D.fn_counts[n.fnIdx]).toLocaleString() + '</b></span></div>';
+    const fnTotal = n.count || D.fn_counts[n.fnIdx];
+    h += '<div class="sp-row"><span class="sp-lbl">' + T('ingCount') + '</span><span class="sp-val"><b>' + fnTotal.toLocaleString() + '</b></span></div>';
+    const fnRestricted = D.order.filter(k => D.items[k].f.includes(n.fnIdx) && D.items[k].re).length;
+    if (fnRestricted) {
+      const pct = Math.round(fnRestricted / fnTotal * 100);
+      h += '<div class="sp-restrict-bar"><span class="sp-lbl">' + T('restrictedCount') + '</span>';
+      h += '<span style="color:var(--restrict);font-weight:600">' + fnRestricted + '</span>';
+      h += '<div class="sp-restrict-meter"><div class="sp-restrict-fill" style="width:' + pct + '%;background:var(--restrict)"></div></div>';
+      h += '<span>' + pct + '%</span></div>';
+    }
     h += '</div>';
 
   } else if (n.type === 'species') {
@@ -1297,6 +1446,18 @@ function showPanel(n) {
       h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--species);border-radius:6px;background:var(--species-dim);color:var(--species);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navHistory.push({type:GRAPH.view,centerType:GRAPH.centerType,centerIdx:GRAPH.centerIdx});GRAPH=buildEgoGraph(\'species\',\'' + n.label.replace(/'/g, "\\'") + '\');CAM.x=0;CAM.y=0;CAM.scale=1;selectedNode=GRAPH.nodes[0];showPanel(selectedNode);updateBreadcrumb()">' + T('expandSp') + '</button></div>';
     }
     if (n.count) h += '<div class="sp-row"><span class="sp-lbl">' + T('ingCount') + '</span><span class="sp-val"><b>' + n.count + '</b></span></div>';
+    const spRestricted = D.order.filter(k => D.items[k].sp === n.label && D.items[k].re).length;
+    if (spRestricted) {
+      const spTotal = n.count || D.order.filter(k => D.items[k].sp === n.label).length;
+      h += '<div class="sp-restrict-bar"><span class="sp-lbl">' + T('restrictedCount') + '</span>';
+      h += '<span style="color:var(--restrict);font-weight:600">' + spRestricted + '</span>';
+      if (spTotal > 1) {
+        const pct = Math.round(spRestricted / spTotal * 100);
+        h += '<div class="sp-restrict-meter"><div class="sp-restrict-fill" style="width:' + pct + '%;background:var(--restrict)"></div></div>';
+        h += '<span>' + pct + '%</span>';
+      }
+      h += '</div>';
+    }
     h += '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 10px">';
     h += '<a href="https://www.gbif.org/species/search?q=' + encodeURIComponent(n.label) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">GBIF ↗</a>';
     h += '<a href="https://powo.science.kew.org/results?q=' + encodeURIComponent(n.label) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">POWO ↗</a>';
