@@ -1743,6 +1743,7 @@ async function loadSpeciesImage(gbifKey, elId) {
   SP_IMG[k] = null;
   try {
     const r = await fetch('https://api.gbif.org/v1/occurrence/search?taxonKey=' + k + '&mediaType=StillImage&limit=5');
+    if (!r.ok) { delete SP_IMG[k]; return; }
     const data = await r.json();
     for (const occ of (data.results || [])) {
       for (const m of (occ.media || [])) {
@@ -1757,7 +1758,7 @@ async function loadSpeciesImage(gbifKey, elId) {
         }
       }
     }
-  } catch {}
+  } catch { delete SP_IMG[k]; }
 }
 
 function renderSpeciesImage(info, el) {
