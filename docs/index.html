@@ -506,6 +506,7 @@ const I18N = {
 let LANG = 'zh';
 try { const s = localStorage.getItem('lang'); if (s === 'en') LANG = 'en'; } catch {}
 function T(k) { return (I18N[LANG] || I18N.zh)[k] || k; }
+function spName(sp) { if (!D) return ''; return LANG === 'en' ? (D.sp_en && D.sp_en[sp] || '') : (D.sp_zh && D.sp_zh[sp] || ''); }
 document.documentElement.lang = LANG === 'en' ? 'en' : 'zh-Hant';
 document.getElementById('loadingTitle').textContent = T('title');
 document.getElementById('loadingSub').textContent = T('loading');
@@ -1199,10 +1200,27 @@ function draw() {
       CTX.fillStyle = (isHov || isSel) ? TYPE_COLORS.label : TYPE_COLORS.labelDim;
       CTX.fillText(label, n.x, ty);
 
+      let extraY = 0;
+      if (n.type === 'species' && s > 0.4) {
+        const cn = spName(n.label);
+        if (cn) {
+          const cnSize = Math.max(fontSize * 0.8, 5);
+          CTX.font = `400 ${cnSize}px Inter, system-ui, sans-serif`;
+          CTX.fillStyle = TYPE_COLORS.labelDim;
+          const cnLabel = cn.length > 12 ? cn.substring(0, 11) + '…' : cn;
+          const cm = CTX.measureText(cnLabel);
+          const cty = ty + fontSize + 1 / s;
+          CTX.fillStyle = TYPE_COLORS.canvasBg;
+          CTX.fillRect(n.x - cm.width / 2 - pad, cty - pad / 2, cm.width + pad * 2, cnSize + pad);
+          CTX.fillStyle = TYPE_COLORS.labelDim;
+          CTX.fillText(cnLabel, n.x, cty);
+          extraY = cnSize + 1 / s;
+        }
+      }
       if (n.count !== undefined && s > 0.5) {
         CTX.font = `400 ${Math.max(fontSize * 0.7, 5)}px Inter, system-ui, sans-serif`;
         CTX.fillStyle = TYPE_COLORS.labelDim;
-        CTX.fillText(n.count.toLocaleString(), n.x, ty + fontSize + 1 / s);
+        CTX.fillText(n.count.toLocaleString(), n.x, ty + fontSize + 1 / s + extraY);
       }
     }
   }
@@ -1498,7 +1516,10 @@ function showPanel(n) {
       if (it.k) h += '<span class="rank">' + esc(it.k) + '</span><span class="sep">›</span>';
       if (it.ord) h += '<span class="rank">' + esc(it.ord) + '</span><span class="sep">›</span>';
       if (it.fm !== undefined) h += '<span class="link" onclick="navToFamily(' + it.fm + ')">' + esc(D.families[it.fm]) + '</span><span class="sep">›</span>';
-      h += '<span style="font-style:italic;font-weight:600">' + esc(it.sp) + '</span></div>';
+      h += '<span style="font-style:italic;font-weight:600">' + esc(it.sp) + '</span>';
+      const _iSpCN = spName(it.sp);
+      if (_iSpCN) h += '<span style="color:var(--text-sec);margin-left:6px">(' + esc(_iSpCN) + ')</span>';
+      h += '</div>';
       if (it.pt) h += '<div class="sp-row" style="margin-top:6px"><span class="sp-lbl">' + T('part') + '</span><span class="sp-val">' + (Array.isArray(it.pt) ? it.pt.join(', ') : it.pt) + '</span></div>';
       if (it.pr) h += '<div class="sp-row"><span class="sp-lbl">' + T('process') + '</span><span class="sp-val">' + esc(it.pr) + '</span></div>';
       h += '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 10px">';
@@ -1579,6 +1600,8 @@ function showPanel(n) {
   } else if (n.type === 'species') {
     h += '<div class="sp-head"><h2 style="font-style:italic">' + esc(n.label) + '</h2><button class="sp-close" onclick="closePanel()">×</button></div>';
     h += '<div class="sp-body">';
+    const _spCN = spName(n.label);
+    if (_spCN) h += '<div style="font-size:14px;color:var(--text);margin-bottom:6px">' + esc(_spCN) + '</div>';
     h += '<div class="sp-tags"><span class="sp-tag" style="background:var(--species-dim);color:var(--species)">' + T('speciesTag') + '</span></div>';
     if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'species') {
       h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--species);border-radius:6px;background:var(--species-dim);color:var(--species);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navHistory.push({type:GRAPH.view,centerType:GRAPH.centerType,centerIdx:GRAPH.centerIdx});GRAPH=buildEgoGraph(\'species\',\'' + n.label.replace(/'/g, "\\'") + '\');CAM.x=0;CAM.y=0;CAM.scale=1;selectedNode=GRAPH.nodes[0];showPanel(selectedNode);updateBreadcrumb()">' + T('expandSp') + '</button></div>';
@@ -1633,7 +1656,9 @@ function showPanel(n) {
         h += '<div class="sp-section"><h3>' + T('relatedSp') + ' (' + Math.min(cpd.top_sp.length, 20) + '/' + cpd.n_sp + ')</h3><div style="max-height:200px;overflow-y:auto">';
         cpd.top_sp.slice(0, 20).forEach(([sp, fam]) => {
           h += '<div style="font-size:12px;padding:2px 0;border-bottom:1px solid var(--border)"><span style="font-style:italic;cursor:pointer;color:var(--species)" onclick="navHistory.push({type:GRAPH.view,centerType:GRAPH.centerType,centerIdx:GRAPH.centerIdx});GRAPH=buildEgoGraph(\'species\',\'' + sp.replace(/'/g, "\\'") + '\');CAM.x=0;CAM.y=0;CAM.scale=1;selectedNode=GRAPH.nodes[0];showPanel(selectedNode);updateBreadcrumb()">' + esc(sp) + '</span>';
-          if (fam) h += ' <small style="color:var(--text-sec)">' + esc(fam) + '</small>';
+          const _cSpN = spName(sp);
+          if (_cSpN) h += ' <small style="color:var(--text)">(' + esc(_cSpN) + ')</small>';
+          else if (fam) h += ' <small style="color:var(--text-sec)">' + esc(fam) + '</small>';
           h += '</div>';
         });
         h += '</div></div>';
@@ -1819,9 +1844,13 @@ function setupSearch() {
         if (it.n.toLowerCase().includes(q) || (it.c && it.c.includes(q))) {
           results.push({ type: 'ingredient', label: it.n, idx: k });
         }
-        if (it.sp && it.sp.toLowerCase().includes(q) && !seen.has(it.sp)) {
-          seen.add(it.sp);
-          results.push({ type: 'species', label: it.sp, idx: it.sp });
+        if (it.sp && !seen.has(it.sp)) {
+          const _cn = D.sp_zh[it.sp] || '';
+          const _en = D.sp_en[it.sp] || '';
+          if (it.sp.toLowerCase().includes(q) || _cn.includes(q) || _en.toLowerCase().includes(q)) {
+            seen.add(it.sp);
+            results.push({ type: 'species', label: it.sp, idx: it.sp });
+          }
         }
       }
 
@@ -1840,7 +1869,8 @@ function setupSearch() {
       sr.innerHTML = results.slice(0, 15).map((r, i) => {
         const col = TYPE_COLORS[r.type] || 'var(--accent)';
         const typeLabel = { family: T('family'), function: T('func'), ingredient: T('ingredient'), species: T('species'), compound: T('compound') }[r.type] || '';
-        return '<div class="sr-item" data-i="' + i + '"><div class="sr-dot" style="background:' + col + '"></div><span class="sr-label">' + esc(r.label) + '</span><span class="sr-type">' + typeLabel + (r.count ? ' · ' + r.count : '') + '</span></div>';
+        const _srCN = r.type === 'species' ? spName(r.label) : '';
+        return '<div class="sr-item" data-i="' + i + '"><div class="sr-dot" style="background:' + col + '"></div><span class="sr-label">' + esc(r.label) + (_srCN ? ' <small style="font-style:normal">(' + esc(_srCN) + ')</small>' : '') + '</span><span class="sr-type">' + typeLabel + (r.count ? ' · ' + r.count : '') + '</span></div>';
       }).join('');
       sr.classList.add('open');
 
@@ -1910,6 +1940,9 @@ async function main() {
   for (const it of Object.values(D.items)) {
     if (it.sp && it.gbif && !D.sp_gbif[it.sp]) D.sp_gbif[it.sp] = it.gbif;
   }
+
+  if (!D.sp_zh) D.sp_zh = {};
+  if (!D.sp_en) D.sp_en = {};
 
   refreshColors();
   refreshStats();
