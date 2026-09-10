@@ -507,6 +507,7 @@ let LANG = 'zh';
 try { const s = localStorage.getItem('lang'); if (s === 'en') LANG = 'en'; } catch {}
 function T(k) { return (I18N[LANG] || I18N.zh)[k] || k; }
 function spName(sp) { if (!D) return ''; return LANG === 'en' ? (D.sp_en && D.sp_en[sp] || '') : (D.sp_zh && D.sp_zh[sp] || ''); }
+function famName(fam) { if (!D) return ''; return LANG === 'en' ? (D.fam_en && D.fam_en[fam] || '') : (D.fam_zh && D.fam_zh[fam] || ''); }
 document.documentElement.lang = LANG === 'en' ? 'en' : 'zh-Hant';
 document.getElementById('loadingTitle').textContent = T('title');
 document.getElementById('loadingSub').textContent = T('loading');
@@ -1201,8 +1202,8 @@ function draw() {
       CTX.fillText(label, n.x, ty);
 
       let extraY = 0;
-      if (n.type === 'species' && s > 0.4) {
-        const cn = spName(n.label);
+      if ((n.type === 'species' || n.type === 'family') && s > 0.4) {
+        const cn = n.type === 'species' ? spName(n.label) : famName(n.label);
         if (cn) {
           const cnSize = Math.max(fontSize * 0.8, 5);
           CTX.font = `400 ${cnSize}px Inter, system-ui, sans-serif`;
@@ -1515,7 +1516,10 @@ function showPanel(n) {
       h += '<div class="sp-section"><h3>' + T('origin') + '</h3><div class="sp-taxon">';
       if (it.k) h += '<span class="rank">' + esc(it.k) + '</span><span class="sep">›</span>';
       if (it.ord) h += '<span class="rank">' + esc(it.ord) + '</span><span class="sep">›</span>';
-      if (it.fm !== undefined) h += '<span class="link" onclick="navToFamily(' + it.fm + ')">' + esc(D.families[it.fm]) + '</span><span class="sep">›</span>';
+      if (it.fm !== undefined) {
+        const _iFmCN = famName(D.families[it.fm]);
+        h += '<span class="link" onclick="navToFamily(' + it.fm + ')">' + esc(D.families[it.fm]) + (_iFmCN ? ' <small style="font-style:normal">(' + esc(_iFmCN) + ')</small>' : '') + '</span><span class="sep">›</span>';
+      }
       h += '<span style="font-style:italic;font-weight:600">' + esc(it.sp) + '</span>';
       const _iSpCN = spName(it.sp);
       if (_iSpCN) h += '<span style="color:var(--text-sec);margin-left:6px">(' + esc(_iSpCN) + ')</span>';
@@ -1547,6 +1551,8 @@ function showPanel(n) {
   } else if (n.type === 'family') {
     h += '<div class="sp-head"><h2>' + esc(n.label) + '</h2><button class="sp-close" onclick="closePanel()">×</button></div>';
     h += '<div class="sp-body">';
+    const _famCN = famName(n.label);
+    if (_famCN) h += '<div style="font-size:14px;color:var(--text);margin-bottom:6px">' + esc(_famCN) + '</div>';
     h += '<div class="sp-tags"><span class="sp-tag" style="background:var(--family-dim);color:var(--family)">' + T('familyTag') + '</span></div>';
     if (GRAPH.view !== 'ego' || GRAPH.centerType !== 'family') {
       h += '<div style="margin:6px 0 10px"><button style="padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:var(--accent-dim);color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font)" onclick="navToFamily(' + n.famIdx + ')">' + T('expandFamily') + '</button></div>';
@@ -1647,8 +1653,10 @@ function showPanel(n) {
         h += '<div class="sp-section"><h3>' + T('topFam') + '</h3><div>';
         cpd.top_fam.forEach(([fam, cnt]) => {
           const fi = D.families.indexOf(fam);
-          if (fi >= 0) h += '<span class="sp-fn" onclick="navToFamily(' + fi + ')">' + esc(fam) + ' <small>(' + cnt + ')</small></span>';
-          else h += '<span class="sp-fn">' + esc(fam) + ' <small>(' + cnt + ')</small></span>';
+          const _cfn = famName(fam);
+          const famLabel = esc(fam) + (_cfn ? ' <small style="font-weight:400">(' + esc(_cfn) + ')</small>' : '');
+          if (fi >= 0) h += '<span class="sp-fn" onclick="navToFamily(' + fi + ')">' + famLabel + ' <small>(' + cnt + ')</small></span>';
+          else h += '<span class="sp-fn">' + famLabel + ' <small>(' + cnt + ')</small></span>';
         });
         h += '</div></div>';
       }
@@ -1832,7 +1840,9 @@ function setupSearch() {
       if (q.length < 2) { sr.classList.remove('open'); return; }
       const results = [];
       D.families.forEach((name, i) => {
-        if (name.toLowerCase().includes(q)) results.push({ type: 'family', label: name, idx: i, count: D.fam_counts[i] });
+        const _fZh = D.fam_zh[name] || '';
+        const _fEn = D.fam_en[name] || '';
+        if (name.toLowerCase().includes(q) || _fZh.includes(q) || _fEn.toLowerCase().includes(q)) results.push({ type: 'family', label: name, idx: i, count: D.fam_counts[i] });
       });
       D.functions.forEach((name, i) => {
         if (name.toLowerCase().includes(q)) results.push({ type: 'function', label: name, idx: i, count: D.fn_counts[i] });
@@ -1869,7 +1879,7 @@ function setupSearch() {
       sr.innerHTML = results.slice(0, 15).map((r, i) => {
         const col = TYPE_COLORS[r.type] || 'var(--accent)';
         const typeLabel = { family: T('family'), function: T('func'), ingredient: T('ingredient'), species: T('species'), compound: T('compound') }[r.type] || '';
-        const _srCN = r.type === 'species' ? spName(r.label) : '';
+        const _srCN = r.type === 'species' ? spName(r.label) : (r.type === 'family' ? famName(r.label) : '');
         return '<div class="sr-item" data-i="' + i + '"><div class="sr-dot" style="background:' + col + '"></div><span class="sr-label">' + esc(r.label) + (_srCN ? ' <small style="font-style:normal">(' + esc(_srCN) + ')</small>' : '') + '</span><span class="sr-type">' + typeLabel + (r.count ? ' · ' + r.count : '') + '</span></div>';
       }).join('');
       sr.classList.add('open');
@@ -1943,6 +1953,8 @@ async function main() {
 
   if (!D.sp_zh) D.sp_zh = {};
   if (!D.sp_en) D.sp_en = {};
+  if (!D.fam_zh) D.fam_zh = {};
+  if (!D.fam_en) D.fam_en = {};
 
   refreshColors();
   refreshStats();
