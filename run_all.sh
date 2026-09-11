@@ -43,3 +43,5 @@ if [ "$COSING_SOURCE" = "2019" ]; then
   $PY _scripts/07_insights.py             # cross-cutting analysis
   $PY _scripts/00_profile.py              # profile report
 fi
+
+$PY _scripts/build_site.py               # Phase 6b: rebuild docs/ static site
