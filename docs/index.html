@@ -1398,6 +1398,80 @@ function selectNode(n) {
   showPanel(n);
 }
 
+function handleUrlParams() {
+  const p = new URLSearchParams(location.search);
+
+  if (p.has('ingredient')) {
+    const ref = p.get('ingredient');
+    if (D.items[ref]) {
+      GRAPH = buildEgoGraph('ingredient', ref);
+      CAM.x = 0; CAM.y = 0; CAM.scale = 1;
+      selectedNode = GRAPH.nodes[0];
+      showPanel(selectedNode);
+      updateBreadcrumb();
+      return true;
+    }
+  }
+
+  if (p.has('family')) {
+    const idx = D.families.indexOf(p.get('family'));
+    if (idx >= 0) {
+      GRAPH = buildEgoGraph('family', idx);
+      CAM.x = 0; CAM.y = 0; CAM.scale = 1;
+      selectedNode = GRAPH.nodes[0];
+      showPanel(selectedNode);
+      updateBreadcrumb();
+      return true;
+    }
+  }
+
+  if (p.has('species')) {
+    const name = p.get('species');
+    const hasSpecies = D.order.some(k => D.items[k].sp === name);
+    if (hasSpecies) {
+      GRAPH = buildEgoGraph('species', name);
+      CAM.x = 0; CAM.y = 0; CAM.scale = 1;
+      selectedNode = GRAPH.nodes[0];
+      showPanel(selectedNode);
+      updateBreadcrumb();
+      return true;
+    }
+  }
+
+  if (p.has('function')) {
+    const idx = D.functions.indexOf(p.get('function'));
+    if (idx >= 0) {
+      GRAPH = buildEgoGraph('function', idx);
+      CAM.x = 0; CAM.y = 0; CAM.scale = 1;
+      selectedNode = GRAPH.nodes[0];
+      showPanel(selectedNode);
+      updateBreadcrumb();
+      return true;
+    }
+  }
+
+  if (p.has('compound')) {
+    const ik = p.get('compound');
+    if (D.ci[ik]) {
+      GRAPH = buildEgoGraph('compound', ik);
+      CAM.x = 0; CAM.y = 0; CAM.scale = 1;
+      selectedNode = GRAPH.nodes[0];
+      showPanel(selectedNode);
+      updateBreadcrumb();
+      return true;
+    }
+  }
+
+  if (p.has('search')) {
+    const el = document.getElementById('search');
+    el.value = p.get('search');
+    el.dispatchEvent(new Event('input'));
+    return true;
+  }
+
+  return false;
+}
+
 function showOverview() {
   navHistory.length = 0;
   GRAPH = buildOverview();
@@ -1969,6 +2043,8 @@ async function main() {
   window.addEventListener('resize', resize);
   setupInteraction();
   setupSearch();
+
+  handleUrlParams();
 
   draw();
 }

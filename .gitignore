@@ -27,3 +27,9 @@ _data/lotus/*.csv.gz
 
 # 原始 SVG 結構式（1.3GB，由 PubChem 下載，docs/svg/ 為壓縮後版本）
 _data/structures/
+
+# pytest cache
+.pytest_cache/
+
+# Claude Code local settings (machine-specific paths)
+.claude/settings.local.json

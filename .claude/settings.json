@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "cosing-mcp": {
+      "command": "/Users/justnichen/Documents/cosing/.venv/bin/python",
+      "args": ["-m", "cosing_mcp.server"]
+    }
+  }
+}
