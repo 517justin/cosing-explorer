@@ -2,26 +2,35 @@
 
 **CosIng Cosmetic Ingredient Explorer**
 
-互動式知識圖譜，視覺化探索歐盟 CosIng 資料庫中 33,638 種化妝品原料的關聯——科、物種、用途、化合物一覽無遺。
+互動式知識圖譜 + AI 問答，探索歐盟 CosIng 資料庫中 33,638 種化妝品原料——科、物種、用途、化合物一覽無遺，還能用自然語言查詢或直接分析成分表。
 
 🔗 **[線上體驗 → 517justin.github.io/cosing-explorer](https://517justin.github.io/cosing-explorer/)**
 
 ## 功能
 
+### 知識圖譜（Explorer）
+
 - **全庫搜尋** — 33,638 筆原料即時搜尋（INCI 名稱、CAS、描述、物種名、科名、中英文俗名）
 - **力導向知識圖譜** — Canvas 繪製的互動式關聯圖，支援平移、縮放、點擊導航
 - **五種節點類型** — 科（Family）、用途（Function）、原料（Ingredient）、物種（Species）、化合物（Compound）
 - **Ego-graph 導航** — 點擊任何節點展開其關聯網絡，麵包屑路徑可回溯
+- **深度連結** — 支援 URL 參數直接開啟特定成分、科、物種、用途、化合物或搜尋結果
 - **化合物結構式** — 58,596 個分子結構 SVG 即時載入，DecompressionStream 解壓
 - **物種照片** — 透過 GBIF Occurrence API 自動載入物種實物照片
 - **中英文俗名** — 2,827 種物種與 376 科皆附中英文俗名，搜尋與顯示皆支援
 - **雙語介面** — 中文／英文切換，所有介面文字與俗名隨語系變更
-- **篩選晶片** — 植物來源 / 有限制 / 有結構 / 用途 / 科
-- **原料排序** — 支援預設、法規限制優先、植物來源優先排序
-- **原料詳情面板** — 描述、法規限制（Annex 色彩編碼）、分類階層、化合物縮略圖
+- **篩選與排序** — 植物來源 / 有限制 / 有結構 / 用途 / 科篩選，多種排序模式
 - **法規資料** — EU 化妝品法規 EC 1223/2009 Annex II–VI 結構化顯示，色彩編碼
 - **深色模式** — 三態主題（系統 / 明 / 暗）
 - **純靜態** — 無後端，GitHub Pages 直接部署
+
+### AI 問答層（MCP Server + Skill）
+
+- **自然語言查詢** — 在 Claude Code 中直接用中文或英文提問，如「玫瑰精油有哪些用途？」「甘油的 CAS 號是什麼？」
+- **成分表分析** — 貼上成分表文字或照片，自動辨識 INCI 名稱並批次查詢
+- **法規速查** — 即時查詢任何成分的 EU 法規限制狀態（Annex II–VI）
+- **物種 / 科資訊** — 查詢植物分類、萃取物清單、化合物數量
+- **Explorer 連結** — 所有查詢結果附上知識圖譜的深度連結，一鍵開啟視覺化探索
 
 ## 圖譜節點選取邏輯
 
@@ -68,6 +77,67 @@
 | 用途（Function） | 按含該化合物物種的用途次數排序 | 10 |
 | 物種（Species） | 該化合物出現的物種清單 | 20 |
 
+## 深度連結
+
+Explorer 支援 URL 參數，可從外部直接開啟特定頁面：
+
+| 參數 | 範例 | 說明 |
+|------|------|------|
+| `?ingredient=` | [`?ingredient=87220`](https://517justin.github.io/cosing-explorer/?ingredient=87220) | 開啟特定成分的知識圖譜 |
+| `?family=` | [`?family=Rosaceae`](https://517justin.github.io/cosing-explorer/?family=Rosaceae) | 開啟特定科的知識圖譜 |
+| `?species=` | [`?species=Rosa+damascena`](https://517justin.github.io/cosing-explorer/?species=Rosa+damascena) | 開啟特定物種的知識圖譜 |
+| `?function=` | [`?function=SKIN+CONDITIONING`](https://517justin.github.io/cosing-explorer/?function=SKIN+CONDITIONING) | 開啟特定用途的知識圖譜 |
+| `?compound=` | `?compound=CRPUJAZIXJMDBK-UHFFFAOYSA-N` | 開啟特定化合物的知識圖譜 |
+| `?search=` | [`?search=lavender`](https://517justin.github.io/cosing-explorer/?search=lavender) | 預填搜尋框並顯示結果 |
+
+## AI 問答（Claude Code）
+
+### 安裝
+
+```bash
+# 1. 安裝 MCP Server
+cd cosing-mcp && pip install -e .
+
+# 2. 加入 Claude Code
+claude mcp add cosing-mcp -- cosing-mcp
+
+# 3. 安裝成分分析 Skill（可選）
+cp cosing-mcp/skill/cosing-analyze.md .claude/commands/
+```
+
+### 成分表分析
+
+在 Claude Code 中使用 `/cosing-analyze` skill：
+
+```
+/cosing-analyze
+AQUA, GLYCERIN, BUTYLENE GLYCOL, ROSA DAMASCENA FLOWER WATER,
+PHENOXYETHANOL, CITRIC ACID, SODIUM HYALURONATE
+```
+
+也可以直接貼上成分表照片，skill 會用 vision 辨識 INCI 名稱。
+
+分析報告包含：
+- 成分總覽表（🌿 植物來源 / ⚗️ 合成 / 🔴 禁用 / 🟠 限制 / ✅ 無限制）
+- 植物來源成分的學名、中英文俗名、部位、製程
+- 法規限制詳情（Annex II–VI）
+- 未識別成分及可能原因
+- 用途分布統計
+- Explorer 圖譜連結
+
+### 自然語言問答
+
+MCP Server 提供 6 個工具，Claude 會根據問題自動選用：
+
+| 工具 | 說明 | 問法範例 |
+|------|------|----------|
+| `lookup_ingredient` | 查詢單一成分（INCI / CAS / ref_no） | 「甘油是什麼？」 |
+| `search_ingredients` | 模糊搜尋 + 篩選 | 「有哪些薰衣草相關的原料？」 |
+| `get_species` | 物種詳情 + 萃取物清單 | 「大馬士革玫瑰有哪些萃取物？」 |
+| `get_family` | 科的統計資訊 | 「唇形科有多少種原料？」 |
+| `get_regulation` | 法規限制查詢 | 「Phenoxyethanol 的法規限制是什麼？」 |
+| `analyze_ingredient_list` | 批次成分分析 | 由 `/cosing-analyze` skill 呼叫 |
+
 ## 資料來源
 
 | 資料 | 來源 | 授權 |
@@ -80,12 +150,24 @@
 ## 架構
 
 ```
-docs/                        # GitHub Pages 根目錄
+docs/                        # GitHub Pages 根目錄（Explorer）
 ├── index.html               # 單頁應用（CSS/JS 內嵌，~2,000 行）
 ├── data/
-│   ├── ingredients.json     # 33,638 筆原料 + 用途索引 + 科索引 + 中英文俗名（~13 MB）
+│   ├── ingredients.json     # 33,638 筆原料 + 索引 + 中英文俗名（~13 MB）
 │   └── compounds.json       # 11,777 筆化合物索引（~5 MB）
-└── svg/                     # 631 個 SVG chunk（InChIKey 前兩碼分桶，共 ~192 MB）
+└── svg/                     # 631 個 SVG chunk（~192 MB）
+
+cosing-mcp/                  # AI 問答層（MCP Server）
+├── src/cosing_mcp/
+│   ├── server.py            # MCP Server 進入點 + 6 個工具定義
+│   └── data.py              # GitHub Pages JSON 快取 + 記憶體索引
+├── tests/                   # 31 項測試
+├── skill/cosing-analyze.md  # 成分分析 Skill（分發用副本）
+└── pyproject.toml           # pip install 設定
+
+.claude/
+├── commands/cosing-analyze.md  # Claude Code Skill
+└── settings.json               # MCP Server 設定
 ```
 
 ### SVG 壓縮策略
