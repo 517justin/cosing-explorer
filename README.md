@@ -2,6 +2,8 @@
 
 **CosIng Cosmetic Ingredient Explorer**
 
+[English](README.en.md) | 繁體中文
+
 互動式知識圖譜 + AI 問答，探索歐盟 CosIng 資料庫中 33,638 種化妝品原料——科、物種、用途、化合物一覽無遺，還能用自然語言查詢或直接分析成分表。
 
 🔗 **[線上體驗 → 517justin.github.io/cosing-explorer](https://517justin.github.io/cosing-explorer/)**

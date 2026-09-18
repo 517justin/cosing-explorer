@@ -2,6 +2,8 @@
 
 **CosIng 化妝品成分探索器**
 
+English | [繁體中文](README.md)
+
 An interactive knowledge graph + AI Q&A for exploring 33,638 cosmetic ingredients in the EU CosIng database — families, species, functions, and compounds at a glance, plus natural-language queries and ingredient label analysis.
 
 🔗 **[Live Demo → 517justin.github.io/cosing-explorer](https://517justin.github.io/cosing-explorer/)**
