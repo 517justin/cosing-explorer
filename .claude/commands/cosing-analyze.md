@@ -42,11 +42,13 @@ description: 分析化妝品成分表 — 識別成分、查詢 CosIng 知識庫
 
 **植物來源成分**（若有）
 
+不論用表格或條列呈現，每個植物來源成分**都必須包含可點擊的 Explorer 連結**（`https://517justin.github.io/cosing-explorer/?ingredient=<ref_no>`）——不能只在成分總覽表出現一次就當作交代過了，這裡是獨立區塊，連結也要重複列出。用表格時，INCI 名稱欄本身就要是連結（不要另闢一欄放純文字網址、也不要漏掉）。
+
 列出每個植物來源成分（即上方標 🌿 者）的：
+- INCI 名稱（附 Explorer 連結）
 - 物種學名 + 中／英文俗名
 - 科名 + 中／英文俗名
 - 使用部位、製程
-- Explorer 連結：`https://517justin.github.io/cosing-explorer/?ingredient=<ref_no>`
 
 **法規限制**（若有）
 
