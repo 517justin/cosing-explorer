@@ -36,3 +36,6 @@ _data/structures/
 # Project MCP server registration — machine-specific (absolute venv path).
 # Other users register their own via: pip install -e cosing-mcp && claude mcp add cosing-mcp -- cosing-mcp
 .mcp.json
+
+# Obsidian vault settings (per-user plugins, workspace layout)
+.obsidian/
