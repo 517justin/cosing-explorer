@@ -208,7 +208,8 @@ python3 _scripts/build_site.py
 
 | 日期 | 內容 |
 |------|------|
-| 2026-09-27 | Phase 8 規劃完成 — 分子描述子、Wikidata 多語名稱、ChEBI 化學角色、COCONUT 擴充、日文介面 |
+| 2026-09-27 | Phase 8a 完成 — RDKit 分子描述子、PubChem CID 直連、化合物瀏覽清單頁（LogP/MW 篩選）、MCP 描述子欄位 |
+| 2026-09-27 | Phase 8b–8d 規劃完成 — Wikidata 多語名稱、ChEBI 化學角色、COCONUT 擴充、日文介面 |
 | 2026-09-15 | Phase 7 完成 — MCP Server 6 工具 + Explorer 深度連結 + cosing-analyze Skill + 31 項測試 |
 
 ## 授權

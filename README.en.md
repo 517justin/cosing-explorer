@@ -208,7 +208,8 @@ See [ROADMAP.md](ROADMAP.md).
 
 | Date | Description |
 |------|-------------|
-| 2026-09-27 | Phase 8 planned — molecular descriptors, Wikidata multilingual names, ChEBI chemical roles, COCONUT expansion, Japanese UI |
+| 2026-09-27 | Phase 8a complete — RDKit molecular descriptors, direct PubChem CID links, Compound Browser (LogP/MW filters), MCP descriptor field |
+| 2026-09-27 | Phase 8b–8d planned — Wikidata multilingual names, ChEBI chemical roles, COCONUT expansion, Japanese UI |
 | 2026-09-15 | Phase 7 complete — MCP Server with 6 tools + Explorer deep links + cosing-analyze Skill + 31 tests |
 
 ## License

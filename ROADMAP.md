@@ -2,25 +2,30 @@
 
 ## Phase 8 — 分子知識圖譜擴充 Molecular Knowledge Graph Expansion
 
-### 8a — 分子描述子 + PubChem 連結（短期 ~1 week）
+### 8a — 分子描述子 + PubChem 連結（短期 ~1 week）✅ 已完成 2026-09-27
 
 **目標：** 在 Explorer 化合物面板中顯示物化性質，並提供 PubChem 外部連結。
 
-| 工作項 | 說明 |
-|--------|------|
-| `19_compute_descriptors.py` | RDKit 計算 10 項描述子（MW, LogP, TPSA, HBD, HBA, rotatable bonds, rings, aromatic rings, heavy atoms, fsp3），58,596 化合物，約 16 秒 |
-| `build_site.py` 修改 | 將 CID + 描述子匯出至 `compounds.json`（PubChem CID 已有 58,996 筆，零 API 呼叫） |
-| Explorer UI | 化合物面板顯示描述子表格 + PubChem 外部連結 |
-| Explorer UI | LogP / MW 範圍滑桿篩選器 |
-| MCP Server | `lookup_ingredient` 回傳描述子 + PubChem URL |
+| 工作項 | 說明 | 狀態 |
+|--------|------|------|
+| `19_compute_descriptors.py` | RDKit 計算 9 項描述子（LogP, TPSA, HBD, HBA, rotatable bonds, rings, aromatic rings, heavy atoms, fsp3），58,596 化合物零失敗，約 52 秒 | ✅ |
+| `build_site.py` 修改 | CID + MW + 描述子匯出至 `compounds.json`（5.0→5.6 MB，PubChem CID 已有 58,996 筆，零 API 呼叫） | ✅ |
+| Explorer UI | 化合物面板顯示描述子表格 + PubChem CID 直連 | ✅ |
+| Explorer UI | 獨立「化合物瀏覽」清單頁：LogP/MW 範圍篩選、分子式/名稱搜尋、排序（物種數/MW/LogP）、分頁（規劃時原定滑桿，實作時發現無清單視圖可掛，改為新建清單頁） | ✅ |
+| MCP Server | `lookup_ingredient` 回傳 `compound` 欄位（formula, IUPAC, MW, CID, PubChem URL, descriptors） | ✅ |
 
 **前提：** 無 — 所有資料已在磁碟上。
 
 **驗收：**
-- 化合物面板顯示 MW, LogP, TPSA, HBD/HBA, rings
-- PubChem 連結可正確開啟
-- 屬性篩選器正常運作
-- `compounds.json` < 8 MB
+- ✅ 化合物面板顯示 MW, LogP, TPSA, HBD/HBA, rings
+- ✅ PubChem 連結使用 CID 直連（`/compound/{cid}`），無 CID 時退回關鍵字搜尋
+- ✅ 化合物瀏覽頁篩選器正常運作（LogP 2–5 → 11,777 縮至 4,814 筆）
+- ✅ `compounds.json` 5.60 MB（< 8 MB）
+- ✅ MCP 測試 31→33 項全過
+
+**副產出：**
+- 修正既有手機版 toolbar 溢出 bug（新增按鈕觸發，非本次目標但一併修好）
+- 發現 `build_site.py` 重跑會清空手動維護的 `sp_zh`/`sp_en`/`fam_zh`/`fam_en`（因為這些資料只存在於輸出 JSON、未進 DB）——**Phase 8b 執行前必須處理**，否則會連帶清掉 8b 新增的 `sp_ja`/`fam_ja` 或既有俗名
 
 ---
 
