@@ -200,6 +200,17 @@ To rebuild from source data:
 python3 _scripts/build_site.py
 ```
 
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md).
+
+## Changelog
+
+| Date | Description |
+|------|-------------|
+| 2026-09-27 | Phase 8 planned — molecular descriptors, Wikidata multilingual names, ChEBI chemical roles, COCONUT expansion, Japanese UI |
+| 2026-09-15 | Phase 7 complete — MCP Server with 6 tools + Explorer deep links + cosing-analyze Skill + 31 tests |
+
 ## License
 
 [MIT License](LICENSE) — Chia-Hsiu CHEN

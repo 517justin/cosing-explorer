@@ -200,6 +200,17 @@ python3 -m http.server 8765
 python3 _scripts/build_site.py
 ```
 
+## 路線圖
+
+見 [ROADMAP.md](ROADMAP.md)。
+
+## 更新紀錄
+
+| 日期 | 內容 |
+|------|------|
+| 2026-09-27 | Phase 8 規劃完成 — 分子描述子、Wikidata 多語名稱、ChEBI 化學角色、COCONUT 擴充、日文介面 |
+| 2026-09-15 | Phase 7 完成 — MCP Server 6 工具 + Explorer 深度連結 + cosing-analyze Skill + 31 項測試 |
+
 ## 授權
 
 [MIT License](LICENSE) — Chia-Hsiu CHEN
