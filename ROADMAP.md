@@ -24,8 +24,8 @@
 - ✅ MCP 測試 31→33 項全過
 
 **副產出：**
-- 修正既有手機版 toolbar 溢出 bug（新增按鈕觸發，非本次目標但一併修好）
-- 發現 `build_site.py` 重跑會清空手動維護的 `sp_zh`/`sp_en`/`fam_zh`/`fam_en`（因為這些資料只存在於輸出 JSON、未進 DB）——**Phase 8b 執行前必須處理**，否則會連帶清掉 8b 新增的 `sp_ja`/`fam_ja` 或既有俗名
+- 修正既有手機版 toolbar 溢出 bug（新增按鈕觸發，非本次目標但一併修好）✅
+- 修正 `build_site.py` 重跑會清空手動維護的 `sp_zh`/`sp_en`/`fam_zh`/`fam_en` 問題 ✅ —— 已將 4 個字典抽出至 `_data/common_names.json`（source of truth，人工維護），`build_site.py` 現在從此檔案讀入並合併進輸出，重跑不再清空俗名。Phase 8b 新增 `sp_ja`/`fam_ja` 時可直接加進同一個檔案
 
 ---
 

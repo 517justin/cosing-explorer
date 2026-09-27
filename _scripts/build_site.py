@@ -80,6 +80,17 @@ for cas, ik in cas_rows:
     cas_ik[cas] = ik
 print(f"  {len(cas_ik)} CAS→InChIKey mappings")
 
+# ─── 4b. Common names (manually maintained, not in DB) ───
+print("Loading common names...")
+common_names_path = os.path.join(ROOT, '_data', 'common_names.json')
+with open(common_names_path) as f:
+    common_names = json.load(f)
+sp_zh = common_names.get('sp_zh', {})
+sp_en = common_names.get('sp_en', {})
+fam_zh = common_names.get('fam_zh', {})
+fam_en = common_names.get('fam_en', {})
+print(f"  sp_zh={len(sp_zh)} sp_en={len(sp_en)} fam_zh={len(fam_zh)} fam_en={len(fam_en)}")
+
 # ─── 5. All ingredients ───
 print("Loading all ingredients...")
 rows = db.execute('''
@@ -174,6 +185,10 @@ data = {
     'fam_species': fam_species,
     'order': order_list,
     'items': items,
+    'sp_zh': sp_zh,
+    'sp_en': sp_en,
+    'fam_zh': fam_zh,
+    'fam_en': fam_en,
 }
 data_json = json.dumps(data, separators=(',', ':'), ensure_ascii=False)
 path = os.path.join(OUT_DIR, 'data', 'ingredients.json')
