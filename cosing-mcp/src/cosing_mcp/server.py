@@ -14,7 +14,10 @@ db = CosIngData()
 def lookup_ingredient(query: str) -> dict:
     """Look up a cosmetic ingredient by INCI name, CAS number, or CosIng ref number.
 
-    Returns full details: description, functions, species, family, regulation, and Explorer link.
+    Returns full details: description, functions, species, family, regulation, and
+    Explorer link. When the ingredient's CAS number resolves to a known chemical
+    structure, also returns molecular descriptors (MW, LogP, TPSA, H-bond donors/
+    acceptors, rotatable bonds, ring counts, Fsp3) and a PubChem link.
     """
     result = db.lookup(query)
     if not result:

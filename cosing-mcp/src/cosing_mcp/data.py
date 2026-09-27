@@ -93,6 +93,30 @@ class CosIngData:
             if (fm := it.get("fm")) is not None:
                 self.by_family.setdefault(fm, []).append(ref)
 
+    def _compound_info(self, ik: str) -> dict | None:
+        cpd = self.compounds.get(ik)
+        if not cpd:
+            return None
+        info: dict = {"inchikey": ik}
+        if f := cpd.get("f"):
+            info["formula"] = f
+        if iupac := cpd.get("iupac"):
+            info["iupac_name"] = iupac
+        if (mw := cpd.get("mw")) is not None:
+            info["molecular_weight"] = mw
+        if cid := cpd.get("cid"):
+            info["pubchem_cid"] = cid
+            info["pubchem_url"] = f"https://pubchem.ncbi.nlm.nih.gov/compound/{cid}"
+        if desc := cpd.get("desc"):
+            logp, tpsa, hbd, hba, rotb, rings, arom, heavy, fsp3 = desc
+            info["descriptors"] = {
+                "logp": logp, "tpsa": tpsa,
+                "h_bond_donors": hbd, "h_bond_acceptors": hba,
+                "rotatable_bonds": rotb, "ring_count": rings, "aromatic_ring_count": arom,
+                "heavy_atom_count": heavy, "fraction_csp3": fsp3,
+            }
+        return info
+
     def _format_item(self, ref: str) -> dict:
         it = self.items[ref]
         fn_names = [self.functions[i] for i in it.get("f", [])]
@@ -129,6 +153,9 @@ class CosIngData:
             result["restriction"] = re
         if cc := it.get("cc"):
             result["compound_count"] = cc
+        if ik := it.get("ik"):
+            if cpd_info := self._compound_info(ik):
+                result["compound"] = cpd_info
         return result
 
     def lookup(self, query: str) -> dict | None:

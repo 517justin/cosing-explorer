@@ -123,3 +123,22 @@ def test_analyze_list_empty(mini_db):
 def test_explorer_url_format(mini_db):
     r = mini_db.lookup("87220")
     assert "?ingredient=87220" in r["explorer_url"]
+
+
+def test_lookup_includes_compound_descriptors(mini_db):
+    r = mini_db.lookup("GLYCERIN")
+    assert r is not None
+    cpd = r["compound"]
+    assert cpd["inchikey"] == "TESTKEY-XXXXXX-N"
+    assert cpd["formula"] == "C10H16"
+    assert cpd["molecular_weight"] == 92.09
+    assert cpd["pubchem_cid"] == 753
+    assert cpd["pubchem_url"] == "https://pubchem.ncbi.nlm.nih.gov/compound/753"
+    assert cpd["descriptors"]["logp"] == -1.76
+    assert cpd["descriptors"]["h_bond_donors"] == 3
+
+
+def test_lookup_without_compound_match(mini_db):
+    r = mini_db.lookup("AQUA")
+    assert r is not None
+    assert "compound" not in r

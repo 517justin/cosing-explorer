@@ -40,6 +40,7 @@ def _build_mini_data():
             "f": [0, 2],
             "d": "Glycerin is an organic compound",
             "c": "56-81-5",
+            "ik": "TESTKEY-XXXXXX-N",
         },
         "31464": {
             "n": "1,2,4-BENZENETRIACETATE",
@@ -94,6 +95,9 @@ def _build_mini_data():
             "n_fam": 1,
             "top_fam": [["Rosaceae", 1]],
             "top_sp": [["Rosa damascena", "Rosaceae"]],
+            "cid": 753,
+            "mw": 92.09,
+            "desc": [-1.76, 60.7, 3, 3, 1, 0, 0, 6, 1.0],
         }
     }
 
