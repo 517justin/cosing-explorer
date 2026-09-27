@@ -187,16 +187,18 @@ print("Building compound index...")
 cpd_index_rows = db.execute('''
     WITH ranked AS (
         SELECT sc.inchikey,
-               c.formula, c.iupac_name,
+               c.formula, c.iupac_name, c.cid, c.mw,
+               c.logp, c.tpsa, c.hbd, c.hba, c.rotb, c.rings, c.arom, c.heavy, c.fsp3,
                count(DISTINCT sc.species) as sp_count
         FROM species_compounds_v2026 sc
         JOIN compound_v2026 c ON sc.inchikey = c.inchikey
-        GROUP BY 1,2,3
+        GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14
         HAVING sp_count >= 2
         ORDER BY sp_count DESC
     )
-    SELECT r.inchikey, r.formula, r.iupac_name, r.sp_count,
-           sc.species, e.family_final
+    SELECT r.inchikey, r.formula, r.iupac_name, r.cid, r.mw,
+           r.logp, r.tpsa, r.hbd, r.hba, r.rotb, r.rings, r.arom, r.heavy, r.fsp3,
+           r.sp_count, sc.species, e.family_final
     FROM ranked r
     JOIN species_compounds_v2026 sc ON r.inchikey = sc.inchikey
     LEFT JOIN extract_v2026 e ON sc.species = e.species_accepted
@@ -204,9 +206,15 @@ cpd_index_rows = db.execute('''
 ''').fetchall()
 
 compounds = {}
-for ik, formula, iupac, sp_count, sp, fam in cpd_index_rows:
+for (ik, formula, iupac, cid, mw, logp, tpsa, hbd, hba, rotb, rings, arom, heavy, fsp3,
+     sp_count, sp, fam) in cpd_index_rows:
     if ik not in compounds:
-        compounds[ik] = {'f': formula, 'iupac': iupac or '', 'sp_map': {}}
+        compounds[ik] = {
+            'f': formula, 'iupac': iupac or '', 'cid': cid, 'mw': mw,
+            'logp': logp, 'tpsa': tpsa, 'hbd': hbd, 'hba': hba, 'rotb': rotb,
+            'rings': rings, 'arom': arom, 'heavy': heavy, 'fsp3': fsp3,
+            'sp_map': {},
+        }
     if sp and sp not in compounds[ik]['sp_map']:
         compounds[ik]['sp_map'][sp] = fam or ''
 
@@ -225,6 +233,13 @@ for ik, d in compounds.items():
         'top_fam': [[f, c] for f, c in top_fams],
         'top_sp': [[sp, fam] for sp, fam in top_sp],
     }
+    if d['cid']: cpd_result[ik]['cid'] = d['cid']
+    if d['mw'] is not None: cpd_result[ik]['mw'] = d['mw']
+    if d['logp'] is not None:
+        cpd_result[ik]['desc'] = [
+            d['logp'], d['tpsa'], d['hbd'], d['hba'], d['rotb'],
+            d['rings'], d['arom'], d['heavy'], d['fsp3'],
+        ]
 
 cpd_json = json.dumps(cpd_result, separators=(',', ':'), ensure_ascii=False)
 cpd_path = os.path.join(OUT_DIR, 'data', 'compounds.json')
