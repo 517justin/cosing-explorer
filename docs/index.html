@@ -266,6 +266,10 @@ canvas#graph.dragging { cursor: grabbing; }
 .sp-lbl { color: var(--text-sec); min-width: 50px; flex-shrink: 0; }
 .sp-val { word-break: break-word; }
 .sp-desc { font-size: 13px; color: var(--text-sec); line-height: 1.6; }
+.pc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 10px; font-size: 12px; }
+.pc-item { display: flex; justify-content: space-between; gap: 6px; }
+.pc-lbl { color: var(--text-sec); }
+.pc-val { font-family: var(--mono); font-weight: 500; }
 .sp-fn {
   display: inline-block; padding: 2px 8px; border-radius: 4px; margin: 2px;
   font-size: 11px; background: var(--function-dim); color: var(--function);
@@ -469,7 +473,10 @@ const I18N = {
     annexV: '准用防腐劑', annexVI: '准用防曬劑',
     annexEntry: '條目', regNote: '備註',
     restrictedCount: '受限原料', restrictedRatio: '受限比例',
-    viewRegulation: '查看法規 ↗'
+    viewRegulation: '查看法規 ↗',
+    physProps: '物化性質', mw: '分子量', logp: 'LogP', tpsa: 'TPSA',
+    hbd: 'H鍵供體', hba: 'H鍵受體', rotb: '可旋轉鍵', rings: '環數',
+    arom: '芳香環', heavy: '重原子', fsp3: 'Fsp3'
   },
   en: {
     title: 'Cosmetic Ingredient Explorer', subtitle: 'EU CosIng Database',
@@ -500,7 +507,10 @@ const I18N = {
     annexV: 'Preservatives', annexVI: 'UV Filters',
     annexEntry: 'Entry', regNote: 'Note',
     restrictedCount: 'Restricted', restrictedRatio: 'Restricted ratio',
-    viewRegulation: 'View regulation ↗'
+    viewRegulation: 'View regulation ↗',
+    physProps: 'Physical Properties', mw: 'MW', logp: 'LogP', tpsa: 'TPSA',
+    hbd: 'H-Bond Donors', hba: 'H-Bond Acceptors', rotb: 'Rotatable Bonds', rings: 'Rings',
+    arom: 'Aromatic Rings', heavy: 'Heavy Atoms', fsp3: 'Fsp3'
   }
 };
 let LANG = 'zh';
@@ -1716,6 +1726,21 @@ function showPanel(n) {
     }
     if (cpd && cpd.f) h += '<div style="font-family:var(--mono);font-size:12px;color:var(--text-sec);margin-bottom:8px">' + esc(cpd.f) + '</div>';
     if (cpd && cpd.iupac) h += '<div class="sp-desc" style="font-size:11px;word-break:break-all">' + esc(cpd.iupac) + '</div>';
+    if (cpd && cpd.desc) {
+      const [logp, tpsa, hbd, hba, rotb, rings, arom, heavy, fsp3] = cpd.desc;
+      h += '<div class="sp-section"><h3>' + T('physProps') + '</h3><div class="pc-grid">';
+      if (cpd.mw) h += '<div class="pc-item"><span class="pc-lbl">' + T('mw') + '</span><span class="pc-val">' + cpd.mw + '</span></div>';
+      h += '<div class="pc-item"><span class="pc-lbl">' + T('logp') + '</span><span class="pc-val">' + logp + '</span></div>';
+      h += '<div class="pc-item"><span class="pc-lbl">' + T('tpsa') + '</span><span class="pc-val">' + tpsa + ' Å²</span></div>';
+      h += '<div class="pc-item"><span class="pc-lbl">' + T('hbd') + '</span><span class="pc-val">' + hbd + '</span></div>';
+      h += '<div class="pc-item"><span class="pc-lbl">' + T('hba') + '</span><span class="pc-val">' + hba + '</span></div>';
+      h += '<div class="pc-item"><span class="pc-lbl">' + T('rotb') + '</span><span class="pc-val">' + rotb + '</span></div>';
+      h += '<div class="pc-item"><span class="pc-lbl">' + T('rings') + '</span><span class="pc-val">' + rings + '</span></div>';
+      h += '<div class="pc-item"><span class="pc-lbl">' + T('arom') + '</span><span class="pc-val">' + arom + '</span></div>';
+      h += '<div class="pc-item"><span class="pc-lbl">' + T('heavy') + '</span><span class="pc-val">' + heavy + '</span></div>';
+      h += '<div class="pc-item"><span class="pc-lbl">' + T('fsp3') + '</span><span class="pc-val">' + fsp3 + '</span></div>';
+      h += '</div></div>';
+    }
     if (n.ik) {
       h += '<div class="sp-section"><div class="sp-chem-svg" id="sv-' + n.ik + '" style="width:200px;height:200px;margin:0 auto"><div class="sp-chem-ph" style="width:200px;height:200px">⋯</div></div></div>';
       setTimeout(() => loadSvgInto(n.ik, 'sv-' + n.ik), 50);
@@ -1749,7 +1774,10 @@ function showPanel(n) {
     if (n.ik) {
       h += '<div style="margin-top:10px;font-size:10px;color:var(--text-sec);word-break:break-all">InChIKey: ' + esc(n.ik) + '</div>';
       h += '<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 10px">';
-      h += '<a href="https://pubchem.ncbi.nlm.nih.gov/#query=' + encodeURIComponent(n.ik) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">PubChem ↗</a>';
+      const pubchemUrl = (cpd && cpd.cid)
+        ? 'https://pubchem.ncbi.nlm.nih.gov/compound/' + cpd.cid
+        : 'https://pubchem.ncbi.nlm.nih.gov/#query=' + encodeURIComponent(n.ik);
+      h += '<a href="' + pubchemUrl + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">PubChem ↗</a>';
       h += '<a href="https://lotus.naturalproducts.net/simple-search?query=' + encodeURIComponent(n.ik) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">LOTUS ↗</a>';
       h += '</div>';
     }
