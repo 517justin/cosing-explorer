@@ -163,7 +163,7 @@ canvas#graph.dragging { cursor: grabbing; }
 }
 .brand small { font-weight: 400; color: var(--text-sec); font-size: 11px; margin-left: 6px; }
 .search-wrap {
-  flex: 1; max-width: 380px; position: relative;
+  flex: 1; min-width: 0; max-width: 380px; position: relative;
 }
 .search-wrap input {
   width: 100%; padding: 8px 14px 8px 34px;
@@ -205,6 +205,8 @@ canvas#graph.dragging { cursor: grabbing; }
 @media (max-width: 700px) {
   .stats-bar { display: none; }
   .brand small { display: none; }
+  #cbBtn { width: 28px !important; padding: 0 !important; }
+  #cbBtn .cb-btn-label { display: none; }
 }
 
 .legend {
@@ -386,6 +388,69 @@ canvas#graph.dragging { cursor: grabbing; }
 .help-box th { text-align: left; padding: 4px 8px; border-bottom: 2px solid var(--border); font-weight: 600; }
 .help-box td { padding: 4px 8px; border-bottom: 1px solid var(--border); }
 .help-box .help-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
+.cb-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px; box-sizing: border-box;
+}
+.cb-overlay[hidden] { display: none !important; }
+.cb-box {
+  background: var(--surface); border-radius: 12px; box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+  width: 100%; max-width: 920px; height: min(700px, 86vh);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.cb-head {
+  padding: 16px 20px 12px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.cb-head h2 { font-size: 16px; margin: 0; }
+.cb-filters {
+  padding: 12px 20px; border-bottom: 1px solid var(--border);
+  display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: flex-end; flex-shrink: 0;
+  font-size: 12px; color: var(--text-sec);
+}
+.cb-field { display: flex; flex-direction: column; gap: 3px; }
+.cb-field label { font-size: 11px; }
+.cb-field .cb-range { display: flex; align-items: center; gap: 4px; }
+.cb-field input[type="number"] {
+  width: 64px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 5px;
+  background: var(--surface-alt); color: var(--text); font-family: var(--mono); font-size: 12px;
+}
+.cb-field input[type="text"] {
+  padding: 4px 8px; border: 1px solid var(--border); border-radius: 5px;
+  background: var(--surface-alt); color: var(--text); font-size: 12px; width: 160px;
+}
+.cb-field select {
+  padding: 4px 6px; border: 1px solid var(--border); border-radius: 5px;
+  background: var(--surface-alt); color: var(--text); font-size: 12px;
+}
+.cb-clear {
+  border: none; background: none; color: var(--accent); cursor: pointer; font-size: 12px;
+  padding: 4px 0;
+}
+.cb-body { flex: 1; overflow-y: auto; padding: 0 20px; }
+.cb-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.cb-table th {
+  position: sticky; top: 0; background: var(--surface); text-align: left;
+  padding: 6px 8px; border-bottom: 2px solid var(--border); font-weight: 600;
+  color: var(--text-sec); white-space: nowrap;
+}
+.cb-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.cb-table tr.cb-row { cursor: pointer; }
+.cb-table tr.cb-row:hover td { background: var(--accent-dim); }
+.cb-formula { font-family: var(--mono); white-space: nowrap; }
+.cb-name { color: var(--text-sec); max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cb-num { font-family: var(--mono); text-align: right; white-space: nowrap; }
+.cb-empty { padding: 40px 0; text-align: center; color: var(--text-sec); font-size: 13px; }
+.cb-foot {
+  padding: 10px 20px; border-top: 1px solid var(--border); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text-sec);
+}
+.cb-foot button {
+  border: 1px solid var(--border); background: var(--surface-alt); color: var(--text);
+  border-radius: 5px; padding: 4px 10px; cursor: pointer; font-size: 12px;
+}
+.cb-foot button:disabled { opacity: 0.4; cursor: default; }
 </style>
 </head>
 <body>
@@ -407,6 +472,7 @@ canvas#graph.dragging { cursor: grabbing; }
       <div class="search-results" id="sr"></div>
     </div>
     <div class="stats-bar" id="stats"></div>
+    <button id="cbBtn" class="view-btn" style="position:static;font-size:11px;font-weight:600;width:auto;padding:0 10px;white-space:nowrap" onclick="openCompoundBrowser()" title="化合物瀏覽">🧪<span class="cb-btn-label"> 化合物</span></button>
     <button id="helpBtn" class="view-btn" style="position:static;font-size:13px;font-weight:600;width:28px;padding:0" onclick="document.getElementById('helpOverlay').hidden=false" title="說明">?</button>
     <button id="langBtn" class="view-btn" style="position:static;font-size:11px;font-weight:600;width:28px;padding:0" onclick="setLang(LANG==='zh'?'en':'zh')">EN</button>
   </div>
@@ -431,6 +497,18 @@ canvas#graph.dragging { cursor: grabbing; }
 
   <div class="help-overlay" id="helpOverlay" hidden onclick="if(event.target===this)this.hidden=true">
     <div class="help-box" id="helpBox"></div>
+  </div>
+
+  <div class="cb-overlay" id="cbOverlay" hidden onclick="if(event.target===this)closeCompoundBrowser()">
+    <div class="cb-box">
+      <div class="cb-head">
+        <h2 id="cbTitleEl">化合物瀏覽</h2>
+        <button class="sp-close" onclick="closeCompoundBrowser()">×</button>
+      </div>
+      <div class="cb-filters" id="cbFilters"></div>
+      <div class="cb-body"><table class="cb-table" id="cbTable"></table></div>
+      <div class="cb-foot" id="cbFoot"></div>
+    </div>
   </div>
 
   <footer class="site-footer">
@@ -476,7 +554,12 @@ const I18N = {
     viewRegulation: '查看法規 ↗',
     physProps: '物化性質', mw: '分子量', logp: 'LogP', tpsa: 'TPSA',
     hbd: 'H鍵供體', hba: 'H鍵受體', rotb: '可旋轉鍵', rings: '環數',
-    arom: '芳香環', heavy: '重原子', fsp3: 'Fsp3'
+    arom: '芳香環', heavy: '重原子', fsp3: 'Fsp3',
+    cbBtn: '化合物', cbTitle: '化合物瀏覽', cbLogpRange: 'LogP 範圍', cbMwRange: '分子量範圍',
+    cbSearch: '搜尋分子式 / 名稱', cbSortBy: '排序', cbSortSp: '物種數', cbSortMw: '分子量', cbSortLogp: 'LogP',
+    cbClear: '清除篩選', cbNoResults: '沒有符合條件的化合物',
+    cbFormula: '分子式', cbName: '名稱', cbSpCount: '物種數', cbFamCount: '科數',
+    cbShowing: '共', cbCompounds: '個化合物', cbPage: '頁', cbPrev: '← 上一頁', cbNext: '下一頁 →'
   },
   en: {
     title: 'Cosmetic Ingredient Explorer', subtitle: 'EU CosIng Database',
@@ -510,7 +593,12 @@ const I18N = {
     viewRegulation: 'View regulation ↗',
     physProps: 'Physical Properties', mw: 'MW', logp: 'LogP', tpsa: 'TPSA',
     hbd: 'H-Bond Donors', hba: 'H-Bond Acceptors', rotb: 'Rotatable Bonds', rings: 'Rings',
-    arom: 'Aromatic Rings', heavy: 'Heavy Atoms', fsp3: 'Fsp3'
+    arom: 'Aromatic Rings', heavy: 'Heavy Atoms', fsp3: 'Fsp3',
+    cbBtn: 'Compounds', cbTitle: 'Compound Browser', cbLogpRange: 'LogP range', cbMwRange: 'MW range',
+    cbSearch: 'Search formula / name', cbSortBy: 'Sort by', cbSortSp: 'Species count', cbSortMw: 'MW', cbSortLogp: 'LogP',
+    cbClear: 'Clear filters', cbNoResults: 'No compounds match these filters',
+    cbFormula: 'Formula', cbName: 'Name', cbSpCount: 'Species', cbFamCount: 'Families',
+    cbShowing: '', cbCompounds: 'compounds', cbPage: 'Page', cbPrev: '← Prev', cbNext: 'Next →'
   }
 };
 let LANG = 'zh';
@@ -529,6 +617,9 @@ if (LANG !== 'zh') {
   document.getElementById('zoomOut').title = T('zoomOut');
   document.getElementById('resetView').title = T('resetView');
   document.getElementById('langBtn').textContent = '中';
+  document.querySelector('#cbBtn .cb-btn-label').textContent = ' ' + T('cbBtn');
+  document.getElementById('cbBtn').title = T('cbTitle');
+  document.getElementById('cbTitleEl').textContent = T('cbTitle');
   var leg = document.getElementById('legend');
   if (leg) leg.innerHTML =
     '<div class="legend-item"><div class="legend-dot" style="background:var(--family)"></div>' + T('familyTag') + '</div>' +
@@ -571,10 +662,14 @@ function setLang(l) {
   const lb = document.getElementById('langBtn');
   if (lb) lb.textContent = LANG === 'zh' ? 'EN' : '中';
   document.getElementById('helpBtn').title = T('helpBtn');
+  document.querySelector('#cbBtn .cb-btn-label').textContent = ' ' + T('cbBtn');
+  document.getElementById('cbBtn').title = T('cbTitle');
+  document.getElementById('cbTitleEl').textContent = T('cbTitle');
   renderHelp();
   if (D) refreshStats();
   if (GRAPH) updateBreadcrumb();
   if (selectedNode) showPanel(selectedNode);
+  if (!document.getElementById('cbOverlay').hidden) { renderCbFilters(); applyCbFilters(); }
 }
 function renderHelp() {
   var hb = document.getElementById('helpBox');
@@ -2079,6 +2174,7 @@ async function main() {
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
+    if (!document.getElementById('cbOverlay').hidden) { closeCompoundBrowser(); return; }
     const ov = document.querySelector('.overlay');
     if (ov) { ov.remove(); return; }
     if (document.getElementById('panel').classList.contains('open')) { closePanel(); return; }
@@ -2094,6 +2190,140 @@ document.addEventListener('keydown', e => {
 
 const mq = window.matchMedia('(prefers-color-scheme: dark)');
 mq.addEventListener('change', refreshColors);
+
+// ─── Compound Browser ───
+let CB_ALL = null;
+const CB = { page: 0, pageSize: 50, sort: 'n_sp', minLogp: null, maxLogp: null, minMw: null, maxMw: null, query: '', filtered: [] };
+
+function openCompoundBrowser() {
+  if (!D) return;
+  if (!CB_ALL) CB_ALL = Object.entries(D.ci);
+  document.getElementById('cbOverlay').hidden = false;
+  renderCbFilters();
+  applyCbFilters();
+}
+function closeCompoundBrowser() {
+  document.getElementById('cbOverlay').hidden = true;
+}
+function cbSetNum(key, val) {
+  CB[key] = val === '' ? null : parseFloat(val);
+  CB.page = 0;
+  applyCbFilters();
+}
+function cbSetQuery(val) {
+  CB.query = val.trim().toLowerCase();
+  CB.page = 0;
+  applyCbFilters();
+}
+function cbSetSort(val) {
+  CB.sort = val;
+  CB.page = 0;
+  applyCbFilters();
+}
+function cbClearFilters() {
+  CB.minLogp = CB.maxLogp = CB.minMw = CB.maxMw = null;
+  CB.query = ''; CB.sort = 'n_sp'; CB.page = 0;
+  renderCbFilters();
+  applyCbFilters();
+}
+function renderCbFilters() {
+  const f = document.getElementById('cbFilters');
+  f.innerHTML =
+    '<div class="cb-field"><label>' + T('cbLogpRange') + '</label><div class="cb-range">' +
+      '<input type="number" step="0.1" id="cbMinLogp" value="' + (CB.minLogp ?? '') + '" placeholder="min">' +
+      '<span>–</span>' +
+      '<input type="number" step="0.1" id="cbMaxLogp" value="' + (CB.maxLogp ?? '') + '" placeholder="max">' +
+    '</div></div>' +
+    '<div class="cb-field"><label>' + T('cbMwRange') + '</label><div class="cb-range">' +
+      '<input type="number" step="1" id="cbMinMw" value="' + (CB.minMw ?? '') + '" placeholder="min">' +
+      '<span>–</span>' +
+      '<input type="number" step="1" id="cbMaxMw" value="' + (CB.maxMw ?? '') + '" placeholder="max">' +
+    '</div></div>' +
+    '<div class="cb-field"><label>' + T('cbSearch') + '</label>' +
+      '<input type="text" id="cbQuery" value="' + esc(CB.query) + '" placeholder="quercetin"></div>' +
+    '<div class="cb-field"><label>' + T('cbSortBy') + '</label>' +
+      '<select id="cbSort">' +
+        '<option value="n_sp"' + (CB.sort === 'n_sp' ? ' selected' : '') + '>' + T('cbSortSp') + '</option>' +
+        '<option value="mw"' + (CB.sort === 'mw' ? ' selected' : '') + '>' + T('cbSortMw') + '</option>' +
+        '<option value="logp"' + (CB.sort === 'logp' ? ' selected' : '') + '>' + T('cbSortLogp') + '</option>' +
+      '</select></div>' +
+    '<button class="cb-clear" onclick="cbClearFilters()">' + T('cbClear') + '</button>';
+
+  document.getElementById('cbMinLogp').addEventListener('change', e => cbSetNum('minLogp', e.target.value));
+  document.getElementById('cbMaxLogp').addEventListener('change', e => cbSetNum('maxLogp', e.target.value));
+  document.getElementById('cbMinMw').addEventListener('change', e => cbSetNum('minMw', e.target.value));
+  document.getElementById('cbMaxMw').addEventListener('change', e => cbSetNum('maxMw', e.target.value));
+  let qTm;
+  document.getElementById('cbQuery').addEventListener('input', e => {
+    clearTimeout(qTm);
+    const val = e.target.value;
+    qTm = setTimeout(() => cbSetQuery(val), 150);
+  });
+  document.getElementById('cbSort').addEventListener('change', e => cbSetSort(e.target.value));
+}
+function applyCbFilters() {
+  const q = CB.query;
+  const arr = CB_ALL.filter(([ik, cpd]) => {
+    const logp = cpd.desc ? cpd.desc[0] : null;
+    if (CB.minLogp != null && (logp == null || logp < CB.minLogp)) return false;
+    if (CB.maxLogp != null && (logp == null || logp > CB.maxLogp)) return false;
+    const mw = cpd.mw != null ? cpd.mw : null;
+    if (CB.minMw != null && (mw == null || mw < CB.minMw)) return false;
+    if (CB.maxMw != null && (mw == null || mw > CB.maxMw)) return false;
+    if (q) {
+      const name = (cpd.f || '').toLowerCase();
+      const iupac = (cpd.iupac || '').toLowerCase();
+      if (!name.includes(q) && !iupac.includes(q) && !ik.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+  arr.sort((a, b) => {
+    if (CB.sort === 'mw') return (b[1].mw || 0) - (a[1].mw || 0);
+    if (CB.sort === 'logp') return (b[1].desc ? b[1].desc[0] : -999) - (a[1].desc ? a[1].desc[0] : -999);
+    return (b[1].n_sp || 0) - (a[1].n_sp || 0);
+  });
+  CB.filtered = arr;
+  renderCbTable();
+}
+function renderCbTable() {
+  const total = CB.filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / CB.pageSize));
+  if (CB.page >= totalPages) CB.page = totalPages - 1;
+  const start = CB.page * CB.pageSize;
+  const pageItems = CB.filtered.slice(start, start + CB.pageSize);
+  const table = document.getElementById('cbTable');
+  if (!pageItems.length) {
+    table.innerHTML = '<tr><td colspan="5" class="cb-empty">' + T('cbNoResults') + '</td></tr>';
+  } else {
+    let h = '<thead><tr><th>' + T('cbFormula') + '</th><th>' + T('cbName') + '</th>' +
+      '<th style="text-align:right">MW</th><th style="text-align:right">LogP</th>' +
+      '<th style="text-align:right">' + T('cbSpCount') + '</th></tr></thead><tbody>';
+    pageItems.forEach(([ik, cpd]) => {
+      const mw = cpd.mw != null ? cpd.mw : '–';
+      const logp = cpd.desc ? cpd.desc[0] : '–';
+      h += '<tr class="cb-row" onclick="cbOpenCompound(\'' + ik + '\')">' +
+        '<td class="cb-formula">' + esc(cpd.f || ik.substring(0, 10)) + '</td>' +
+        '<td class="cb-name" title="' + esc(cpd.iupac || '') + '">' + esc(cpd.iupac || '') + '</td>' +
+        '<td class="cb-num">' + mw + '</td>' +
+        '<td class="cb-num">' + logp + '</td>' +
+        '<td class="cb-num">' + (cpd.n_sp || 0) + '</td>' +
+        '</tr>';
+    });
+    h += '</tbody>';
+    table.innerHTML = h;
+  }
+  const foot = document.getElementById('cbFoot');
+  foot.innerHTML =
+    '<span>' + total.toLocaleString() + ' ' + T('cbCompounds') + '</span>' +
+    '<span style="display:flex;align-items:center;gap:10px">' +
+      '<button ' + (CB.page <= 0 ? 'disabled' : '') + ' onclick="cbPrevPage()">' + T('cbPrev') + '</button>' +
+      '<span>' + T('cbPage') + ' ' + (CB.page + 1) + ' / ' + totalPages + '</span>' +
+      '<button ' + (CB.page >= totalPages - 1 ? 'disabled' : '') + ' onclick="cbNextPage()">' + T('cbNext') + '</button>' +
+    '</span>';
+}
+function cbPrevPage() { if (CB.page > 0) { CB.page--; renderCbTable(); } }
+function cbNextPage() { CB.page++; renderCbTable(); }
+function cbOpenCompound(ik) { closeCompoundBrowser(); navToCompound(ik); }
 
 main();
 </script>
