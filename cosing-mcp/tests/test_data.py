@@ -142,3 +142,32 @@ def test_lookup_without_compound_match(mini_db):
     r = mini_db.lookup("AQUA")
     assert r is not None
     assert "compound" not in r
+
+
+def test_lookup_includes_japanese_names(mini_db):
+    r = mini_db.lookup("87220")
+    assert r["species_ja"] == "ダマスクローズ"
+    assert r["family_ja"] == "バラ科"
+
+
+def test_get_species_and_family_include_japanese(mini_db):
+    assert mini_db.get_species_info("Rosa damascena")["common_name_ja"] == "ダマスクローズ"
+    assert mini_db.get_family_info("Rosaceae")["common_name_ja"] == "バラ科"
+
+
+def test_lookup_compound_includes_multilingual_names(mini_db):
+    names = mini_db.lookup("GLYCERIN")["compound"]["names"]
+    assert names["en"] == ["glycerol", "glycerin"]
+    assert names["zh"] == ["甘油"]
+    assert names["ja"] == ["グリセリン"]
+
+
+def test_search_by_compound_name(mini_db):
+    for q in ("glycerol", "甘油", "グリセリン"):
+        results = mini_db.search(q)
+        assert any(r["inci_name"] == "GLYCERIN" for r in results), q
+
+
+def test_search_by_japanese_species_name(mini_db):
+    results = mini_db.search("ダマスク")
+    assert any(r["ref_no"] == "87220" for r in results)

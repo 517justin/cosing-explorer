@@ -16,8 +16,9 @@ def lookup_ingredient(query: str) -> dict:
 
     Returns full details: description, functions, species, family, regulation, and
     Explorer link. When the ingredient's CAS number resolves to a known chemical
-    structure, also returns molecular descriptors (MW, LogP, TPSA, H-bond donors/
-    acceptors, rotatable bonds, ring counts, Fsp3) and a PubChem link.
+    structure, also returns multilingual chemical names (en/zh/ja), molecular descriptors
+    (MW, LogP, TPSA, H-bond donors/acceptors, rotatable bonds, ring counts, Fsp3) and a
+    PubChem link.
     """
     result = db.lookup(query)
     if not result:
@@ -37,7 +38,8 @@ def search_ingredients(
     """Search CosIng ingredients by keyword with optional filters.
 
     Args:
-        query: Search term (matches INCI name, CAS, species, description)
+        query: Search term (matches INCI name, CAS, species, description, species common
+            names in zh/en/ja, and chemical names in en/zh/ja, e.g. "caffeine", "槲皮素")
         function: Filter by function (e.g. "SKIN CONDITIONING")
         family: Filter by botanical family (e.g. "Rosaceae")
         restricted_only: Only show ingredients with EU regulation restrictions
@@ -52,6 +54,8 @@ def search_ingredients(
 @mcp.tool()
 def get_species(name: str) -> dict:
     """Get information about a plant species and its cosmetic extracts.
+
+    Includes common names in Chinese, English and Japanese (和名) where available.
 
     Args:
         name: Scientific name (e.g. "Lavandula angustifolia", "Rosa damascena")

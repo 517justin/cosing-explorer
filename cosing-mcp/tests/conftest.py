@@ -85,6 +85,8 @@ def _build_mini_data():
         "sp_en": {"Rosa damascena": "Damask rose", "Lavandula angustifolia": "English lavender"},
         "fam_zh": {"Rosaceae": "薔薇科", "Lamiaceae": "唇形科"},
         "fam_en": {"Rosaceae": "Rose family", "Lamiaceae": "Mint family"},
+        "sp_ja": {"Rosa damascena": "ダマスクローズ"},
+        "fam_ja": {"Rosaceae": "バラ科"},
     }
 
     compounds = {
@@ -95,6 +97,7 @@ def _build_mini_data():
             "n_fam": 1,
             "top_fam": [["Rosaceae", 1]],
             "top_sp": [["Rosa damascena", "Rosaceae"]],
+            "nm": {"en": ["glycerol", "glycerin"], "zh": ["甘油"], "ja": ["グリセリン"]},
             "cid": 753,
             "mw": 92.09,
             "desc": [-1.76, 60.7, 3, 3, 1, 0, 0, 6, 1.0],

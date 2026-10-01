@@ -64,6 +64,9 @@ class CosIngData:
         self.sp_en: dict[str, str] = {}
         self.fam_zh: dict[str, str] = {}
         self.fam_en: dict[str, str] = {}
+        self.sp_ja: dict[str, str] = {}
+        self.fam_ja: dict[str, str] = {}
+        self.cpd_name_text: dict[str, str] = {}
         # reverse indexes
         self.by_inci: dict[str, str] = {}
         self.by_cas: dict[str, list[str]] = {}
@@ -83,6 +86,12 @@ class CosIngData:
         self.sp_en = ing.get("sp_en", {})
         self.fam_zh = ing.get("fam_zh", {})
         self.fam_en = ing.get("fam_en", {})
+        self.sp_ja = ing.get("sp_ja", {})
+        self.fam_ja = ing.get("fam_ja", {})
+
+        for ik, c in self.compounds.items():
+            if nm := c.get("nm"):
+                self.cpd_name_text[ik] = "\n".join(n for names in nm.values() for n in names).upper()
 
         for ref, it in self.items.items():
             self.by_inci[it["n"].upper()] = ref
@@ -102,6 +111,8 @@ class CosIngData:
             info["formula"] = f
         if iupac := cpd.get("iupac"):
             info["iupac_name"] = iupac
+        if nm := cpd.get("nm"):
+            info["names"] = nm
         if (mw := cpd.get("mw")) is not None:
             info["molecular_weight"] = mw
         if cid := cpd.get("cid"):
@@ -136,6 +147,8 @@ class CosIngData:
                 result["species_zh"] = zh
             if en := self.sp_en.get(sp):
                 result["species_en"] = en
+            if ja := self.sp_ja.get(sp):
+                result["species_ja"] = ja
         if (fm := it.get("fm")) is not None:
             fam = self.families[fm]
             result["family"] = fam
@@ -143,6 +156,8 @@ class CosIngData:
                 result["family_zh"] = zh
             if en := self.fam_en.get(fam):
                 result["family_en"] = en
+            if ja := self.fam_ja.get(fam):
+                result["family_ja"] = ja
         if k := it.get("k"):
             result["kingdom"] = k
         if pt := it.get("pt"):
@@ -212,7 +227,10 @@ class CosIngData:
                 desc = (it.get("d") or "").upper()
                 sp_zh = self.sp_zh.get(it.get("sp", ""), "").upper()
                 sp_en = self.sp_en.get(it.get("sp", ""), "").upper()
-                if q_upper in cas or q_upper in sp or q_upper in sp_zh or q_upper in sp_en:
+                sp_ja = self.sp_ja.get(it.get("sp", ""), "").upper()
+                cpd_names = self.cpd_name_text.get(it.get("ik", ""), "")
+                if (q_upper in cas or q_upper in sp or q_upper in sp_zh or q_upper in sp_en
+                        or q_upper in sp_ja or q_upper in cpd_names):
                     score = 1
                 elif q_upper in desc:
                     score = 1
@@ -241,6 +259,8 @@ class CosIngData:
             result["common_name_zh"] = zh
         if en := self.sp_en.get(name):
             result["common_name_en"] = en
+        if ja := self.sp_ja.get(name):
+            result["common_name_ja"] = ja
         if (fm := first.get("fm")) is not None:
             result["family"] = self.families[fm]
         if k := first.get("k"):
@@ -289,6 +309,8 @@ class CosIngData:
             result["common_name_zh"] = zh
         if en := self.fam_en.get(name):
             result["common_name_en"] = en
+        if ja := self.fam_ja.get(name):
+            result["common_name_ja"] = ja
 
         species = set()
         fn_counter: dict[int, int] = {}
