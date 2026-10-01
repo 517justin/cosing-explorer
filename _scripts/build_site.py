@@ -8,7 +8,8 @@ Outputs:
   docs/data/compounds.json    – compound details for molecular viewer
   docs/svg/{XX}.json          – gzip+base64 SVG chunks by InChIKey prefix
 
-Run: .venv/bin/python _scripts/build_site.py
+Run: .venv/bin/python _scripts/build_site.py [--skip-svg]
+  --skip-svg  leave docs/svg/ untouched (gzip mtimes make every chunk differ run-to-run)
 """
 import json, os, re, gzip, base64, sys
 from collections import defaultdict
@@ -29,7 +30,7 @@ fn_rows = db.execute('''
     SELECT fn, count(*) as cnt
     FROM ingredient_v2026, LATERAL unnest(functions) AS t(fn)
     WHERE fn IS NOT NULL
-    GROUP BY 1 ORDER BY 2 DESC
+    GROUP BY 1 ORDER BY 2 DESC, 1
 ''').fetchall()
 fn_list = [r[0] for r in fn_rows]
 fn_counts = [r[1] for r in fn_rows]
@@ -44,7 +45,7 @@ fam_rows = db.execute('''
            count(DISTINCT e.species_accepted) as sp
     FROM extract_v2026 e
     WHERE COALESCE(e.family_final, e.family_accepted) IS NOT NULL
-    GROUP BY 1 ORDER BY 2 DESC
+    GROUP BY 1 ORDER BY 2 DESC, 1
 ''').fetchall()
 fam_list = [r[0] for r in fam_rows]
 fam_counts = [r[1] for r in fam_rows]
@@ -89,7 +90,16 @@ sp_zh = common_names.get('sp_zh', {})
 sp_en = common_names.get('sp_en', {})
 fam_zh = common_names.get('fam_zh', {})
 fam_en = common_names.get('fam_en', {})
-print(f"  sp_zh={len(sp_zh)} sp_en={len(sp_en)} fam_zh={len(fam_zh)} fam_en={len(fam_en)}")
+sp_ja = common_names.get('sp_ja', {})
+fam_ja = common_names.get('fam_ja', {})
+print(f"  sp_zh={len(sp_zh)} sp_en={len(sp_en)} sp_ja={len(sp_ja)} "
+      f"fam_zh={len(fam_zh)} fam_en={len(fam_en)} fam_ja={len(fam_ja)}")
+
+# Compound names from Wikidata (20b_merge_wikidata_names.py): {inchikey: {en, zh, ja}}
+cpd_names_path = os.path.join(ROOT, '_data', 'compound_names.json')
+with open(cpd_names_path) as f:
+    cpd_names = json.load(f)
+print(f"  compound names: {len(cpd_names)}")
 
 # ─── 5. All ingredients ───
 print("Loading all ingredients...")
@@ -189,6 +199,8 @@ data = {
     'sp_en': sp_en,
     'fam_zh': fam_zh,
     'fam_en': fam_en,
+    'sp_ja': sp_ja,
+    'fam_ja': fam_ja,
 }
 data_json = json.dumps(data, separators=(',', ':'), ensure_ascii=False)
 path = os.path.join(OUT_DIR, 'data', 'ingredients.json')
@@ -248,6 +260,7 @@ for ik, d in compounds.items():
         'top_fam': [[f, c] for f, c in top_fams],
         'top_sp': [[sp, fam] for sp, fam in top_sp],
     }
+    if ik in cpd_names: cpd_result[ik]['nm'] = cpd_names[ik]
     if d['cid']: cpd_result[ik]['cid'] = d['cid']
     if d['mw'] is not None: cpd_result[ik]['mw'] = d['mw']
     if d['logp'] is not None:
@@ -292,7 +305,7 @@ def optimize_svg(raw):
     s = re.sub(r'\s+', ' ', s).strip()
     return s
 
-svg_files = [f for f in os.listdir(SVG_DIR) if f.endswith('.svg')]
+svg_files = [] if '--skip-svg' in sys.argv else [f for f in os.listdir(SVG_DIR) if f.endswith('.svg')]
 chunks = defaultdict(dict)
 total_raw = 0
 total_compressed = 0
