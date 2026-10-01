@@ -29,26 +29,36 @@
 
 ---
 
-### 8b — Wikidata 多語名稱 + 物種名稱補缺（中期 2–4 weeks）
+### 8b — Wikidata 多語名稱 + 物種名稱補缺（中期 2–4 weeks）✅ 已完成 2026-10-01（物種缺口驗收未達，見下）
 
 **目標：** 從 Wikidata 取得化合物與物種的多語系名稱（en/zh/ja/ko），填補物種中英文名缺口。
 
-| 工作項 | 說明 |
-|--------|------|
-| `20_fetch_wikidata_names.py` | SPARQL 批次查詢 InChIKey → labels + aliases（en/zh/ja/ko），批次 ≤50 IK/query，2s 間隔 |
-| 物種名稱補缺 | SPARQL 查詢 organism QID → 和名/中文名/英文名，填補 519 ZH + 464 EN 缺口 |
-| `build_site.py` 修改 | 匯出 top-3 synonyms、`sp_ja`、`fam_ja` 至 `ingredients.json`；化合物名稱加入搜尋索引 |
-| Explorer 搜尋 | 支援化合物名稱搜尋（「caffeine」「槲皮素」「ケルセチン」） |
-| Explorer 面板 | 化合物面板顯示多語名稱 |
-| MCP Server | `search_ingredients` 支援化合物名稱；`get_species` 回傳日文和名 |
+| 工作項 | 說明 | 狀態 |
+|--------|------|------|
+| `20_fetch_wikidata_names.py` | SPARQL 批次查詢（P235 InChIKey／P225 學名）→ labels + aliases（+ P1843 俗名），≤50 key/query、2s 間隔、可續跑快取於 `_data/wikidata/`。物種 2,772/2,827、科 376/376、化合物 11,541/11,777 有 Wikidata 條目，零失敗、未觸發 rate limit | ✅ |
+| `20b_merge_wikidata_names.py` | 合併至 `_data/common_names.json`（只補缺、不覆蓋人工整理）與新檔 `_data/compound_names.json`；簡體以 OpenCC `s2twp` 轉繁體；過濾系統命名（IUPAC 式）與與學名相同的標籤 | ✅ |
+| 物種名稱補缺 | 缺中文 519 → 457、缺英文 464 → 379；新增 `sp_ja` 1,575、`fam_ja` 275 | ⚠️ 部分（見下） |
+| `build_site.py` 修改 | 匯出 `sp_ja`、`fam_ja`、化合物 `nm`（en ≤3、zh ≤4、ja ≤5）；`compounds.json` 5.60→5.96 MB。另加 `--skip-svg`（只重建 JSON、不動 631 個 SVG chunk）與函數／科排序 tie-breaker（重建結果位元組一致） | ✅ |
+| Explorer 搜尋 | 支援化合物名稱（en/zh/ja）；化合物結果固定保留最多 5 個名額；化合物瀏覽頁的名稱欄與搜尋同步支援 | ✅ |
+| Explorer 面板 | 化合物面板顯示 `caffeine \| 咖啡因 \| カフェイン` 與別名 | ✅ |
+| MCP Server | `lookup_ingredient` 回傳 `compound.names`；`search_ingredients` 可用化合物名稱／日文和名搜尋；`get_species`／`get_family`／`lookup_ingredient` 回傳日文名；測試 33→38 項 | ✅ |
 
-**前提：** Phase 8a 完成（CID 可作 fallback 查詢鍵）。
+**前提：** Phase 8a 完成。
 
 **驗收：**
-- 搜尋 "caffeine" → 化合物節點
-- 化合物面板顯示 "caffeine | 咖啡鹼 | カフェイン"
-- 物種缺中文名 519 → <100；缺英文名 464 → <50
-- SPARQL rate limit 遵守
+- ✅ 搜尋 "caffeine" → 化合物節點（亦可用「咖啡因」「槲皮素」「ケルセチン」）
+- ✅ 化合物面板顯示 "caffeine | 咖啡因 | カフェイン"（原訂範例為 "咖啡鹼"；Wikidata 主名為「咖啡因」，「咖啡鹼」列為別名）
+- ❌ 物種缺中文名 519 → <100：實得 457。缺英文名 464 → <50：實得 379。**原因：** 剩餘缺口絕大多數是 Wikidata 上有條目、但英文標籤只是學名（360 筆），或根本沒有條目（19 筆）——這些物種在 Wikidata 沒有俗名可取，目標在資料源上不可達
+- ✅ SPARQL rate limit 遵守（≤50 key/query、2s 間隔、帶 User-Agent，全程無 429）
+
+**化合物名稱覆蓋：** 6,581 / 11,777 有至少一個名稱（en 6,387、zh 1,874、ja 1,635）；其餘多為無俗名的衍生物，維持以分子式／IUPAC 顯示。
+
+**未做／後續選項：**
+- CID fallback 查詢：以 InChIKey 即已 98% 命中（僅 236 個未命中），暫無必要
+- 韓文（ko）已抓入原始快取但未匯出（目前無介面使用）
+- 物種缺口若要再縮小：GBIF vernacular names 補充、或人工／LLM 輔助翻譯
+- 化合物名稱僅涵蓋 Explorer 的 11,777 個；全 58,996 需 `20_fetch_wikidata_names.py compounds --all`（以本次約 3 秒／批估算約 1 小時）
+- 日文介面本身屬 8b-i18n，尚未實作（資料層 `sp_ja`／`fam_ja` 已就緒）
 
 ---
 
@@ -138,3 +148,5 @@
 | Phase 5 | 法規層 Annex II–VI | 2026-09 |
 | Phase 6 | Explorer 知識圖譜 SPA + 物種照片 + 俗名 | 2026-09 |
 | Phase 7 | MCP Server + 深度連結 + cosing-analyze Skill | 2026-09-15 |
+| Phase 8a | RDKit 分子描述子 + PubChem 直連 + 化合物瀏覽頁 | 2026-09-27 |
+| Phase 8b | Wikidata 多語名稱（化合物 en/zh/ja、物種／科和名）+ 名稱搜尋 | 2026-10-01 |

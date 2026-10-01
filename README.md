@@ -20,6 +20,7 @@
 - **化合物結構式** — 58,596 個分子結構 SVG 即時載入，DecompressionStream 解壓
 - **物種照片** — 透過 GBIF Occurrence API 自動載入物種實物照片
 - **中英文俗名** — 2,827 種物種與 376 科皆附中英文俗名，搜尋與顯示皆支援
+- **化合物多語名稱** — 6,581 個化合物附英/中/日名稱與別名（來自 Wikidata），可用「caffeine」「槲皮素」「ケルセチン」搜尋
 - **雙語介面** — 中文／英文切換，所有介面文字與俗名隨語系變更
 - **篩選與排序** — 植物來源 / 有限制 / 有結構 / 用途 / 科篩選，多種排序模式
 - **法規資料** — EU 化妝品法規 EC 1223/2009 Annex II–VI 結構化顯示，色彩編碼
@@ -148,6 +149,7 @@ MCP Server 提供 6 個工具，Claude 會根據問題自動選用：
 | 分類階層 | [GBIF](https://www.gbif.org/) Backbone Taxonomy | CC BY 4.0 |
 | 化合物 | [LOTUS](https://lotus.naturalproducts.net/) Natural Products | CC0 |
 | 分子結構 | [PubChem](https://pubchem.ncbi.nlm.nih.gov/) | Public Domain |
+| 多語名稱（化合物、物種和名） | [Wikidata](https://www.wikidata.org/) | CC0 |
 
 ## 架構
 
@@ -163,7 +165,7 @@ cosing-mcp/                  # AI 問答層（MCP Server）
 ├── src/cosing_mcp/
 │   ├── server.py            # MCP Server 進入點 + 6 個工具定義
 │   └── data.py              # GitHub Pages JSON 快取 + 記憶體索引
-├── tests/                   # 31 項測試
+├── tests/                   # 38 項測試
 ├── skill/cosing-analyze.md  # 成分分析 Skill（分發用副本）
 └── pyproject.toml           # pip install 設定
 
@@ -208,6 +210,7 @@ python3 _scripts/build_site.py
 
 | 日期 | 內容 |
 |------|------|
+| 2026-10-01 | Phase 8b 完成 — Wikidata 多語名稱：化合物 en/zh/ja 名稱與別名（6,581 個）、物種和名 1,575／科和名 275、名稱搜尋、MCP 日文名；建置改為確定性、新增 `--skip-svg`。物種中英文名缺口僅部分縮小（519→457／464→379，Wikidata 無對應俗名） |
 | 2026-09-27 | Phase 8a 完成 — RDKit 分子描述子、PubChem CID 直連、化合物瀏覽清單頁（LogP/MW 篩選）、MCP 描述子欄位 |
 | 2026-09-27 | Phase 8b–8d 規劃完成 — Wikidata 多語名稱、ChEBI 化學角色、COCONUT 擴充、日文介面 |
 | 2026-09-15 | Phase 7 完成 — MCP Server 6 工具 + Explorer 深度連結 + cosing-analyze Skill + 31 項測試 |

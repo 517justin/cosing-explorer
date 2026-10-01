@@ -20,6 +20,7 @@ An interactive knowledge graph + AI Q&A for exploring 33,638 cosmetic ingredient
 - **Compound structures** — 58,596 molecular structure SVGs loaded on demand via DecompressionStream
 - **Species photos** — Automatically loaded from the GBIF Occurrence API
 - **Common names** — Chinese and English common names for 2,827 species and 376 families, searchable and displayed throughout
+- **Multilingual compound names** — 6,581 compounds carry English/Chinese/Japanese names and aliases (from Wikidata); search by "caffeine", "槲皮素" or "ケルセチン"
 - **Bilingual UI** — Chinese / English toggle; all labels and common names switch with the language
 - **Filtering & sorting** — Botanical / Restricted / Has structure / by Function / by Family filters, multiple sort modes
 - **Regulation data** — EU Cosmetics Regulation EC 1223/2009 Annex II–VI with structured display and color coding
@@ -148,6 +149,7 @@ The MCP Server provides 6 tools that Claude selects automatically:
 | Taxonomy | [GBIF](https://www.gbif.org/) Backbone Taxonomy | CC BY 4.0 |
 | Compounds | [LOTUS](https://lotus.naturalproducts.net/) Natural Products | CC0 |
 | Molecular structures | [PubChem](https://pubchem.ncbi.nlm.nih.gov/) | Public Domain |
+| Multilingual names (compounds, species) | [Wikidata](https://www.wikidata.org/) | CC0 |
 
 ## Architecture
 
@@ -163,7 +165,7 @@ cosing-mcp/                  # AI query layer (MCP Server)
 ├── src/cosing_mcp/
 │   ├── server.py            # MCP Server entry point + 6 tool definitions
 │   └── data.py              # GitHub Pages JSON cache + in-memory indexes
-├── tests/                   # 31 tests
+├── tests/                   # 38 tests
 ├── skill/cosing-analyze.md  # Ingredient analysis skill (distributable copy)
 └── pyproject.toml           # pip install config
 
@@ -208,6 +210,7 @@ See [ROADMAP.md](ROADMAP.md).
 
 | Date | Description |
 |------|-------------|
+| 2026-10-01 | Phase 8b complete — Wikidata multilingual names: en/zh/ja compound names and aliases (6,581 compounds), Japanese species names 1,575 / family names 275, name search, Japanese names in MCP; deterministic builds and a new `--skip-svg` flag. The species zh/en name gap shrank only partly (519→457 / 464→379) because Wikidata has no common name for the rest |
 | 2026-09-27 | Phase 8a complete — RDKit molecular descriptors, direct PubChem CID links, Compound Browser (LogP/MW filters), MCP descriptor field |
 | 2026-09-27 | Phase 8b–8d planned — Wikidata multilingual names, ChEBI chemical roles, COCONUT expansion, Japanese UI |
 | 2026-09-15 | Phase 7 complete — MCP Server with 6 tools + Explorer deep links + cosing-analyze Skill + 31 tests |
