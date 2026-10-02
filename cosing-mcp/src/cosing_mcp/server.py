@@ -1,4 +1,4 @@
-"""CosIng MCP Server — cosmetic ingredient knowledge base."""
+"""CosIng MCP server for the cosmetic ingredient knowledge base."""
 
 from __future__ import annotations
 
@@ -68,7 +68,7 @@ def get_species(name: str) -> dict:
 
 @mcp.tool()
 def get_family(name: str) -> dict:
-    """Get information about a botanical family — species count, top functions, restriction rate.
+    """Get information about a botanical family: species count, top functions, and restriction rate.
 
     Args:
         name: Family name (e.g. "Rosaceae", "Lamiaceae")

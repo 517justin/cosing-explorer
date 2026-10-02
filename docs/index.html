@@ -781,14 +781,14 @@ function renderHelp() {
     h += '<p>ホイールまたは +/- ボタンで拡大縮小 · ドラッグで移動 · ノードをクリックして展開 · パンくずリストで戻る · 検索欄は INCI 名、CAS 番号、科名、種名、和名、化合物名に対応</p>';
   } else {
     h += '<p>This tool visualizes the relationships among 33,638 cosmetic ingredients from the EU CosIng database as an interactive knowledge graph. Click any node to expand its ego graph; the side panel shows details.</p>';
-    h += '<h3>Node Types</h3>';
-    h += '<p>' + dot('family') + '<b>Family</b> — Botanical family (APG IV)<br>';
-    h += dot('function') + '<b>Function</b> — Cosmetic function (EU CosIng controlled vocabulary)<br>';
-    h += dot('ingredient') + '<b>Ingredient</b> — Cosmetic ingredient (INCI name)<br>';
-    h += dot('species') + '<b>Species</b> — Botanical source species (Latin binomial)<br>';
-    h += dot('compound') + '<b>Compound</b> — Natural product chemical compound</p>';
-    h += '<h3>Graph Display Logic</h3>';
-    h += '<p>When a node is expanded, neighboring nodes are selected by the rules below. Node size reflects the number of related ingredients.</p>';
+    h += '<h3>Node types</h3>';
+    h += '<p>' + dot('family') + '<b>Family</b>: Botanical family (APG IV)<br>';
+    h += dot('function') + '<b>Function</b>: Cosmetic function (EU CosIng controlled vocabulary)<br>';
+    h += dot('ingredient') + '<b>Ingredient</b>: Cosmetic ingredient (INCI name)<br>';
+    h += dot('species') + '<b>Species</b>: Botanical source species (Latin binomial)<br>';
+    h += dot('compound') + '<b>Compound</b>: Natural product chemical compound</p>';
+    h += '<h3>Graph display logic</h3>';
+    h += '<p>Expanding a node selects its neighbors by the rules below. Node size reflects the number of related ingredients.</p>';
     h += '<table><tr><th>Center</th><th>Neighbors</th><th>Selection</th><th>Max</th></tr>';
     h += '<tr><td rowspan="3">' + dot('family') + 'Family</td><td>Species</td><td>By ingredient count</td><td>30</td></tr>';
     h += '<tr><td>Functions</td><td>By usage count</td><td>15</td></tr>';
@@ -803,7 +803,7 @@ function renderHelp() {
     h += '<tr><td rowspan="2">' + dot('compound') + 'Compound</td><td>Species</td><td>Species containing this compound</td><td>20</td></tr>';
     h += '<tr><td>Functions</td><td>By usage count</td><td>10</td></tr>';
     h += '</table>';
-    h += '<h3>Regulation Data</h3>';
+    h += '<h3>Regulation data</h3>';
     h += '<p>Regulatory restrictions follow the Annexes of EU Cosmetics Regulation EC 1223/2009:</p>';
     h += '<p><span style="color:var(--annex-ii);font-weight:600">Annex II</span> Prohibited · ';
     h += '<span style="color:var(--annex-iii);font-weight:600">Annex III</span> Restricted use · ';

@@ -4,40 +4,40 @@
 
 English | [繁體中文](README.md) | [日本語](README.ja.md)
 
-An interactive knowledge graph + AI Q&A for exploring 33,638 cosmetic ingredients in the EU CosIng database — families, species, functions, and compounds at a glance, plus natural-language queries and ingredient label analysis.
+An interactive knowledge graph and AI question answering for the 33,638 cosmetic ingredients in the EU CosIng database. You can browse families, species, functions, and compounds, ask questions in natural language, and analyze ingredient labels.
 
-🔗 **[Live Demo → 517justin.github.io/cosing-explorer](https://517justin.github.io/cosing-explorer/)**
+Live demo: [517justin.github.io/cosing-explorer](https://517justin.github.io/cosing-explorer/)
 
 ## Features
 
-### Knowledge Graph (Explorer)
+### Knowledge graph (Explorer)
 
-- **Full-database search** — Instant search across 33,638 ingredients (INCI name, CAS, description, species, family, common names in Chinese and English)
-- **Force-directed knowledge graph** — Canvas-rendered interactive graph with pan, zoom, and click-to-navigate
-- **Five node types** — Family, Function, Ingredient, Species, Compound
-- **Ego-graph navigation** — Click any node to expand its neighborhood; breadcrumb trail for backtracking
-- **Deep linking** — URL parameters to open specific ingredients, families, species, functions, compounds, or search results
-- **Compound structures** — 58,596 molecular structure SVGs loaded on demand via DecompressionStream
-- **Species photos** — Automatically loaded from the GBIF Occurrence API
-- **Common names** — Chinese and English common names for 2,827 species and 376 families, searchable and displayed throughout
-- **Multilingual compound names** — 6,581 compounds carry English/Chinese/Japanese names and aliases (from Wikidata); search by "caffeine", "槲皮素" or "ケルセチン"
-- **Trilingual UI** — Chinese / English / Japanese (the language button cycles); labels, common names and Japanese names (和名) follow the language, and Japanese names are searchable (e.g. "ラベンダー")
-- **Filtering & sorting** — Botanical / Restricted / Has structure / by Function / by Family filters, multiple sort modes
-- **Regulation data** — EU Cosmetics Regulation EC 1223/2009 Annex II–VI with structured display and color coding
-- **Dark mode** — Three-state theme (System / Light / Dark)
-- **Fully static** — No backend; deployed directly on GitHub Pages
+- Full-database search: find any of the 33,638 ingredients by INCI name, CAS number, description, species, family, or common name (Chinese and English)
+- Force-directed knowledge graph: a canvas-rendered graph you can pan, zoom, and click through
+- Five node types: family, function, ingredient, species, and compound
+- Ego-graph navigation: click any node to expand its neighborhood, and use the breadcrumb trail to go back
+- Deep linking: URL parameters open a specific ingredient, family, species, function, compound, or search
+- Compound structures: 58,596 molecular structure SVGs, loaded on demand and decompressed in the browser with DecompressionStream
+- Species photos: loaded automatically from the GBIF Occurrence API
+- Common names: Chinese and English common names for 2,827 species and 376 families, shown throughout the interface and searchable
+- Multilingual compound names: 6,581 compounds have English, Chinese, and Japanese names and aliases from Wikidata, so you can search for "caffeine", "槲皮素", or "ケルセチン"
+- Trilingual UI: switch between Chinese, English, and Japanese with the language button. Labels and common names follow the selected language, and Japanese names (和名) are searchable, for example "ラベンダー"
+- Filtering and sorting: filter by botanical source, restriction, structure, function, or family, and sort several ways
+- Regulation data: Annexes II to VI of EU Cosmetics Regulation EC 1223/2009, shown in a structured, color-coded layout
+- Dark mode: follows the system setting, or choose light or dark
+- Fully static: no backend, deployed directly on GitHub Pages
 
-### AI Query Layer (MCP Server + Skill)
+### AI query layer (MCP server and skill)
 
-- **Natural-language queries** — Ask questions in Claude Code like "What are the functions of rose oil?" or "What's the CAS number of glycerin?"
-- **Ingredient label analysis** — Paste ingredient list text or a photo to auto-identify INCI names and batch-query the database
-- **Regulation lookup** — Instantly check any ingredient's EU regulatory status (Annex II–VI)
-- **Species / Family info** — Query taxonomic details, extract lists, compound counts
-- **Explorer links** — All query results include deep links to the knowledge graph for visual exploration
+- Natural-language queries: ask Claude Code questions such as "What are the functions of rose oil?" or "What's the CAS number of glycerin?"
+- Ingredient label analysis: paste an ingredient list or a photo of one, and the skill identifies the INCI names and looks them all up
+- Regulation lookup: check any ingredient's EU regulatory status (Annexes II to VI)
+- Species and family info: taxonomy, extract lists, and compound counts
+- Explorer links: every result includes a deep link to the knowledge graph
 
-## Graph Node Selection Logic
+## Graph node selection logic
 
-Each node type's ego graph (the neighborhood expanded around a selected node) selects its neighbors according to the following rules:
+Each node type's ego graph (the neighborhood expanded around a selected node) picks its neighbors by these rules:
 
 ### Family (center)
 
@@ -80,7 +80,7 @@ Each node type's ego graph (the neighborhood expanded around a selected node) se
 | Functions | By usage count across species containing this compound | 10 |
 | Species | Species containing this compound | 20 |
 
-## Deep Linking
+## Deep linking
 
 The Explorer supports URL parameters for direct navigation:
 
@@ -92,9 +92,9 @@ The Explorer supports URL parameters for direct navigation:
 | `?function=` | [`?function=SKIN+CONDITIONING`](https://517justin.github.io/cosing-explorer/?function=SKIN+CONDITIONING) | Open a specific function's graph |
 | `?compound=` | `?compound=CRPUJAZIXJMDBK-UHFFFAOYSA-N` | Open a specific compound's graph |
 | `?search=` | [`?search=lavender`](https://517justin.github.io/cosing-explorer/?search=lavender) | Pre-fill search box and show results |
-| `?lang=` | [`?lang=ja`](https://517justin.github.io/cosing-explorer/?lang=ja) | Set the UI language (`zh` / `en` / `ja`); combinable with other parameters, overrides the saved preference |
+| `?lang=` | [`?lang=ja`](https://517justin.github.io/cosing-explorer/?lang=ja) | Set the UI language (`zh`, `en`, or `ja`). Works alongside other parameters and overrides the saved preference |
 
-## AI Queries (Claude Code)
+## AI queries (Claude Code)
 
 ### Installation
 
@@ -109,7 +109,7 @@ claude mcp add cosing-mcp -- cosing-mcp
 cp cosing-mcp/skill/cosing-analyze.md .claude/commands/
 ```
 
-### Ingredient Label Analysis
+### Ingredient label analysis
 
 Use the `/cosing-analyze` skill in Claude Code:
 
@@ -119,19 +119,19 @@ AQUA, GLYCERIN, BUTYLENE GLYCOL, ROSA DAMASCENA FLOWER WATER,
 PHENOXYETHANOL, CITRIC ACID, SODIUM HYALURONATE
 ```
 
-You can also paste an ingredient label photo — the skill uses vision to identify INCI names.
+You can also paste a photo of an ingredient label; the skill reads the INCI names from the image.
 
 The report includes:
 - Overview table (🌿 botanical / ⚗️ synthetic / 🔴 prohibited / 🟠 restricted / ✅ unrestricted)
 - Botanical ingredients with species, common names, plant parts, and process
-- Regulatory details (Annex II–VI)
+- Regulatory details (Annexes II to VI)
 - Unmatched ingredients with possible reasons
 - Function distribution
 - Explorer graph links
 
-### Natural-Language Q&A
+### Natural-language Q&A
 
-The MCP Server provides 6 tools that Claude selects automatically:
+The MCP server provides six tools, and Claude picks the right one for each question:
 
 | Tool | Description | Example question |
 |------|-------------|-----------------|
@@ -142,7 +142,7 @@ The MCP Server provides 6 tools that Claude selects automatically:
 | `get_regulation` | Regulatory restriction query | "What are the restrictions on phenoxyethanol?" |
 | `analyze_ingredient_list` | Batch ingredient analysis | Called by the `/cosing-analyze` skill |
 
-## Data Sources
+## Data sources
 
 | Data | Source | License |
 |------|--------|---------|
@@ -175,17 +175,17 @@ cosing-mcp/                  # AI query layer (MCP Server)
 └── settings.json               # MCP Server config
 ```
 
-### SVG Compression Strategy
+### SVG compression strategy
 
-58,596 molecular structure SVGs cannot be inlined into a single page. Solution:
+58,596 molecular structure SVGs are too many to inline into a single page, so the build compresses and chunks them:
 
 1. Strip redundant XML declarations and styles
 2. gzip compression (level 9)
 3. Base64-encode into 631 JSON chunks
 4. Browser-side decompression via the `DecompressionStream` API
-5. Lazy loading — chunks are fetched and cached only when a user clicks on a compound
+5. Lazy loading: chunks are fetched and cached only when a user clicks a compound
 
-## Local Development
+## Local development
 
 ```bash
 cd docs
@@ -219,12 +219,12 @@ See [ROADMAP.md](ROADMAP.md).
 
 | Date | Description |
 |------|-------------|
-| 2026-10-02 | Phase 8b-i18n complete — Japanese UI in the Explorer (zh / EN / ja cycle, Japanese names shown and searchable, Japanese help, `?lang=` parameter), Japanese-aware `cosing-analyze` Skill, new `README.ja.md` |
-| 2026-10-01 | Phase 8b complete — Wikidata multilingual names: en/zh/ja compound names and aliases (6,581 compounds), Japanese species names 1,575 / family names 275, name search, Japanese names in MCP; deterministic builds and a new `--skip-svg` flag. The species zh/en name gap shrank only partly (519→457 / 464→379) because Wikidata has no common name for the rest |
-| 2026-09-27 | Phase 8a complete — RDKit molecular descriptors, direct PubChem CID links, Compound Browser (LogP/MW filters), MCP descriptor field |
-| 2026-09-27 | Phase 8b–8d planned — Wikidata multilingual names, ChEBI chemical roles, COCONUT expansion, Japanese UI |
-| 2026-09-15 | Phase 7 complete — MCP Server with 6 tools + Explorer deep links + cosing-analyze Skill + 31 tests |
+| 2026-10-02 | Phase 8b-i18n complete: Japanese UI in the Explorer (zh / EN / ja cycle, Japanese names shown and searchable, Japanese help, `?lang=` parameter), a Japanese-aware `cosing-analyze` skill, and a new `README.ja.md` |
+| 2026-10-01 | Phase 8b complete: Wikidata multilingual names (en/zh/ja names and aliases for 6,581 compounds, Japanese names for 1,575 species and 275 families), name search, and Japanese names in the MCP server. Builds are now deterministic, and `build_site.py` has a `--skip-svg` flag. The species name gap shrank only partly (Chinese 519 to 457, English 464 to 379) because Wikidata has no common name for the rest |
+| 2026-09-27 | Phase 8a complete: RDKit molecular descriptors, direct PubChem CID links, a Compound Browser with LogP and MW filters, and a descriptor field in the MCP server |
+| 2026-09-27 | Phases 8b to 8d planned: Wikidata multilingual names, ChEBI chemical roles, COCONUT expansion, and a Japanese UI |
+| 2026-09-15 | Phase 7 complete: an MCP server with six tools, Explorer deep links, the cosing-analyze skill, and 31 tests |
 
 ## License
 
-[MIT License](LICENSE) — Chia-Hsiu CHEN
+[MIT License](LICENSE), Chia-Hsiu CHEN
