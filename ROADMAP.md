@@ -58,35 +58,43 @@
 - 韓文（ko）已抓入原始快取但未匯出（目前無介面使用）
 - 物種缺口若要再縮小：GBIF vernacular names 補充、或人工／LLM 輔助翻譯
 - 化合物名稱僅涵蓋 Explorer 的 11,777 個；全 58,996 需 `20_fetch_wikidata_names.py compounds --all`（以本次約 3 秒／批估算約 1 小時）
-- 日文介面本身屬 8b-i18n，尚未實作（資料層 `sp_ja`／`fam_ja` 已就緒）
+- 日文介面本身屬 8b-i18n，已於 2026-10-02 完成
 
 ---
 
-### 8b-i18n — 日文介面 Japanese UI（中期，與 8b 同次 PR）
+### 8b-i18n — 日文介面 Japanese UI（中期，與 8b 同次 PR）✅ 已完成 2026-10-02
 
 **目標：** 將 Explorer 從雙語（中/英）擴充為三語（中/英/日），利用 8b 產出的日文名稱資料。
 
-| 工作項 | 說明 |
-|--------|------|
-| `I18N.ja` 字典 | ~60 key 日文翻譯（title: '化粧品成分エクスプローラー' 等） |
-| `setLang()` 三語切換 | 語言按鈕循環 中 → EN → 日 → 中；localStorage 記住選擇 |
-| `spName()` / `famName()` | 加 `ja` 分支，讀取 `D.sp_ja` / `D.fam_ja` |
-| `renderHelp()` 日文版 | ~30 行說明文字翻譯（節點類型、操作方式、法規分類） |
-| 搜尋擴充 | `setupSearch()` 加 `D.sp_ja` 比對（「ラベンダー」→ *Lavandula angustifolia*） |
-| HTML/Meta | `document.documentElement.lang = 'ja'`、`<title>` 切換 |
-| MCP Server | `data.py` 加 `sp_ja` / `fam_ja` dict |
-| cosing-analyze Skill | 若用戶語言為日文，報告中顯示和名 |
-| `README.ja.md` | 日文版專案說明 |
-| 測試 | `conftest.py` 補日文 fixture 樣本 |
+| 工作項 | 說明 | 狀態 |
+|--------|------|------|
+| `I18N.ja` 字典 | 101 個 key，與 zh／en 完全對齊（含 8a 新增的描述子與化合物瀏覽用語） | ✅ |
+| `setLang()` 三語切換 | 語言按鈕循環 中 → EN → 日 → 中，按鈕顯示下一個語言；`localStorage` 記住選擇。順手將初始化與 `setLang()` 重複的靜態文字套用邏輯整併為 `applyStaticLang()` | ✅ |
+| `spName()` / `famName()` / `cpdName()` | 加 `ja` 分支（讀 `D.sp_ja` / `D.fam_ja` / 化合物 `nm.ja`）；日文缺名時退回英文俗名，再缺則只顯示學名（不退回中文，避免日文使用者看到字形相近但詞義不同的中文名） | ✅ |
+| `renderHelp()` 日文版 | 節點類型、顯示邏輯表、法規分類、操作方式全部翻譯 | ✅ |
+| 搜尋擴充 | 物種／科搜尋加入和名比對（「ラベンダー」→ *Lavandula angustifolia*、「バラ科」→ Rosaceae） | ✅ |
+| HTML/Meta | `<html lang>` 隨語言切換（`zh-Hant`／`en`／`ja`）、`<title>` 切換 | ✅ |
+| `?lang=` URL 參數 | **規劃外新增**：`?lang=ja` 可直接開啟日文介面並可與其他參數併用，優先於 localStorage 但不寫入；讓 `README.ja.md` 與 Skill 產生的連結能落在日文頁 | ✅ |
+| MCP Server | `data.py` 的 `sp_ja` / `fam_ja` 已於 8b 完成 | ✅（8b） |
+| cosing-analyze Skill | 日文用戶：報告附和名（`species_ja`／`family_ja`／`compound.names.ja`），Explorer 連結加 `&lang=ja`；無和名時只顯示學名、不自行翻譯 | ✅ |
+| `README.ja.md` | 與中英文版同結構；三份 README 增加互連的語言列 | ✅ |
+| 測試 | `conftest.py` 日文 fixture 已於 8b 完成；Explorer 無前端測試框架，改以瀏覽器逐項驗證 | ✅（8b＋人工） |
 
 **前提：** Phase 8b 完成（`sp_ja` / `fam_ja` 資料已匯出）。
 
 **驗收：**
-- 語言切換按鈕在三語間正確循環
-- 日文模式下物種/科顯示和名
-- 搜尋日文和名可找到對應物種
-- Help 說明完整顯示日文
-- `README.ja.md` 與中英文版結構一致
+- ✅ 語言切換按鈕在三語間正確循環（ja → 中 → EN → 日），`<html lang>`、標題、統計列、圖例、頁尾同步切換
+- ✅ 日文模式下物種／科顯示和名（如 *Lavandula angustifolia* → 真正ラベンダー、Lamiaceae → シソ科）
+- ✅ 搜尋日文和名可找到對應物種（「ラベンダー」「バラ科」「カフェイン」）
+- ✅ Help 說明完整顯示日文
+- ✅ `README.ja.md` 與中英文版結構一致
+- ✅ 中、英模式無退步；主控台無錯誤
+
+**已知限制：**
+- 和名覆蓋率受限於 Wikidata：物種 1,575 / 2,827（56%）、科 275 / 376（73%）；其餘退回英文俗名或只顯示學名
+- 日文為人工翻譯，未經母語者審閱，用語（如 Annex 各類的譯名）建議由日語使用者校對
+- 預設語言仍為繁體中文，未依瀏覽器語言自動切換（可用 `?lang=` 或按鈕切換）
+- 工具列在約 800px 寬度時，搜尋框會被擠到很小（中文模式同樣存在，非本次引入）
 
 ---
 
@@ -150,3 +158,4 @@
 | Phase 7 | MCP Server + 深度連結 + cosing-analyze Skill | 2026-09-15 |
 | Phase 8a | RDKit 分子描述子 + PubChem 直連 + 化合物瀏覽頁 | 2026-09-27 |
 | Phase 8b | Wikidata 多語名稱（化合物 en/zh/ja、物種／科和名）+ 名稱搜尋 | 2026-10-01 |
+| Phase 8b-i18n | Explorer 日文介面（中／EN／日三語）+ 和名搜尋 + README.ja.md | 2026-10-02 |

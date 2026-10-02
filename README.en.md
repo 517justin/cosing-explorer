@@ -2,7 +2,7 @@
 
 **CosIng 化妝品成分探索器**
 
-English | [繁體中文](README.md)
+English | [繁體中文](README.md) | [日本語](README.ja.md)
 
 An interactive knowledge graph + AI Q&A for exploring 33,638 cosmetic ingredients in the EU CosIng database — families, species, functions, and compounds at a glance, plus natural-language queries and ingredient label analysis.
 
@@ -21,7 +21,7 @@ An interactive knowledge graph + AI Q&A for exploring 33,638 cosmetic ingredient
 - **Species photos** — Automatically loaded from the GBIF Occurrence API
 - **Common names** — Chinese and English common names for 2,827 species and 376 families, searchable and displayed throughout
 - **Multilingual compound names** — 6,581 compounds carry English/Chinese/Japanese names and aliases (from Wikidata); search by "caffeine", "槲皮素" or "ケルセチン"
-- **Bilingual UI** — Chinese / English toggle; all labels and common names switch with the language
+- **Trilingual UI** — Chinese / English / Japanese (the language button cycles); labels, common names and Japanese names (和名) follow the language, and Japanese names are searchable (e.g. "ラベンダー")
 - **Filtering & sorting** — Botanical / Restricted / Has structure / by Function / by Family filters, multiple sort modes
 - **Regulation data** — EU Cosmetics Regulation EC 1223/2009 Annex II–VI with structured display and color coding
 - **Dark mode** — Three-state theme (System / Light / Dark)
@@ -92,6 +92,7 @@ The Explorer supports URL parameters for direct navigation:
 | `?function=` | [`?function=SKIN+CONDITIONING`](https://517justin.github.io/cosing-explorer/?function=SKIN+CONDITIONING) | Open a specific function's graph |
 | `?compound=` | `?compound=CRPUJAZIXJMDBK-UHFFFAOYSA-N` | Open a specific compound's graph |
 | `?search=` | [`?search=lavender`](https://517justin.github.io/cosing-explorer/?search=lavender) | Pre-fill search box and show results |
+| `?lang=` | [`?lang=ja`](https://517justin.github.io/cosing-explorer/?lang=ja) | Set the UI language (`zh` / `en` / `ja`); combinable with other parameters, overrides the saved preference |
 
 ## AI Queries (Claude Code)
 
@@ -199,7 +200,15 @@ To rebuild from source data:
 
 ```bash
 # Requires _data/kb.duckdb and _data/structures/
-python3 _scripts/build_site.py
+python3 _scripts/build_site.py              # rebuild all JSON and SVG chunks
+python3 _scripts/build_site.py --skip-svg   # JSON only (leaves docs/svg/ untouched)
+```
+
+To refresh multilingual names (queries Wikidata over SPARQL, about 20 minutes for a full run; needs `duckdb` and `opencc-python-reimplemented`):
+
+```bash
+python3 _scripts/20_fetch_wikidata_names.py species    # likewise families / compounds
+python3 _scripts/20b_merge_wikidata_names.py            # fill-only, never overwrites curated names
 ```
 
 ## Roadmap
@@ -210,6 +219,7 @@ See [ROADMAP.md](ROADMAP.md).
 
 | Date | Description |
 |------|-------------|
+| 2026-10-02 | Phase 8b-i18n complete — Japanese UI in the Explorer (zh / EN / ja cycle, Japanese names shown and searchable, Japanese help, `?lang=` parameter), Japanese-aware `cosing-analyze` Skill, new `README.ja.md` |
 | 2026-10-01 | Phase 8b complete — Wikidata multilingual names: en/zh/ja compound names and aliases (6,581 compounds), Japanese species names 1,575 / family names 275, name search, Japanese names in MCP; deterministic builds and a new `--skip-svg` flag. The species zh/en name gap shrank only partly (519→457 / 464→379) because Wikidata has no common name for the rest |
 | 2026-09-27 | Phase 8a complete — RDKit molecular descriptors, direct PubChem CID links, Compound Browser (LogP/MW filters), MCP descriptor field |
 | 2026-09-27 | Phase 8b–8d planned — Wikidata multilingual names, ChEBI chemical roles, COCONUT expansion, Japanese UI |

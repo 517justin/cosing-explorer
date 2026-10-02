@@ -2,7 +2,7 @@
 
 **CosIng Cosmetic Ingredient Explorer**
 
-[English](README.en.md) | 繁體中文
+[English](README.en.md) | 繁體中文 | [日本語](README.ja.md)
 
 互動式知識圖譜 + AI 問答，探索歐盟 CosIng 資料庫中 33,638 種化妝品原料——科、物種、用途、化合物一覽無遺，還能用自然語言查詢或直接分析成分表。
 
@@ -21,7 +21,7 @@
 - **物種照片** — 透過 GBIF Occurrence API 自動載入物種實物照片
 - **中英文俗名** — 2,827 種物種與 376 科皆附中英文俗名，搜尋與顯示皆支援
 - **化合物多語名稱** — 6,581 個化合物附英/中/日名稱與別名（來自 Wikidata），可用「caffeine」「槲皮素」「ケルセチン」搜尋
-- **雙語介面** — 中文／英文切換，所有介面文字與俗名隨語系變更
+- **三語介面** — 中文／English／日本語切換（按鈕循環），所有介面文字、俗名與和名隨語系變更；日文模式支援和名搜尋（如「ラベンダー」）
 - **篩選與排序** — 植物來源 / 有限制 / 有結構 / 用途 / 科篩選，多種排序模式
 - **法規資料** — EU 化妝品法規 EC 1223/2009 Annex II–VI 結構化顯示，色彩編碼
 - **深色模式** — 三態主題（系統 / 明 / 暗）
@@ -92,6 +92,7 @@ Explorer 支援 URL 參數，可從外部直接開啟特定頁面：
 | `?function=` | [`?function=SKIN+CONDITIONING`](https://517justin.github.io/cosing-explorer/?function=SKIN+CONDITIONING) | 開啟特定用途的知識圖譜 |
 | `?compound=` | `?compound=CRPUJAZIXJMDBK-UHFFFAOYSA-N` | 開啟特定化合物的知識圖譜 |
 | `?search=` | [`?search=lavender`](https://517justin.github.io/cosing-explorer/?search=lavender) | 預填搜尋框並顯示結果 |
+| `?lang=` | [`?lang=ja`](https://517justin.github.io/cosing-explorer/?lang=ja) | 指定介面語言（`zh`／`en`／`ja`），可與其他參數併用，優先於已儲存的語言設定 |
 
 ## AI 問答（Claude Code）
 
@@ -199,7 +200,15 @@ python3 -m http.server 8765
 
 ```bash
 # 需要 _data/kb.duckdb 與 _data/structures/
-python3 _scripts/build_site.py
+python3 _scripts/build_site.py              # 重建全部 JSON 與 SVG chunk
+python3 _scripts/build_site.py --skip-svg   # 只重建 JSON（不動 docs/svg/）
+```
+
+更新多語名稱（會向 Wikidata 發送 SPARQL 查詢，全量約 20 分鐘；需 `duckdb`、`opencc-python-reimplemented`）：
+
+```bash
+python3 _scripts/20_fetch_wikidata_names.py species    # families / compounds 同理
+python3 _scripts/20b_merge_wikidata_names.py            # 只補缺，不覆蓋既有俗名
 ```
 
 ## 路線圖
@@ -210,6 +219,7 @@ python3 _scripts/build_site.py
 
 | 日期 | 內容 |
 |------|------|
+| 2026-10-02 | Phase 8b-i18n 完成 — Explorer 日文介面（中／EN／日三語切換、和名顯示與搜尋、日文說明、`?lang=` 參數）、`cosing-analyze` Skill 支援和名、新增 `README.ja.md` |
 | 2026-10-01 | Phase 8b 完成 — Wikidata 多語名稱：化合物 en/zh/ja 名稱與別名（6,581 個）、物種和名 1,575／科和名 275、名稱搜尋、MCP 日文名；建置改為確定性、新增 `--skip-svg`。物種中英文名缺口僅部分縮小（519→457／464→379，Wikidata 無對應俗名） |
 | 2026-09-27 | Phase 8a 完成 — RDKit 分子描述子、PubChem CID 直連、化合物瀏覽清單頁（LogP/MW 篩選）、MCP 描述子欄位 |
 | 2026-09-27 | Phase 8b–8d 規劃完成 — Wikidata 多語名稱、ChEBI 化學角色、COCONUT 擴充、日文介面 |
