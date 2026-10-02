@@ -159,7 +159,7 @@ docs/                        # GitHub Pages root (Explorer)
 ├── index.html               # Single-page app (CSS/JS inlined, ~2,000 lines)
 ├── data/
 │   ├── ingredients.json     # 33,638 ingredients + indexes + common names (~13 MB)
-│   └── compounds.json       # 11,777 compound index (~5 MB)
+│   └── compounds.json       # 11,777 compound index (~6 MB)
 └── svg/                     # 631 SVG chunks (~192 MB)
 
 cosing-mcp/                  # AI query layer (MCP Server)

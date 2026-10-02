@@ -7,7 +7,7 @@ The data is hosted on [GitHub Pages](https://517justin.github.io/cosing-explorer
 ## Install
 
 ```bash
-pip install git+https://github.com/517justin/cosing.git#subdirectory=cosing-mcp
+pip install git+https://github.com/517justin/cosing-explorer.git#subdirectory=cosing-mcp
 ```
 
 Or for development:
@@ -62,7 +62,7 @@ Then provide a photo or text of a cosmetic ingredient label:
 ## Data source
 
 - `ingredients.json` (~13 MB): 33,638 CosIng ingredients with functions, taxonomy, and regulation
-- `compounds.json` (~5 MB): 11,777 compounds linked to species
+- `compounds.json` (~6 MB): 11,777 compounds linked to species
 
 Cached at `~/.cache/cosing-mcp/` with 7-day TTL. Works offline after first fetch.
 

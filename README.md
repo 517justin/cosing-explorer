@@ -159,7 +159,7 @@ docs/                        # GitHub Pages 根目錄（Explorer）
 ├── index.html               # 單頁應用（CSS/JS 內嵌，~2,000 行）
 ├── data/
 │   ├── ingredients.json     # 33,638 筆原料 + 索引 + 中英文俗名（~13 MB）
-│   └── compounds.json       # 11,777 筆化合物索引（~5 MB）
+│   └── compounds.json       # 11,777 筆化合物索引（~6 MB）
 └── svg/                     # 631 個 SVG chunk（~192 MB）
 
 cosing-mcp/                  # AI 問答層（MCP Server）
