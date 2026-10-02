@@ -201,6 +201,8 @@ canvas#graph.dragging { cursor: grabbing; }
   background: var(--surface); padding: 6px 12px; border-radius: 8px;
   box-shadow: var(--shadow); border: 1px solid var(--border);
 }
+.stats-bar { min-width: 0; overflow: hidden; }
+.stats-bar span { white-space: nowrap; flex-shrink: 0; }
 .stats-bar b { color: var(--text); font-variant-numeric: tabular-nums; }
 @media (max-width: 700px) {
   .stats-bar { display: none; }
@@ -474,7 +476,7 @@ canvas#graph.dragging { cursor: grabbing; }
     <div class="stats-bar" id="stats"></div>
     <button id="cbBtn" class="view-btn" style="position:static;font-size:11px;font-weight:600;width:auto;padding:0 10px;white-space:nowrap" onclick="openCompoundBrowser()" title="化合物瀏覽">🧪<span class="cb-btn-label"> 化合物</span></button>
     <button id="helpBtn" class="view-btn" style="position:static;font-size:13px;font-weight:600;width:28px;padding:0" onclick="document.getElementById('helpOverlay').hidden=false" title="說明">?</button>
-    <button id="langBtn" class="view-btn" style="position:static;font-size:11px;font-weight:600;width:28px;padding:0" onclick="setLang(LANG==='zh'?'en':'zh')">EN</button>
+    <button id="langBtn" class="view-btn" style="position:static;font-size:11px;font-weight:600;width:28px;padding:0" onclick="setLang(nextLang())" title="Language / 言語 / 語言">EN</button>
   </div>
 
   <div class="breadcrumb" id="bc" style="display:none"></div>
@@ -601,57 +603,84 @@ const I18N = {
     cbClear: 'Clear filters', cbNoResults: 'No compounds match these filters',
     cbFormula: 'Formula', cbName: 'Name', cbSpCount: 'Species', cbFamCount: 'Families',
     cbShowing: '', cbCompounds: 'compounds', cbPage: 'Page', cbPrev: '← Prev', cbNext: 'Next →'
+  },
+  ja: {
+    title: '化粧品成分エクスプローラー', subtitle: 'EU CosIng データベース',
+    loading: 'データを読み込み中...', search: '成分・科・用途・種を検索...',
+    family: '科', func: '用途', ingredient: '成分', species: '種', compound: '化合物',
+    familyTag: '科 Family', funcTag: '用途 Function', ingredientTag: '成分 Ingredient',
+    speciesTag: '種 Species', compoundTag: '化合物 Compound',
+    overview: '全体表示', zoomIn: '拡大', zoomOut: '縮小', resetView: '表示をリセット',
+    botanical: '植物由来', restricted: '規制あり',
+    expandFamily: 'この科を展開 →', expandFunc: 'この用途を展開 →',
+    expandIng: 'この成分を展開 →', expandSp: 'この種を展開 →', expandCpd: 'この化合物を展開 →',
+    functions: '用途 Functions', regulation: '規制', origin: '植物由来',
+    part: '部位', process: '製法', ingCount: '成分数', spCount: '種数',
+    spInCpd: '含有種', famInCpd: '含有科数',
+    topFam: '主な科 Top Families', relatedSp: '関連種',
+    compounds: '化合物', annex: 'Annex', maxConc: '最大濃度',
+    dataSrc: 'データ出典', taxonomy: '分類階層', author: '作者', license: 'ライセンス',
+    statsIng: '成分', statsBotanical: '植物由来', statsSp: '種',
+    statsFam: '科', statsFn: '用途', statsCpd: '化合物',
+    statsRestricted: '規制対象',
+    tag: '成分',
+    ingFilterAll: '標準', ingFilterRestricted: '規制対象を優先', ingFilterBotanical: '植物由来を優先',
+    ingFilterLabel: '成分の並び順',
+    helpTitle: '使い方',
+    helpBtn: 'ヘルプ',
+    photo: '写真', photoBy: '撮影',
+    annexII: '使用禁止物質', annexIII: '使用制限物質', annexIV: '着色剤',
+    annexV: '防腐剤', annexVI: '紫外線吸収剤',
+    annexEntry: 'エントリー', regNote: '備考',
+    restrictedCount: '規制対象の成分', restrictedRatio: '規制対象の割合',
+    viewRegulation: '規制を見る ↗',
+    alsoKnown: '別名',
+    physProps: '物理化学的性質', mw: '分子量', logp: 'LogP', tpsa: 'TPSA',
+    hbd: '水素結合供与体', hba: '水素結合受容体', rotb: '回転可能結合', rings: '環数',
+    arom: '芳香環', heavy: '重原子', fsp3: 'Fsp3',
+    cbBtn: '化合物', cbTitle: '化合物ブラウザ', cbLogpRange: 'LogP の範囲', cbMwRange: '分子量の範囲',
+    cbSearch: '分子式 / 名前で検索', cbSortBy: '並べ替え', cbSortSp: '種数', cbSortMw: '分子量', cbSortLogp: 'LogP',
+    cbClear: '絞り込みをクリア', cbNoResults: '条件に一致する化合物はありません',
+    cbFormula: '分子式', cbName: '名前', cbSpCount: '種数', cbFamCount: '科数',
+    cbShowing: '', cbCompounds: '件の化合物', cbPage: 'ページ', cbPrev: '← 前へ', cbNext: '次へ →'
   }
 };
 let LANG = 'zh';
-try { const s = localStorage.getItem('lang'); if (s === 'en') LANG = 'en'; } catch {}
+const LANGS = ['zh', 'en', 'ja'];
+const LANG_TAG = { zh: 'zh-Hant', en: 'en', ja: 'ja' };
+const LANG_BTN = { zh: 'EN', en: '日', ja: '中' };
+try { const s = localStorage.getItem('lang'); if (LANGS.includes(s)) LANG = s; } catch {}
+{ const u = new URLSearchParams(location.search).get('lang'); if (LANGS.includes(u)) LANG = u; }
+function nextLang() { return LANGS[(LANGS.indexOf(LANG) + 1) % LANGS.length]; }
 function T(k) { return (I18N[LANG] || I18N.zh)[k] || k; }
-function spName(sp) { if (!D) return ''; return LANG === 'en' ? (D.sp_en && D.sp_en[sp] || '') : (D.sp_zh && D.sp_zh[sp] || ''); }
+function localName(maps, key) {
+  if (!D) return '';
+  const get = m => (D[m] && D[m][key]) || '';
+  return LANG === 'en' ? get(maps.en) : LANG === 'ja' ? (get(maps.ja) || get(maps.en)) : get(maps.zh);
+}
+function spName(sp) { return localName({ zh: 'sp_zh', en: 'sp_en', ja: 'sp_ja' }, sp); }
+function famName(fam) { return localName({ zh: 'fam_zh', en: 'fam_en', ja: 'fam_ja' }, fam); }
 function cpdName(c) {
   const nm = c && c.nm; if (!nm) return '';
   const first = l => (nm[l] && nm[l][0]) || '';
-  return LANG === 'en' ? first('en') : (first('zh') || first('en'));
+  return LANG === 'en' ? first('en') : LANG === 'ja' ? (first('ja') || first('en')) : (first('zh') || first('en'));
 }
-function famName(fam) { if (!D) return ''; return LANG === 'en' ? (D.fam_en && D.fam_en[fam] || '') : (D.fam_zh && D.fam_zh[fam] || ''); }
-document.documentElement.lang = LANG === 'en' ? 'en' : 'zh-Hant';
+document.documentElement.lang = LANG_TAG[LANG];
 document.getElementById('loadingTitle').textContent = T('title');
 document.getElementById('loadingSub').textContent = T('loading');
-if (LANG !== 'zh') {
+function applyStaticLang() {
+  document.documentElement.lang = LANG_TAG[LANG];
   document.title = T('title');
   document.querySelector('.brand').innerHTML = T('title') + '<small>' + T('subtitle') + '</small>';
   document.getElementById('search').placeholder = T('search');
   document.getElementById('zoomIn').title = T('zoomIn');
   document.getElementById('zoomOut').title = T('zoomOut');
   document.getElementById('resetView').title = T('resetView');
-  document.getElementById('langBtn').textContent = '中';
+  document.getElementById('helpBtn').title = T('helpBtn');
+  document.getElementById('langBtn').textContent = LANG_BTN[LANG];
   document.querySelector('#cbBtn .cb-btn-label').textContent = ' ' + T('cbBtn');
   document.getElementById('cbBtn').title = T('cbTitle');
   document.getElementById('cbTitleEl').textContent = T('cbTitle');
-  var leg = document.getElementById('legend');
-  if (leg) leg.innerHTML =
-    '<div class="legend-item"><div class="legend-dot" style="background:var(--family)"></div>' + T('familyTag') + '</div>' +
-    '<div class="legend-item"><div class="legend-dot" style="background:var(--function)"></div>' + T('funcTag') + '</div>' +
-    '<div class="legend-item"><div class="legend-dot" style="background:var(--ingredient)"></div>' + T('ingredientTag') + '</div>' +
-    '<div class="legend-item"><div class="legend-dot" style="background:var(--species)"></div>' + T('speciesTag') + '</div>' +
-    '<div class="legend-item"><div class="legend-dot" style="background:var(--compound)"></div>' + T('compoundTag') + '</div>';
-  var ft = document.querySelector('.site-footer');
-  if (ft) ft.innerHTML =
-    '<span>' + T('dataSrc') + '：<a href="https://data.europa.eu/data/datasets/cosing-list-ingredients-and-fragrance-inventory?locale=en" target="_blank" rel="noopener">EU CosIng</a>（European Commission）</span>' +
-    '<span>' + T('taxonomy') + '：<a href="https://www.gbif.org/" target="_blank" rel="noopener">GBIF</a></span>' +
-    '<span>' + T('compounds') + '：<a href="https://lotus.naturalproducts.net/" target="_blank" rel="noopener">LOTUS</a> · <a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">PubChem</a></span>' +
-    '<span>' + T('author') + '：Chia-Hsiu CHEN · <a href="https://github.com/517justin/cosing-explorer" target="_blank" rel="noopener">GitHub</a></span>' +
-    '<span>' + T('license') + '：<a href="https://github.com/517justin/cosing-explorer/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a></span>';
-}
-function setLang(l) {
-  LANG = l;
-  try { localStorage.setItem('lang', l); } catch {}
-  document.documentElement.lang = l === 'en' ? 'en' : 'zh-Hant';
-  document.title = T('title');
-  document.querySelector('.brand').innerHTML = T('title') + '<small>' + T('subtitle') + '</small>';
-  document.getElementById('search').placeholder = T('search');
-  document.getElementById('zoomIn').title = T('zoomIn');
-  document.getElementById('zoomOut').title = T('zoomOut');
-  document.getElementById('resetView').title = T('resetView');
   const leg = document.getElementById('legend');
   if (leg) leg.innerHTML =
     '<div class="legend-item"><div class="legend-dot" style="background:var(--family)"></div>' + T('familyTag') + '</div>' +
@@ -666,12 +695,12 @@ function setLang(l) {
     '<span>' + T('compounds') + '：<a href="https://lotus.naturalproducts.net/" target="_blank" rel="noopener">LOTUS</a> · <a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">PubChem</a></span>' +
     '<span>' + T('author') + '：Chia-Hsiu CHEN · <a href="https://github.com/517justin/cosing-explorer" target="_blank" rel="noopener">GitHub</a></span>' +
     '<span>' + T('license') + '：<a href="https://github.com/517justin/cosing-explorer/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a></span>';
-  const lb = document.getElementById('langBtn');
-  if (lb) lb.textContent = LANG === 'zh' ? 'EN' : '中';
-  document.getElementById('helpBtn').title = T('helpBtn');
-  document.querySelector('#cbBtn .cb-btn-label').textContent = ' ' + T('cbBtn');
-  document.getElementById('cbBtn').title = T('cbTitle');
-  document.getElementById('cbTitleEl').textContent = T('cbTitle');
+}
+if (LANG !== 'zh') applyStaticLang();
+function setLang(l) {
+  LANG = l;
+  try { localStorage.setItem('lang', l); } catch {}
+  applyStaticLang();
   renderHelp();
   if (D) refreshStats();
   if (GRAPH) updateBreadcrumb();
@@ -681,11 +710,10 @@ function setLang(l) {
 function renderHelp() {
   var hb = document.getElementById('helpBox');
   if (!hb) return;
-  var zh = LANG === 'zh';
   var dot = function(c) { return '<span class="help-dot" style="background:var(--' + c + ')"></span>'; };
   var h = '<button class="close-btn" onclick="document.getElementById(\'helpOverlay\').hidden=true">&times;</button>';
   h += '<h2>' + T('helpTitle') + '</h2>';
-  if (zh) {
+  if (LANG === 'zh') {
     h += '<p>本工具以互動式知識圖譜呈現歐盟 CosIng 資料庫中 33,638 種化妝品原料的關聯。點擊節點可展開其關聯網絡（Ego Graph），面板顯示詳細資訊。</p>';
     h += '<h3>節點類型</h3>';
     h += '<p>' + dot('family') + '<b>科 Family</b> — 植物分類學科別（APG IV 標準）<br>';
@@ -718,6 +746,39 @@ function renderHelp() {
     h += '<span style="color:var(--annex-vi);font-weight:600">Annex VI</span> 准用防曬劑</p>';
     h += '<h3>操作方式</h3>';
     h += '<p>滾輪或 +/- 按鈕縮放 · 拖曳平移 · 點擊節點展開 · 麵包屑導航回溯 · 搜尋欄支援 INCI 名稱、CAS、科名、物種名</p>';
+  } else if (LANG === 'ja') {
+    h += '<p>このツールは、EU CosIng データベースに登録された 33,638 種類の化粧品成分の関係を、インタラクティブな知識グラフとして表示します。ノードをクリックすると周辺のネットワーク（エゴグラフ）が展開され、サイドパネルに詳細が表示されます。</p>';
+    h += '<h3>ノードの種類</h3>';
+    h += '<p>' + dot('family') + '<b>科 Family</b> — 植物の分類学上の科（APG IV 体系）<br>';
+    h += dot('function') + '<b>用途 Function</b> — 化粧品の用途分類（EU CosIng の統制語彙）<br>';
+    h += dot('ingredient') + '<b>成分 Ingredient</b> — 化粧品成分（INCI 名）<br>';
+    h += dot('species') + '<b>種 Species</b> — 由来となる生物種（ラテン語の二名法）<br>';
+    h += dot('compound') + '<b>化合物 Compound</b> — 天然物に含まれる化学成分</p>';
+    h += '<h3>グラフの表示ルール</h3>';
+    h += '<p>ノードを展開すると、次のルールで周囲のノードが選ばれます。ノードの大きさは関連する成分数を表します。</p>';
+    h += '<table><tr><th>中心ノード</th><th>隣接ノード</th><th>選択基準</th><th>上限</th></tr>';
+    h += '<tr><td rowspan="3">' + dot('family') + '科</td><td>種</td><td>成分数の多い順</td><td>30</td></tr>';
+    h += '<tr><td>用途</td><td>使用回数の多い順</td><td>15</td></tr>';
+    h += '<tr><td>化合物</td><td>含有種の数が多い順</td><td>20</td></tr>';
+    h += '<tr><td rowspan="3">' + dot('function') + '用途</td><td>科</td><td>成分数の多い順</td><td>35</td></tr>';
+    h += '<tr><td>成分</td><td>切り替え可：標準 / 規制対象を優先 / 植物由来を優先</td><td>15</td></tr>';
+    h += '<tr><td>化合物</td><td>関連種の数が多い順</td><td>15</td></tr>';
+    h += '<tr><td rowspan="2">' + dot('ingredient') + '成分</td><td>用途</td><td>その成分のすべての用途</td><td>すべて</td></tr>';
+    h += '<tr><td>化合物</td><td>含有種の数が多い順</td><td>12</td></tr>';
+    h += '<tr><td rowspan="2">' + dot('species') + '種</td><td>用途</td><td>使用回数の多い順</td><td>10</td></tr>';
+    h += '<tr><td>化合物</td><td>含有種の数が多い順</td><td>15</td></tr>';
+    h += '<tr><td rowspan="2">' + dot('compound') + '化合物</td><td>種</td><td>その化合物を含む種</td><td>20</td></tr>';
+    h += '<tr><td>用途</td><td>使用回数の多い順</td><td>10</td></tr>';
+    h += '</table>';
+    h += '<h3>規制データ</h3>';
+    h += '<p>規制区分は EU 化粧品規則 EC 1223/2009 の附属書（Annex）に基づきます：</p>';
+    h += '<p><span style="color:var(--annex-ii);font-weight:600">Annex II</span> 使用禁止物質 · ';
+    h += '<span style="color:var(--annex-iii);font-weight:600">Annex III</span> 使用制限物質 · ';
+    h += '<span style="color:var(--annex-iv);font-weight:600">Annex IV</span> 着色剤 · ';
+    h += '<span style="color:var(--annex-v);font-weight:600">Annex V</span> 防腐剤 · ';
+    h += '<span style="color:var(--annex-vi);font-weight:600">Annex VI</span> 紫外線吸収剤</p>';
+    h += '<h3>操作方法</h3>';
+    h += '<p>ホイールまたは +/- ボタンで拡大縮小 · ドラッグで移動 · ノードをクリックして展開 · パンくずリストで戻る · 検索欄は INCI 名、CAS 番号、科名、種名、和名、化合物名に対応</p>';
   } else {
     h += '<p>This tool visualizes the relationships among 33,638 cosmetic ingredients from the EU CosIng database as an interactive knowledge graph. Click any node to expand its ego graph; the side panel shows details.</p>';
     h += '<h3>Node Types</h3>';
@@ -2052,7 +2113,8 @@ function setupSearch() {
       D.families.forEach((name, i) => {
         const _fZh = D.fam_zh[name] || '';
         const _fEn = D.fam_en[name] || '';
-        if (name.toLowerCase().includes(q) || _fZh.includes(q) || _fEn.toLowerCase().includes(q)) results.push({ type: 'family', label: name, idx: i, count: D.fam_counts[i] });
+        const _fJa = D.fam_ja[name] || '';
+        if (name.toLowerCase().includes(q) || _fZh.includes(q) || _fEn.toLowerCase().includes(q) || _fJa.includes(q)) results.push({ type: 'family', label: name, idx: i, count: D.fam_counts[i] });
       });
       D.functions.forEach((name, i) => {
         if (name.toLowerCase().includes(q)) results.push({ type: 'function', label: name, idx: i, count: D.fn_counts[i] });
@@ -2067,7 +2129,8 @@ function setupSearch() {
         if (it.sp && !seen.has(it.sp)) {
           const _cn = D.sp_zh[it.sp] || '';
           const _en = D.sp_en[it.sp] || '';
-          if (it.sp.toLowerCase().includes(q) || _cn.includes(q) || _en.toLowerCase().includes(q)) {
+          const _ja = D.sp_ja[it.sp] || '';
+          if (it.sp.toLowerCase().includes(q) || _cn.includes(q) || _en.toLowerCase().includes(q) || _ja.includes(q)) {
             seen.add(it.sp);
             results.push({ type: 'species', label: it.sp, idx: it.sp });
           }
