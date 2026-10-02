@@ -14,7 +14,7 @@
 | Explorer UI | 獨立「化合物瀏覽」清單頁：LogP/MW 範圍篩選、分子式/名稱搜尋、排序（物種數/MW/LogP）、分頁（規劃時原定滑桿，實作時發現無清單視圖可掛，改為新建清單頁） | ✅ |
 | MCP Server | `lookup_ingredient` 回傳 `compound` 欄位（formula, IUPAC, MW, CID, PubChem URL, descriptors） | ✅ |
 
-**前提：** 無 — 所有資料已在磁碟上。
+**前提：** 無，所有資料都已在磁碟上。
 
 **驗收：**
 - ✅ 化合物面板顯示 MW, LogP, TPSA, HBD/HBA, rings
@@ -25,7 +25,7 @@
 
 **副產出：**
 - 修正既有手機版 toolbar 溢出 bug（新增按鈕觸發，非本次目標但一併修好）✅
-- 修正 `build_site.py` 重跑會清空手動維護的 `sp_zh`/`sp_en`/`fam_zh`/`fam_en` 問題 ✅ —— 已將 4 個字典抽出至 `_data/common_names.json`（source of truth，人工維護），`build_site.py` 現在從此檔案讀入並合併進輸出，重跑不再清空俗名。Phase 8b 新增 `sp_ja`/`fam_ja` 時可直接加進同一個檔案
+- 修正 `build_site.py` 重跑會清空手動維護的 `sp_zh`/`sp_en`/`fam_zh`/`fam_en` 問題 ✅。做法是把 4 個字典抽出到 `_data/common_names.json`（人工維護的 source of truth），`build_site.py` 現在從這個檔案讀入並合併進輸出，重跑不會再清空俗名。Phase 8b 新增 `sp_ja`/`fam_ja` 時，可以直接加進同一個檔案
 
 ---
 
@@ -48,7 +48,7 @@
 **驗收：**
 - ✅ 搜尋 "caffeine" → 化合物節點（亦可用「咖啡因」「槲皮素」「ケルセチン」）
 - ✅ 化合物面板顯示 "caffeine | 咖啡因 | カフェイン"（原訂範例為 "咖啡鹼"；Wikidata 主名為「咖啡因」，「咖啡鹼」列為別名）
-- ❌ 物種缺中文名 519 → <100：實得 457。缺英文名 464 → <50：實得 379。**原因：** 剩餘缺口絕大多數是 Wikidata 上有條目、但英文標籤只是學名（360 筆），或根本沒有條目（19 筆）——這些物種在 Wikidata 沒有俗名可取，目標在資料源上不可達
+- ❌ 物種缺中文名 519 → <100：實得 457。缺英文名 464 → <50：實得 379。**原因：** 剩餘缺口絕大多數是 Wikidata 上有條目、但英文標籤只是學名（360 筆），或根本沒有條目（19 筆）。這些物種在 Wikidata 沒有俗名可取，單靠這個資料源達不到目標
 - ✅ SPARQL rate limit 遵守（≤50 key/query、2s 間隔、帶 User-Agent，全程無 429）
 
 **化合物名稱覆蓋：** 6,581 / 11,777 有至少一個名稱（en 6,387、zh 1,874、ja 1,635）；其餘多為無俗名的衍生物，維持以分子式／IUPAC 顯示。

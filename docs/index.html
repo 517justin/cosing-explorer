@@ -716,11 +716,11 @@ function renderHelp() {
   if (LANG === 'zh') {
     h += '<p>本工具以互動式知識圖譜呈現歐盟 CosIng 資料庫中 33,638 種化妝品原料的關聯。點擊節點可展開其關聯網絡（Ego Graph），面板顯示詳細資訊。</p>';
     h += '<h3>節點類型</h3>';
-    h += '<p>' + dot('family') + '<b>科 Family</b> — 植物分類學科別（APG IV 標準）<br>';
-    h += dot('function') + '<b>用途 Function</b> — 化妝品用途分類（EU CosIng 受控詞彙）<br>';
-    h += dot('ingredient') + '<b>原料 Ingredient</b> — 化妝品原料（INCI 名稱）<br>';
-    h += dot('species') + '<b>物種 Species</b> — 生物來源物種（拉丁二名法）<br>';
-    h += dot('compound') + '<b>化合物 Compound</b> — 天然產物化學成分</p>';
+    h += '<p>' + dot('family') + '<b>科 Family</b>：植物分類學科別（APG IV 標準）<br>';
+    h += dot('function') + '<b>用途 Function</b>：化妝品用途分類（EU CosIng 受控詞彙）<br>';
+    h += dot('ingredient') + '<b>原料 Ingredient</b>：化妝品原料（INCI 名稱）<br>';
+    h += dot('species') + '<b>物種 Species</b>：生物來源物種（拉丁二名法）<br>';
+    h += dot('compound') + '<b>化合物 Compound</b>：天然產物化學成分</p>';
     h += '<h3>圖譜顯示邏輯</h3>';
     h += '<p>每個節點展開時，會依據以下規則選取周圍節點。節點大小反映關聯原料數量。</p>';
     h += '<table><tr><th>中心節點</th><th>相鄰節點</th><th>選取邏輯</th><th>上限</th></tr>';

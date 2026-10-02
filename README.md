@@ -4,36 +4,36 @@
 
 [English](README.en.md) | 繁體中文 | [日本語](README.ja.md)
 
-互動式知識圖譜 + AI 問答，探索歐盟 CosIng 資料庫中 33,638 種化妝品原料——科、物種、用途、化合物一覽無遺，還能用自然語言查詢或直接分析成分表。
+互動式知識圖譜與 AI 問答，用來探索歐盟 CosIng 資料庫中的 33,638 種化妝品原料。你可以瀏覽科、物種、用途和化合物之間的關係，也能用自然語言查詢，或直接分析成分表。
 
-🔗 **[線上體驗 → 517justin.github.io/cosing-explorer](https://517justin.github.io/cosing-explorer/)**
+線上體驗：[517justin.github.io/cosing-explorer](https://517justin.github.io/cosing-explorer/)
 
 ## 功能
 
 ### 知識圖譜（Explorer）
 
-- **全庫搜尋** — 33,638 筆原料即時搜尋（INCI 名稱、CAS、描述、物種名、科名、中英文俗名）
-- **力導向知識圖譜** — Canvas 繪製的互動式關聯圖，支援平移、縮放、點擊導航
-- **五種節點類型** — 科（Family）、用途（Function）、原料（Ingredient）、物種（Species）、化合物（Compound）
-- **Ego-graph 導航** — 點擊任何節點展開其關聯網絡，麵包屑路徑可回溯
-- **深度連結** — 支援 URL 參數直接開啟特定成分、科、物種、用途、化合物或搜尋結果
-- **化合物結構式** — 58,596 個分子結構 SVG 即時載入，DecompressionStream 解壓
-- **物種照片** — 透過 GBIF Occurrence API 自動載入物種實物照片
-- **中英文俗名** — 2,827 種物種與 376 科皆附中英文俗名，搜尋與顯示皆支援
-- **化合物多語名稱** — 6,581 個化合物附英/中/日名稱與別名（來自 Wikidata），可用「caffeine」「槲皮素」「ケルセチン」搜尋
-- **三語介面** — 中文／English／日本語切換（按鈕循環），所有介面文字、俗名與和名隨語系變更；日文模式支援和名搜尋（如「ラベンダー」）
-- **篩選與排序** — 植物來源 / 有限制 / 有結構 / 用途 / 科篩選，多種排序模式
-- **法規資料** — EU 化妝品法規 EC 1223/2009 Annex II–VI 結構化顯示，色彩編碼
-- **深色模式** — 三態主題（系統 / 明 / 暗）
-- **純靜態** — 無後端，GitHub Pages 直接部署
+- 全庫搜尋：33,638 筆原料即時搜尋（INCI 名稱、CAS、描述、物種名、科名、中英文俗名）
+- 力導向知識圖譜：用 Canvas 繪製的互動式關聯圖，可以平移、縮放和點擊導航
+- 五種節點類型：科（Family）、用途（Function）、原料（Ingredient）、物種（Species）、化合物（Compound）
+- Ego-graph 導航：點擊任何節點展開其關聯網絡，可用麵包屑路徑回溯
+- 深度連結：支援用 URL 參數直接開啟特定成分、科、物種、用途、化合物或搜尋結果
+- 化合物結構式：58,596 個分子結構 SVG 即時載入，以 DecompressionStream 解壓
+- 物種照片：透過 GBIF Occurrence API 自動載入實物照片
+- 中英文俗名：2,827 種物種與 376 科都附有中英文俗名，搜尋和顯示都支援
+- 化合物多語名稱：6,581 個化合物附英/中/日名稱與別名（來自 Wikidata），可用「caffeine」「槲皮素」「ケルセチン」搜尋
+- 三語介面：用按鈕在中文、English、日本語之間切換，介面文字、俗名與和名隨語系變更；日文模式支援和名搜尋（如「ラベンダー」）
+- 篩選與排序：植物來源 / 有限制 / 有結構 / 用途 / 科篩選，多種排序模式
+- 法規資料：EU 化妝品法規 EC 1223/2009 Annex II–VI 結構化顯示，色彩編碼
+- 深色模式：三態主題（系統 / 明 / 暗）
+- 純靜態：無後端，GitHub Pages 直接部署
 
 ### AI 問答層（MCP Server + Skill）
 
-- **自然語言查詢** — 在 Claude Code 中直接用中文或英文提問，如「玫瑰精油有哪些用途？」「甘油的 CAS 號是什麼？」
-- **成分表分析** — 貼上成分表文字或照片，自動辨識 INCI 名稱並批次查詢
-- **法規速查** — 即時查詢任何成分的 EU 法規限制狀態（Annex II–VI）
-- **物種 / 科資訊** — 查詢植物分類、萃取物清單、化合物數量
-- **Explorer 連結** — 所有查詢結果附上知識圖譜的深度連結，一鍵開啟視覺化探索
+- 自然語言查詢：在 Claude Code 中直接用中文或英文提問，如「玫瑰精油有哪些用途？」「甘油的 CAS 號是什麼？」
+- 成分表分析：貼上成分表文字或照片，自動辨識 INCI 名稱並批次查詢
+- 法規速查：即時查詢任何成分的 EU 法規限制狀態（Annex II–VI）
+- 物種 / 科資訊：查詢植物分類、萃取物清單、化合物數量
+- Explorer 連結：所有查詢結果都附上知識圖譜的深度連結，可以直接開啟視覺化頁面
 
 ## 圖譜節點選取邏輯
 
@@ -177,13 +177,13 @@ cosing-mcp/                  # AI 問答層（MCP Server）
 
 ### SVG 壓縮策略
 
-58,596 個分子結構 SVG 無法內嵌於單頁。解法：
+58,596 個分子結構 SVG 無法內嵌於單頁，所以建置時先壓縮再切成 chunk：
 
 1. 去除冗餘 XML 宣告與樣式
 2. gzip 壓縮（level 9）
 3. Base64 編碼存入 631 個 JSON chunk
 4. 瀏覽器端以 `DecompressionStream` API 即時解壓
-5. 按需載入 — 使用者點選化合物時才載入對應 chunk 並快取
+5. 按需載入：使用者點選化合物時才載入對應 chunk 並快取
 
 ## 本地開發
 
@@ -219,12 +219,12 @@ python3 _scripts/20b_merge_wikidata_names.py            # 只補缺，不覆蓋�
 
 | 日期 | 內容 |
 |------|------|
-| 2026-10-02 | Phase 8b-i18n 完成 — Explorer 日文介面（中／EN／日三語切換、和名顯示與搜尋、日文說明、`?lang=` 參數）、`cosing-analyze` Skill 支援和名、新增 `README.ja.md` |
-| 2026-10-01 | Phase 8b 完成 — Wikidata 多語名稱：化合物 en/zh/ja 名稱與別名（6,581 個）、物種和名 1,575／科和名 275、名稱搜尋、MCP 日文名；建置改為確定性、新增 `--skip-svg`。物種中英文名缺口僅部分縮小（519→457／464→379，Wikidata 無對應俗名） |
-| 2026-09-27 | Phase 8a 完成 — RDKit 分子描述子、PubChem CID 直連、化合物瀏覽清單頁（LogP/MW 篩選）、MCP 描述子欄位 |
-| 2026-09-27 | Phase 8b–8d 規劃完成 — Wikidata 多語名稱、ChEBI 化學角色、COCONUT 擴充、日文介面 |
-| 2026-09-15 | Phase 7 完成 — MCP Server 6 工具 + Explorer 深度連結 + cosing-analyze Skill + 31 項測試 |
+| 2026-10-02 | Phase 8b-i18n 完成：Explorer 日文介面（中／EN／日三語切換、和名顯示與搜尋、日文說明、`?lang=` 參數）、`cosing-analyze` Skill 支援和名、新增 `README.ja.md` |
+| 2026-10-01 | Phase 8b 完成：Wikidata 多語名稱，包含化合物 en/zh/ja 名稱與別名（6,581 個）、物種和名 1,575／科和名 275、名稱搜尋、MCP 日文名；建置改為確定性、新增 `--skip-svg`。物種中英文名缺口僅部分縮小（519→457／464→379，Wikidata 無對應俗名） |
+| 2026-09-27 | Phase 8a 完成：RDKit 分子描述子、PubChem CID 直連、化合物瀏覽清單頁（LogP/MW 篩選）、MCP 描述子欄位 |
+| 2026-09-27 | Phase 8b 至 8d 規劃完成：Wikidata 多語名稱、ChEBI 化學角色、COCONUT 擴充、日文介面 |
+| 2026-09-15 | Phase 7 完成：MCP Server 6 個工具、Explorer 深度連結、cosing-analyze Skill 和 31 項測試 |
 
 ## 授權
 
-[MIT License](LICENSE) — Chia-Hsiu CHEN
+[MIT License](LICENSE)，Chia-Hsiu CHEN
