@@ -163,8 +163,9 @@ canvas#graph.dragging { cursor: grabbing; }
 }
 .brand small { font-weight: 400; color: var(--text-sec); font-size: 11px; margin-left: 6px; }
 .search-wrap {
-  flex: 1; min-width: 0; max-width: 380px; position: relative;
+  flex: 1 0 160px; max-width: 380px; position: relative;
 }
+.toolbar > .view-btn { flex-shrink: 0; }
 .search-wrap input {
   width: 100%; padding: 8px 14px 8px 34px;
   border: 1px solid var(--border); border-radius: 10px;
@@ -202,6 +203,7 @@ canvas#graph.dragging { cursor: grabbing; }
   box-shadow: var(--shadow); border: 1px solid var(--border);
 }
 .stats-bar { min-width: 0; overflow: hidden; }
+.stats-bar[hidden] { display: none; }
 .stats-bar span { white-space: nowrap; flex-shrink: 0; }
 .stats-bar b { color: var(--text); font-variant-numeric: tabular-nums; }
 @media (max-width: 700px) {
@@ -828,6 +830,17 @@ function refreshStats() {
     '<span><b>' + D.families.length + '</b> ' + T('statsFam') + '</span>' +
     '<span><b>' + D.functions.length + '</b> ' + T('statsFn') + '</span>' +
     '<span><b>' + Object.keys(D.ci).length.toLocaleString() + '</b> ' + T('statsCpd') + '</span>';
+  fitStats();
+}
+function fitStats() {
+  const bar = document.getElementById('stats');
+  if (!bar) return;
+  const spans = [...bar.children];
+  bar.hidden = false;
+  spans.forEach(s => { s.hidden = false; });
+  let shown = spans.length;
+  while (shown > 0 && bar.scrollWidth > bar.clientWidth + 1) spans[--shown].hidden = true;
+  if (shown === 0) bar.hidden = true;
 }
 
 const TYPE_COLORS = {};
@@ -2237,6 +2250,7 @@ async function main() {
 
   refreshColors();
   refreshStats();
+  if (document.fonts) document.fonts.ready.then(fitStats);
 
   GRAPH = buildOverview();
   CAM.scale = 0.7;
@@ -2246,6 +2260,7 @@ async function main() {
 
   resize();
   window.addEventListener('resize', resize);
+  window.addEventListener('resize', fitStats);
   setupInteraction();
   setupSearch();
 
