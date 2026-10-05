@@ -159,20 +159,24 @@ docs/                        # GitHub Pages 根目錄（Explorer）
 ├── index.html               # 單頁應用（CSS/JS 內嵌，~2,000 行）
 ├── data/
 │   ├── ingredients.json     # 33,638 筆原料 + 索引 + 中英文俗名（~13 MB）
-│   └── compounds.json       # 11,777 筆化合物索引（~6 MB）
+│   ├── compounds.json       # 11,777 筆化合物索引（~6 MB）
+│   └── ingredient_compounds.json  # 另有 5,411 筆化合物，供 MCP Server 使用（~0.6 MB）
 └── svg/                     # 631 個 SVG chunk（~192 MB）
 
 cosing-mcp/                  # AI 問答層（MCP Server）
 ├── src/cosing_mcp/
 │   ├── server.py            # MCP Server 進入點 + 6 個工具定義
 │   └── data.py              # GitHub Pages JSON 快取 + 記憶體索引
-├── tests/                   # 38 項測試
+├── tests/                   # 40 項測試
 ├── skill/cosing-analyze.md  # 成分分析 Skill（分發用副本）
 └── pyproject.toml           # pip install 設定
 
 .claude/
 ├── commands/cosing-analyze.md  # Claude Code Skill
 └── settings.json               # MCP Server 設定
+
+tests/explorer/              # Explorer 介面與資料測試（Node + jsdom，18 項）
+requirements.txt             # _scripts/ 的 Python 依賴
 ```
 
 ### SVG 壓縮策略
@@ -199,16 +203,28 @@ python3 -m http.server 8765
 若需從原始資料重建：
 
 ```bash
+# 首次設定
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+
 # 需要 _data/kb.duckdb 與 _data/structures/
-python3 _scripts/build_site.py              # 重建全部 JSON 與 SVG chunk
-python3 _scripts/build_site.py --skip-svg   # 只重建 JSON（不動 docs/svg/）
+.venv/bin/python _scripts/build_site.py              # 重建全部 JSON 與 SVG chunk
+.venv/bin/python _scripts/build_site.py --skip-svg   # 只重建 JSON（不動 docs/svg/）
 ```
 
-更新多語名稱（會向 Wikidata 發送 SPARQL 查詢，全量約 20 分鐘；需 `duckdb`、`opencc-python-reimplemented`）：
+SVG chunk 現在用固定的 gzip 標頭寫出，連續兩次完整建置的結果位元組完全相同。目前已提交的 chunk 仍帶有建置時間戳，所以第一次完整重建會一次改寫全部 631 個檔案；除非結構式有變動，請用 `--skip-svg`。
+
+更新多語名稱（會向 Wikidata 發送 SPARQL 查詢，全量約 20 分鐘）：
 
 ```bash
-python3 _scripts/20_fetch_wikidata_names.py species    # families / compounds 同理
-python3 _scripts/20b_merge_wikidata_names.py            # 只補缺，不覆蓋既有俗名
+.venv/bin/python _scripts/20_fetch_wikidata_names.py species    # families / compounds 同理
+.venv/bin/python _scripts/20b_merge_wikidata_names.py            # 只補缺，不覆蓋既有俗名
+```
+
+## 測試
+
+```bash
+cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP Server，40 項
+cd tests/explorer && npm install && npm test             # Explorer 介面與資料，18 項
 ```
 
 ## 路線圖
@@ -219,6 +235,7 @@ python3 _scripts/20b_merge_wikidata_names.py            # 只補缺，不覆蓋�
 
 | 日期 | 內容 |
 |------|------|
+| 2026-10-05 | 技術債清理：MCP Server 現在對全部 7,281 個有結構的成分都能回傳化合物資料（原本只有 1,169 個）、新增建置腳本的 `requirements.txt`、SVG chunk 建置改為確定性、新增 Explorer 測試（Node + jsdom，18 項）、修正窄視窗的工具列排版，並移除 5 筆與學名相同的無效俗名。MCP 測試由 38 項增為 40 項 |
 | 2026-10-02 | Phase 8b-i18n 完成：Explorer 日文介面（中／EN／日三語切換、和名顯示與搜尋、日文說明、`?lang=` 參數）、`cosing-analyze` Skill 支援和名、新增 `README.ja.md` |
 | 2026-10-01 | Phase 8b 完成：Wikidata 多語名稱，包含化合物 en/zh/ja 名稱與別名（6,581 個）、物種和名 1,575／科和名 275、名稱搜尋、MCP 日文名；建置改為確定性、新增 `--skip-svg`。物種中英文名缺口僅部分縮小（519→457／464→379，Wikidata 無對應俗名） |
 | 2026-09-27 | Phase 8a 完成：RDKit 分子描述子、PubChem CID 直連、化合物瀏覽清單頁（LogP/MW 篩選）、MCP 描述子欄位 |

@@ -159,20 +159,24 @@ docs/                        # GitHub Pages root (Explorer)
 ├── index.html               # Single-page app (CSS/JS inlined, ~2,000 lines)
 ├── data/
 │   ├── ingredients.json     # 33,638 ingredients + indexes + common names (~13 MB)
-│   └── compounds.json       # 11,777 compound index (~6 MB)
+│   ├── compounds.json       # 11,777 compound index (~6 MB)
+│   └── ingredient_compounds.json  # 5,411 more compounds, for the MCP server (~0.6 MB)
 └── svg/                     # 631 SVG chunks (~192 MB)
 
 cosing-mcp/                  # AI query layer (MCP Server)
 ├── src/cosing_mcp/
 │   ├── server.py            # MCP Server entry point + 6 tool definitions
 │   └── data.py              # GitHub Pages JSON cache + in-memory indexes
-├── tests/                   # 38 tests
+├── tests/                   # 40 tests
 ├── skill/cosing-analyze.md  # Ingredient analysis skill (distributable copy)
 └── pyproject.toml           # pip install config
 
 .claude/
 ├── commands/cosing-analyze.md  # Claude Code Skill
 └── settings.json               # MCP Server config
+
+tests/explorer/              # Explorer UI and data tests (Node + jsdom, 18 tests)
+requirements.txt             # Python dependencies for _scripts/
 ```
 
 ### SVG compression strategy
@@ -199,16 +203,28 @@ Open `http://localhost:8765` in your browser.
 To rebuild from source data:
 
 ```bash
+# One-time setup
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+
 # Requires _data/kb.duckdb and _data/structures/
-python3 _scripts/build_site.py              # rebuild all JSON and SVG chunks
-python3 _scripts/build_site.py --skip-svg   # JSON only (leaves docs/svg/ untouched)
+.venv/bin/python _scripts/build_site.py              # rebuild all JSON and SVG chunks
+.venv/bin/python _scripts/build_site.py --skip-svg   # JSON only (leaves docs/svg/ untouched)
 ```
 
-To refresh multilingual names (queries Wikidata over SPARQL, about 20 minutes for a full run; needs `duckdb` and `opencc-python-reimplemented`):
+SVG chunks are written with a fixed gzip header, so repeated full builds are byte-identical. The chunks committed so far still carry build timestamps, so the first full rebuild rewrites all 631 files once. Use `--skip-svg` unless the structures changed.
+
+To refresh multilingual names (queries Wikidata over SPARQL, about 20 minutes for a full run):
 
 ```bash
-python3 _scripts/20_fetch_wikidata_names.py species    # likewise families / compounds
-python3 _scripts/20b_merge_wikidata_names.py            # fill-only, never overwrites curated names
+.venv/bin/python _scripts/20_fetch_wikidata_names.py species    # likewise families / compounds
+.venv/bin/python _scripts/20b_merge_wikidata_names.py            # fill-only, never overwrites curated names
+```
+
+## Testing
+
+```bash
+cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP server, 40 tests
+cd tests/explorer && npm install && npm test             # Explorer UI and data, 18 tests
 ```
 
 ## Roadmap
@@ -219,6 +235,7 @@ See [ROADMAP.md](ROADMAP.md).
 
 | Date | Description |
 |------|-------------|
+| 2026-10-05 | Tech debt cleared: the MCP server now has compound data for all 7,281 ingredients with a structure (it had 1,169), a `requirements.txt` for the build scripts, deterministic SVG chunking, an Explorer test suite (Node + jsdom, 18 tests), a toolbar fix for narrow windows, and five invalid common names removed. MCP tests went from 38 to 40 |
 | 2026-10-02 | Phase 8b-i18n complete: Japanese UI in the Explorer (zh / EN / ja cycle, Japanese names shown and searchable, Japanese help, `?lang=` parameter), a Japanese-aware `cosing-analyze` skill, and a new `README.ja.md` |
 | 2026-10-01 | Phase 8b complete: Wikidata multilingual names (en/zh/ja names and aliases for 6,581 compounds, Japanese names for 1,575 species and 275 families), name search, and Japanese names in the MCP server. Builds are now deterministic, and `build_site.py` has a `--skip-svg` flag. The species name gap shrank only partly (Chinese 519 to 457, English 464 to 379) because Wikidata has no common name for the rest |
 | 2026-09-27 | Phase 8a complete: RDKit molecular descriptors, direct PubChem CID links, a Compound Browser with LogP and MW filters, and a descriptor field in the MCP server |

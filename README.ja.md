@@ -159,20 +159,24 @@ docs/                        # GitHub Pages のルート（Explorer）
 ├── index.html               # シングルページアプリ（CSS/JS 埋め込み）
 ├── data/
 │   ├── ingredients.json     # 33,638 件の成分 + インデックス + 通称・和名（約 13 MB）
-│   └── compounds.json       # 11,777 件の化合物インデックス（約 6 MB）
+│   ├── compounds.json       # 11,777 件の化合物インデックス（約 6 MB）
+│   └── ingredient_compounds.json  # MCP Server 用の追加 5,411 件の化合物（約 0.6 MB）
 └── svg/                     # 631 個の SVG チャンク（約 192 MB）
 
 cosing-mcp/                  # AI 質問応答層（MCP Server）
 ├── src/cosing_mcp/
 │   ├── server.py            # MCP Server のエントリポイント + 6 ツールの定義
 │   └── data.py              # GitHub Pages の JSON キャッシュ + メモリ内インデックス
-├── tests/                   # 38 件のテスト
+├── tests/                   # 40 件のテスト
 ├── skill/cosing-analyze.md  # 成分分析スキル（配布用コピー）
 └── pyproject.toml           # pip install 設定
 
 .claude/
 ├── commands/cosing-analyze.md  # Claude Code スキル
 └── settings.json               # MCP Server 設定
+
+tests/explorer/              # Explorer の UI とデータのテスト（Node + jsdom、18 件）
+requirements.txt             # _scripts/ 用の Python 依存パッケージ
 ```
 
 ### SVG の圧縮方式
@@ -199,16 +203,28 @@ python3 -m http.server 8765
 元データからサイトを再ビルドする場合：
 
 ```bash
-# _data/kb.duckdb と _data/structures/ が必要（名称更新には duckdb と opencc-python-reimplemented も必要）
-python3 _scripts/build_site.py              # JSON と SVG チャンクをすべて再生成
-python3 _scripts/build_site.py --skip-svg   # JSON のみ（docs/svg/ には触れない）
+# 初回のみ
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+
+# _data/kb.duckdb と _data/structures/ が必要
+.venv/bin/python _scripts/build_site.py              # JSON と SVG チャンクをすべて再生成
+.venv/bin/python _scripts/build_site.py --skip-svg   # JSON のみ（docs/svg/ には触れない）
 ```
+
+SVG チャンクは gzip ヘッダーを固定して書き出すため、完全ビルドを繰り返しても結果はバイト単位で一致します。ただし、これまでにコミット済みのチャンクにはビルド時刻が入っているため、最初の完全ビルドでは 631 ファイルすべてが一度だけ書き換わります。構造式に変更がない限り `--skip-svg` を使ってください。
 
 多言語名称を更新する場合（Wikidata へ SPARQL クエリを送信。全件で約 20 分）：
 
 ```bash
-python3 _scripts/20_fetch_wikidata_names.py species    # families / compounds も同様
-python3 _scripts/20b_merge_wikidata_names.py            # 既存の通称は上書きせず、不足分のみ補完
+.venv/bin/python _scripts/20_fetch_wikidata_names.py species    # families / compounds も同様
+.venv/bin/python _scripts/20b_merge_wikidata_names.py            # 既存の通称は上書きせず、不足分のみ補完
+```
+
+## テスト
+
+```bash
+cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP Server、40 件
+cd tests/explorer && npm install && npm test             # Explorer の UI とデータ、18 件
 ```
 
 ## ロードマップ
@@ -219,6 +235,7 @@ python3 _scripts/20b_merge_wikidata_names.py            # 既存の通称は上�
 
 | 日付 | 内容 |
 |------|------|
+| 2026-10-05 | 技術的負債の解消 — MCP Server が構造を持つ全 7,281 成分の化合物データを返せるように（従来は 1,169 件）、ビルドスクリプト用の `requirements.txt`、SVG チャンク生成の決定性、Explorer のテスト（Node + jsdom、18 件）、狭いウィンドウでのツールバー表示の修正、学名と同じ無効な通称 5 件の削除。MCP のテストは 38 件から 40 件に |
 | 2026-10-02 | Phase 8b-i18n 完了 — Explorer が日本語 UI に対応（中 / EN / 日の三言語切り替え、和名の表示と検索、日本語ヘルプ、`?lang=` パラメータ）、`cosing-analyze` スキルが和名に対応、`README.ja.md` を追加 |
 | 2026-10-01 | Phase 8b 完了 — Wikidata 多言語名称：化合物の英/中/日名称と別名（6,581 件）、種の和名 1,575 件・科の和名 275 件、名称検索、MCP での和名対応。ビルドを決定的にし `--skip-svg` を追加 |
 | 2026-09-27 | Phase 8a 完了 — RDKit 分子記述子、PubChem CID への直接リンク、化合物ブラウザ（LogP/MW フィルタ）、MCP の記述子フィールド |
