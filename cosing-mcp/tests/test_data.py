@@ -153,10 +153,11 @@ def test_lookup_without_compound_match(mini_db):
 
 
 def test_missing_ingredient_compounds_file_is_tolerated():
-    import json
     from unittest.mock import patch
+
+    from conftest import _build_mini_data
     from cosing_mcp.data import CosIngData
-    from tests.conftest import _build_mini_data
+
     ingredients, compounds, _ = _build_mini_data()
 
     def fetch(name):

@@ -1,0 +1,7 @@
+# Python dependencies for the build pipeline in _scripts/ (tested on Python 3.13).
+#   python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+# Everything else the scripts import is in the standard library.
+# The MCP server has its own dependencies in cosing-mcp/pyproject.toml.
+duckdb>=1.5                      # all scripts: the kb.duckdb database
+rdkit>=2026.3                    # 18_render_structures.py, 19_compute_descriptors.py
+opencc-python-reimplemented>=0.1.7   # 20b_merge_wikidata_names.py (simplified -> traditional Chinese)
