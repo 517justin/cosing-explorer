@@ -138,10 +138,37 @@ def test_lookup_includes_compound_descriptors(mini_db):
     assert cpd["descriptors"]["h_bond_donors"] == 3
 
 
+def test_lookup_falls_back_to_ingredient_compounds(mini_db):
+    cpd = mini_db.lookup("AQUA")["compound"]
+    assert cpd["formula"] == "H2O"
+    assert cpd["pubchem_url"] == "https://pubchem.ncbi.nlm.nih.gov/compound/962"
+    assert cpd["descriptors"]["logp"] == -0.82
+    assert "iupac_name" not in cpd
+
+
 def test_lookup_without_compound_match(mini_db):
-    r = mini_db.lookup("AQUA")
+    r = mini_db.lookup("PHENOXYETHANOL")
     assert r is not None
     assert "compound" not in r
+
+
+def test_missing_ingredient_compounds_file_is_tolerated():
+    import json
+    from unittest.mock import patch
+    from cosing_mcp.data import CosIngData
+    from tests.conftest import _build_mini_data
+    ingredients, compounds, _ = _build_mini_data()
+
+    def fetch(name):
+        if name == "ingredient_compounds.json":
+            raise RuntimeError("no cache and no network")
+        return ingredients if name == "ingredients.json" else compounds
+
+    db = CosIngData()
+    with patch("cosing_mcp.data._fetch_json", side_effect=fetch):
+        db.load()
+    assert db.ing_compounds == {}
+    assert "compound" not in db.lookup("AQUA")
 
 
 def test_lookup_includes_japanese_names(mini_db):

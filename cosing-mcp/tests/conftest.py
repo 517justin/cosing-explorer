@@ -34,6 +34,7 @@ def _build_mini_data():
             "f": [1],
             "d": "Aqua is water",
             "c": "7732-18-5",
+            "ik": "AQUAKEY-XXXXXX-N",
         },
         "34424": {
             "n": "GLYCERIN",
@@ -104,21 +105,28 @@ def _build_mini_data():
         }
     }
 
-    return ingredients, compounds
+    ingredient_compounds = {
+        "AQUAKEY-XXXXXX-N": {"f": "H2O", "cid": 962, "mw": 18.015,
+                             "desc": [-0.82, 9.2, 0, 1, 0, 0, 0, 1, 0.0]},
+    }
+    return ingredients, compounds, ingredient_compounds
+
+
+def mini_fetch():
+    """Stand-in for cosing_mcp.data._fetch_json that serves the mini dataset."""
+    ingredients, compounds, ingredient_compounds = _build_mini_data()
+    files = {
+        "ingredients.json": ingredients,
+        "compounds.json": compounds,
+        "ingredient_compounds.json": ingredient_compounds,
+    }
+    return files.__getitem__
 
 
 @pytest.fixture
 def mini_db():
     """CosIngData loaded with minimal test data (no network)."""
-    ingredients, compounds = _build_mini_data()
     db = CosIngData()
-
-    with patch("cosing_mcp.data._fetch_json") as mock_fetch:
-        def side_effect(name):
-            if "ingredients" in name:
-                return ingredients
-            return compounds
-        mock_fetch.side_effect = side_effect
+    with patch("cosing_mcp.data._fetch_json", side_effect=mini_fetch()):
         db.load()
-
     return db

@@ -12,11 +12,12 @@ Physical-property descriptors only (no classification/fingerprints):
   heavy  - Heavy atom count
   fsp3   - Fraction of sp3 carbons
 
-Reads SMILES from compound_v2026, writes descriptor columns back via
-ALTER TABLE + UPDATE, following the pattern in 18_render_structures.py.
+Reads SMILES from compound_v2026 (LOTUS compounds) and cas_structure_v2026
+(compounds resolved from ingredient CAS numbers), writes descriptor columns back
+via ALTER TABLE + UPDATE, following the pattern in 18_render_structures.py.
 
 Usage:
-    python _scripts/19_compute_descriptors.py [--limit N]
+    .venv/bin/python _scripts/19_compute_descriptors.py [--limit N]
 """
 import argparse
 from pathlib import Path
@@ -57,53 +58,60 @@ def compute(smiles):
     }
 
 
+TABLES = [
+    ("compound_v2026", "SELECT inchikey, smiles FROM compound_v2026 WHERE smiles IS NOT NULL"),
+    ("cas_structure_v2026",
+     "SELECT DISTINCT inchikey, smiles FROM cas_structure_v2026 "
+     "WHERE found AND inchikey IS NOT NULL AND smiles IS NOT NULL ORDER BY inchikey, smiles"),
+]
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--limit", type=int, default=0, help="Max compounds to process (0=all)")
+    parser.add_argument("--limit", type=int, default=0, help="Max compounds per table (0=all)")
     args = parser.parse_args()
 
-    db = duckdb.connect(str(DB), read_only=True)
-    query = "SELECT inchikey, smiles FROM compound_v2026 WHERE smiles IS NOT NULL"
-    if args.limit:
-        query += f" LIMIT {args.limit}"
-    rows = db.execute(query).fetchall()
-    db.close()
-    print(f"Compounds with SMILES: {len(rows):,}")
+    for table, query in TABLES:
+        if args.limit:
+            query += f" LIMIT {args.limit}"
+        db = duckdb.connect(str(DB), read_only=True)
+        rows = db.execute(query).fetchall()
+        db.close()
+        print(f"\n{table}: {len(rows):,} structures with SMILES")
 
-    results = {}
-    fail = 0
-    for i, (ik, smiles) in enumerate(rows):
-        d = compute(smiles)
-        if d:
-            results[ik] = d
-        else:
-            fail += 1
-        if (i + 1) % 10000 == 0:
-            print(f"  [{i+1}/{len(rows)}] computed={len(results)} fail={fail}")
+        results = {}
+        fail = 0
+        for i, (ik, smiles) in enumerate(rows):
+            d = compute(smiles)
+            if d:
+                results[ik] = d
+            else:
+                fail += 1
+            if (i + 1) % 10000 == 0:
+                print(f"  [{i+1}/{len(rows)}] computed={len(results)} fail={fail}")
+        print(f"  computed={len(results):,}, failed={fail:,}")
 
-    print(f"\nComputed={len(results):,}, Failed={fail:,}")
+        db = duckdb.connect(str(DB))
+        for col, sqltype in COLUMNS.items():
+            try:
+                db.execute(f"ALTER TABLE {table} ADD COLUMN {col} {sqltype}")
+            except Exception:
+                pass
 
-    db = duckdb.connect(str(DB))
-    for col, sqltype in COLUMNS.items():
-        try:
-            db.execute(f"ALTER TABLE compound_v2026 ADD COLUMN {col} {sqltype}")
-        except Exception:
-            pass
-
-    rows_out = [
-        (d["logp"], d["tpsa"], d["hbd"], d["hba"], d["rotb"],
-         d["rings"], d["arom"], d["heavy"], d["fsp3"], ik)
-        for ik, d in results.items()
-    ]
-    db.executemany(
-        f"""UPDATE compound_v2026 SET
-            logp=?, tpsa=?, hbd=?, hba=?, rotb=?, rings=?, arom=?, heavy=?, fsp3=?
-            WHERE inchikey=?""",
-        rows_out,
-    )
-    n = db.execute("SELECT count(*) FROM compound_v2026 WHERE logp IS NOT NULL").fetchone()[0]
-    db.close()
-    print(f"Updated {n:,} compounds with descriptors in DB")
+        rows_out = [
+            (d["logp"], d["tpsa"], d["hbd"], d["hba"], d["rotb"],
+             d["rings"], d["arom"], d["heavy"], d["fsp3"], ik)
+            for ik, d in results.items()
+        ]
+        db.executemany(
+            f"""UPDATE {table} SET
+                logp=?, tpsa=?, hbd=?, hba=?, rotb=?, rings=?, arom=?, heavy=?, fsp3=?
+                WHERE inchikey=?""",
+            rows_out,
+        )
+        n = db.execute(f"SELECT count(*) FROM {table} WHERE logp IS NOT NULL").fetchone()[0]
+        db.close()
+        print(f"  updated {n:,} {table} rows with descriptors")
 
 
 if __name__ == "__main__":

@@ -47,6 +47,14 @@ def _fetch_json(name: str) -> dict:
         )
 
 
+def _fetch_json_optional(name: str) -> dict:
+    """Like _fetch_json, but an unavailable file yields {} (it may predate the deployment)."""
+    try:
+        return _fetch_json(name)
+    except RuntimeError:
+        return {}
+
+
 def explorer_url(param: str, value: str) -> str:
     return f"{EXPLORER_URL}?{param}={quote(value, safe='')}"
 
@@ -60,6 +68,7 @@ class CosIngData:
         self.functions: list[str] = []
         self.families: list[str] = []
         self.compounds: dict[str, dict] = {}
+        self.ing_compounds: dict[str, dict] = {}
         self.sp_zh: dict[str, str] = {}
         self.sp_en: dict[str, str] = {}
         self.fam_zh: dict[str, str] = {}
@@ -76,6 +85,7 @@ class CosIngData:
     def load(self) -> None:
         ing = _fetch_json("ingredients.json")
         cpd = _fetch_json("compounds.json")
+        self.ing_compounds = _fetch_json_optional("ingredient_compounds.json")
 
         self.items = ing["items"]
         self.order = ing["order"]
@@ -103,7 +113,7 @@ class CosIngData:
                 self.by_family.setdefault(fm, []).append(ref)
 
     def _compound_info(self, ik: str) -> dict | None:
-        cpd = self.compounds.get(ik)
+        cpd = self.compounds.get(ik) or self.ing_compounds.get(ik)
         if not cpd:
             return None
         info: dict = {"inchikey": ik}

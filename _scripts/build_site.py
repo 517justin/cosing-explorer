@@ -6,10 +6,11 @@ All ingredients are first-class citizens — bio-sourced and synthetic alike.
 Outputs:
   docs/data/ingredients.json  – all ingredients with search/filter data
   docs/data/compounds.json    – compound details for molecular viewer
+  docs/data/ingredient_compounds.json – structure data for ingredients outside compounds.json (MCP)
   docs/svg/{XX}.json          – gzip+base64 SVG chunks by InChIKey prefix
 
 Run: .venv/bin/python _scripts/build_site.py [--skip-svg]
-  --skip-svg  leave docs/svg/ untouched (gzip mtimes make every chunk differ run-to-run)
+  --skip-svg  leave docs/svg/ untouched (the SVG step is the slow part)
 """
 import json, os, re, gzip, base64, sys
 from collections import defaultdict
@@ -275,6 +276,36 @@ with open(cpd_path, 'w') as f:
     f.write(cpd_json)
 print(f"  compounds.json: {len(cpd_json)/1024/1024:.2f} MB ({len(cpd_result)} compounds)")
 
+# ─── 7b. Compounds behind ingredient CAS numbers (read by the MCP server) ───
+# Most CAS-resolved structures are synthetic and appear in no species, so they
+# are not in compounds.json. They get the same fields, minus the species links.
+print("Building ingredient compound index...")
+used_iks = {it['ik'] for it in items.values() if 'ik' in it} - set(cpd_result)
+ing_cpd_rows = db.execute('''
+    SELECT inchikey, formula, cid, mw, logp, tpsa, hbd, hba, rotb, rings, arom, heavy, fsp3
+    FROM (
+        SELECT *, row_number() OVER (PARTITION BY inchikey ORDER BY cas) AS rn
+        FROM cas_structure_v2026
+        WHERE found AND inchikey IS NOT NULL
+    )
+    WHERE rn = 1
+    ORDER BY inchikey
+''').fetchall()
+ing_cpds = {}
+for ik, formula, cid, mw, *desc in ing_cpd_rows:
+    if ik not in used_iks:
+        continue
+    entry = {}
+    if formula: entry['f'] = formula
+    if cid: entry['cid'] = cid
+    if mw: entry['mw'] = float(mw)
+    if desc[0] is not None: entry['desc'] = desc
+    ing_cpds[ik] = entry
+ic_json = json.dumps(ing_cpds, separators=(',', ':'), ensure_ascii=False)
+with open(os.path.join(OUT_DIR, 'data', 'ingredient_compounds.json'), 'w') as f:
+    f.write(ic_json)
+print(f"  ingredient_compounds.json: {len(ic_json)/1024/1024:.2f} MB ({len(ing_cpds)} compounds)")
+
 db.close()
 
 # ─── 8. SVG chunks ───
@@ -305,7 +336,7 @@ def optimize_svg(raw):
     s = re.sub(r'\s+', ' ', s).strip()
     return s
 
-svg_files = [] if '--skip-svg' in sys.argv else [f for f in os.listdir(SVG_DIR) if f.endswith('.svg')]
+svg_files = [] if '--skip-svg' in sys.argv else sorted(f for f in os.listdir(SVG_DIR) if f.endswith('.svg'))
 chunks = defaultdict(dict)
 total_raw = 0
 total_compressed = 0
@@ -320,7 +351,7 @@ for i, fname in enumerate(svg_files):
         continue
     total_raw += len(raw)
     opt = optimize_svg(raw)
-    gz = gzip.compress(opt.encode(), compresslevel=9)
+    gz = gzip.compress(opt.encode(), compresslevel=9, mtime=0)
     b64 = base64.b64encode(gz).decode('ascii')
     total_compressed += len(b64)
     chunks[prefix][ik] = b64

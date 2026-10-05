@@ -8,23 +8,16 @@ import pytest
 
 from cosing_mcp.data import CosIngData
 from cosing_mcp.server import mcp
-from conftest import _build_mini_data
+from conftest import mini_fetch
 
 
 @pytest.fixture(autouse=True)
 def _load_mini_db():
     """Replace the global db in server module with mini test data."""
     import cosing_mcp.server as srv
-    ingredients, compounds = _build_mini_data()
-
     original_db = srv.db
     srv.db = CosIngData()
-    with patch("cosing_mcp.data._fetch_json") as mock_fetch:
-        def side_effect(name):
-            if "ingredients" in name:
-                return ingredients
-            return compounds
-        mock_fetch.side_effect = side_effect
+    with patch("cosing_mcp.data._fetch_json", side_effect=mini_fetch()):
         srv.db.load()
     yield
     srv.db = original_db
