@@ -18,8 +18,10 @@ Live demo: [517justin.github.io/cosing-explorer](https://517justin.github.io/cos
 - Ego-graph navigation: click any node to expand its neighborhood, and use the breadcrumb trail to go back
 - Deep linking: URL parameters open a specific ingredient, family, species, function, compound, or search
 - Compound structures: 58,596 molecular structure SVGs, loaded on demand and decompressed in the browser with DecompressionStream
+- Molecular properties: the compound panel shows nine RDKit descriptors (LogP, TPSA, hydrogen-bond donors and acceptors, rotatable bonds, ring and aromatic ring counts, heavy atoms, Fsp3) and links straight to PubChem
+- Compound Browser: a separate list of all 11,777 compounds with LogP and molecular weight range filters, formula and name search, sorting, and paging
 - Species photos: loaded automatically from the GBIF Occurrence API
-- Common names: Chinese and English common names for 2,827 species and 376 families, shown throughout the interface and searchable
+- Common names: Chinese names for 2,368 species and English names for 2,448, plus Chinese and English names for all 376 families, shown throughout the interface and searchable. Japanese names (和名) cover 1,575 species and 275 families
 - Multilingual compound names: 6,581 compounds have English, Chinese, and Japanese names and aliases from Wikidata, so you can search for "caffeine", "槲皮素", or "ケルセチン"
 - Trilingual UI: switch between Chinese, English, and Japanese with the language button. Labels and common names follow the selected language, and Japanese names (和名) are searchable, for example "ラベンダー"
 - Filtering and sorting: filter by botanical source, restriction, structure, function, or family, and sort several ways
@@ -33,6 +35,7 @@ Live demo: [517justin.github.io/cosing-explorer](https://517justin.github.io/cos
 - Ingredient label analysis: paste an ingredient list or a photo of one, and the skill identifies the INCI names and looks them all up
 - Regulation lookup: check any ingredient's EU regulatory status (Annexes II to VI)
 - Species and family info: taxonomy, extract lists, and compound counts
+- Chemical data: looking up an ingredient also returns the formula, PubChem link, and descriptors of its compound for all 7,281 ingredients that have a structure, plus multilingual names where Wikidata has them
 - Explorer links: every result includes a deep link to the knowledge graph
 
 ## Graph node selection logic
@@ -156,12 +159,12 @@ The MCP server provides six tools, and Claude picks the right one for each quest
 
 ```
 docs/                        # GitHub Pages root (Explorer)
-├── index.html               # Single-page app (CSS/JS inlined, ~2,000 lines)
+├── index.html               # Single-page app (CSS/JS inlined, ~2,400 lines)
 ├── data/
 │   ├── ingredients.json     # 33,638 ingredients + indexes + common names (~13 MB)
 │   ├── compounds.json       # 11,777 compound index (~6 MB)
 │   └── ingredient_compounds.json  # 5,411 more compounds, for the MCP server (~0.8 MB)
-└── svg/                     # 631 SVG chunks (~192 MB)
+└── svg/                     # 631 SVG chunks (~194 MB)
 
 cosing-mcp/                  # AI query layer (MCP Server)
 ├── src/cosing_mcp/
