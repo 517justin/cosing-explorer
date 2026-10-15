@@ -107,6 +107,7 @@ def _build_mini_data():
 
     ingredient_compounds = {
         "AQUAKEY-XXXXXX-N": {"f": "H2O", "cid": 962, "mw": 18.015,
+                             "nm": {"en": ["water"], "zh": ["純水"], "ja": ["精製水"]},
                              "desc": [-0.82, 9.2, 0, 1, 0, 0, 0, 1, 0.0]},
     }
     return ingredients, compounds, ingredient_compounds

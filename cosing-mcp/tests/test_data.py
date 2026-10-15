@@ -143,7 +143,13 @@ def test_lookup_falls_back_to_ingredient_compounds(mini_db):
     assert cpd["formula"] == "H2O"
     assert cpd["pubchem_url"] == "https://pubchem.ncbi.nlm.nih.gov/compound/962"
     assert cpd["descriptors"]["logp"] == -0.82
+    assert cpd["names"] == {"en": ["water"], "zh": ["純水"], "ja": ["精製水"]}
     assert "iupac_name" not in cpd
+
+
+def test_search_by_name_of_an_ingredient_only_compound(mini_db):
+    for q in ("water", "純水", "精製水"):
+        assert any(r["inci_name"] == "AQUA" for r in mini_db.search(q)), q
 
 
 def test_lookup_without_compound_match(mini_db):

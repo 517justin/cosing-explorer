@@ -43,7 +43,7 @@ test('no common name is blank or equal to the scientific name', () => {
 
 test('compound names respect the per-language caps and contain no blanks', () => {
   const caps = { en: 3, zh: 4, ja: 5 };
-  for (const [ik, c] of Object.entries(cpd)) {
+  for (const [ik, c] of [...Object.entries(cpd), ...Object.entries(ingCpd)]) {
     for (const [lang, names] of Object.entries(c.nm || {})) {
       assert.ok(lang in caps, `${ik}: unexpected language ${lang}`);
       assert.ok(names.length >= 1 && names.length <= caps[lang], `${ik}.${lang}: ${names.length} names`);

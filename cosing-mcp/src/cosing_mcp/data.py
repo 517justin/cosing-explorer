@@ -99,9 +99,10 @@ class CosIngData:
         self.sp_ja = ing.get("sp_ja", {})
         self.fam_ja = ing.get("fam_ja", {})
 
-        for ik, c in self.compounds.items():
-            if nm := c.get("nm"):
-                self.cpd_name_text[ik] = "\n".join(n for names in nm.values() for n in names).upper()
+        for table in (self.compounds, self.ing_compounds):
+            for ik, c in table.items():
+                if nm := c.get("nm"):
+                    self.cpd_name_text[ik] = "\n".join(n for names in nm.values() for n in names).upper()
 
         for ref, it in self.items.items():
             self.by_inci[it["n"].upper()] = ref
