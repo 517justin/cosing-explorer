@@ -3,7 +3,8 @@
 
   _data/common_names.json    sp_zh/sp_en/fam_zh/fam_en (curated) + new sp_ja/fam_ja
                              Fill-only: existing entries are never overwritten.
-  _data/compound_names.json  {inchikey: {"en": [<=3], "zh": [<=4], "ja": [<=5]}}
+  _data/compound_names.json  {inchikey: {"en": [<=3], "zh": [<=4], "ja": [<=5]}}, for the
+                             Explorer compounds and the ingredient_compounds.json ones
 
 Traditional Chinese: zh-hant/zh-tw/zh-hk labels are used as-is; zh/zh-hans/zh-cn/zh-sg
 are converted with OpenCC s2twp. Korean stays in the raw cache (no consumer yet).
@@ -127,22 +128,28 @@ def main():
                 if v:
                     names[key][sci] = v
 
-    cache = json.loads((WD / "compounds.json").read_text("utf-8"))
     db = duckdb.connect(str(DB), read_only=True)
     iupac = dict(db.execute("SELECT inchikey, iupac_name FROM compound_v2026").fetchall())
     db.close()
     cpd = {}
-    for ik, rec in cache.items():
-        if rec:
-            n = compound_names(rec, iupac.get(ik))
-            if n:
-                cpd[ik] = n
+    sizes = {}
+    for kind in ("compounds", "ingredient_compounds"):
+        cache = json.loads((WD / f"{kind}.json").read_text("utf-8"))
+        before_n = len(cpd)
+        for ik, rec in cache.items():
+            if rec:
+                n = compound_names(rec, iupac.get(ik))
+                if n:
+                    cpd[ik] = n
+        sizes[kind] = (len(cpd) - before_n, len(cache))
 
     print("common_names.json:")
     for k, v in names.items():
         print(f"  {k:7s} {before[k]:5d} -> {len(v):5d}  (+{len(v) - before[k]})")
     langs = {l: sum(1 for v in cpd.values() if l in v) for l in ("en", "zh", "ja")}
-    print(f"compound_names.json: {len(cpd):,} of {len(cache):,} compounds named  {langs}")
+    print(f"compound_names.json: {len(cpd):,} compounds named  {langs}")
+    for kind, (named, total) in sizes.items():
+        print(f"  {kind:21s} {named:5,} of {total:6,}")
 
     if args.dry_run:
         return

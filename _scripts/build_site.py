@@ -300,6 +300,7 @@ for ik, formula, cid, mw, *desc in ing_cpd_rows:
     if cid: entry['cid'] = cid
     if mw: entry['mw'] = float(mw)
     if desc[0] is not None: entry['desc'] = desc
+    if ik in cpd_names: entry['nm'] = cpd_names[ik]
     ing_cpds[ik] = entry
 ic_json = json.dumps(ing_cpds, separators=(',', ':'), ensure_ascii=False)
 with open(os.path.join(OUT_DIR, 'data', 'ingredient_compounds.json'), 'w') as f:

@@ -4,6 +4,9 @@
   species    P225 (taxon name)  -> labels, aliases, P1843 (taxon common name)
   families   P225 (taxon name)  -> labels, aliases, P1843
   compounds  P235 (InChIKey)    -> labels, aliases
+  ingredient_compounds
+             the same, for compounds behind ingredient CAS numbers that are not in
+             the Explorer set (docs/data/ingredient_compounds.json)
 
 Raw results (language tags untouched, no s2t conversion) go to
 _data/wikidata/{kind}.json as {key: record | null}. null = queried, no hit.
@@ -13,7 +16,7 @@ Etiquette: <=50 keys/query, 2 s between queries, descriptive User-Agent,
 Retry-After honoured on 429.
 
 Usage:
-    .venv/bin/python _scripts/20_fetch_wikidata_names.py species|families|compounds [--limit N] [--all]
+    .venv/bin/python _scripts/20_fetch_wikidata_names.py species|families|compounds|ingredient_compounds [--limit N] [--all]
 """
 import argparse
 import json
@@ -35,6 +38,7 @@ BATCH = 50
 INTERVAL = 2.0
 LANGS = ["en", "ja", "ko", "zh", "zh-hant", "zh-tw", "zh-hk", "zh-hans", "zh-cn", "zh-sg"]
 LANG_FILTER = ", ".join(f'"{l}"' for l in LANGS)
+COMPOUND_KINDS = ("compounds", "ingredient_compounds")
 
 
 def sparql(query, tries=5):
@@ -65,10 +69,9 @@ def esc(s):
 
 def build_query(kind, keys):
     values = " ".join(f'"{esc(k)}"' for k in keys)
-    prop = "wdt:P235" if kind == "compounds" else "wdt:P225"
-    common = (
-        '\n    UNION { ?item wdt:P1843 ?text . BIND("c" AS ?kind) }' if kind != "compounds" else ""
-    )
+    is_compound = kind in COMPOUND_KINDS
+    prop = "wdt:P235" if is_compound else "wdt:P225"
+    common = '' if is_compound else '\n    UNION { ?item wdt:P1843 ?text . BIND("c" AS ?kind) }'
     return f"""SELECT ?key ?item ?kind ?text WHERE {{
   VALUES ?key {{ {values} }}
   ?item {prop} ?key .
@@ -105,6 +108,13 @@ def collect(bindings):
     return out
 
 
+EXPLORER_IKS = (
+    "SELECT sc.inchikey FROM species_compounds_v2026 sc "
+    "JOIN compound_v2026 c ON sc.inchikey = c.inchikey "
+    "GROUP BY 1 HAVING count(DISTINCT sc.species) >= 2"
+)
+
+
 def load_keys(kind, include_all):
     db = duckdb.connect(str(DB), read_only=True)
     if kind == "species":
@@ -116,21 +126,22 @@ def load_keys(kind, include_all):
             "SELECT DISTINCT COALESCE(family_final, family_accepted) FROM extract_v2026 "
             "WHERE COALESCE(family_final, family_accepted) IS NOT NULL"
         ).fetchall()
+    elif kind == "ingredient_compounds":
+        rows = db.execute(
+            "SELECT DISTINCT inchikey FROM cas_structure_v2026 "
+            f"WHERE found AND inchikey IS NOT NULL AND inchikey NOT IN ({EXPLORER_IKS})"
+        ).fetchall()
     elif include_all:
         rows = db.execute("SELECT inchikey FROM compound_v2026").fetchall()
     else:
-        rows = db.execute(
-            "SELECT sc.inchikey FROM species_compounds_v2026 sc "
-            "JOIN compound_v2026 c ON sc.inchikey = c.inchikey "
-            "GROUP BY 1 HAVING count(DISTINCT sc.species) >= 2"
-        ).fetchall()
+        rows = db.execute(EXPLORER_IKS).fetchall()
     db.close()
     return sorted(r[0] for r in rows)
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("kind", choices=["species", "families", "compounds"])
+    ap.add_argument("kind", choices=["species", "families", "compounds", "ingredient_compounds"])
     ap.add_argument("--limit", type=int, default=0, help="Max uncached keys to query (0=all)")
     ap.add_argument("--all", action="store_true", help="compounds: all InChIKeys, not just Explorer set")
     args = ap.parse_args()
