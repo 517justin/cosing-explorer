@@ -160,14 +160,14 @@ docs/                        # GitHub Pages root (Explorer)
 ├── data/
 │   ├── ingredients.json     # 33,638 ingredients + indexes + common names (~13 MB)
 │   ├── compounds.json       # 11,777 compound index (~6 MB)
-│   └── ingredient_compounds.json  # 5,411 more compounds, for the MCP server (~0.6 MB)
+│   └── ingredient_compounds.json  # 5,411 more compounds, for the MCP server (~0.8 MB)
 └── svg/                     # 631 SVG chunks (~192 MB)
 
 cosing-mcp/                  # AI query layer (MCP Server)
 ├── src/cosing_mcp/
 │   ├── server.py            # MCP Server entry point + 6 tool definitions
 │   └── data.py              # GitHub Pages JSON cache + in-memory indexes
-├── tests/                   # 40 tests
+├── tests/                   # 41 tests
 ├── skill/cosing-analyze.md  # Ingredient analysis skill (distributable copy)
 └── pyproject.toml           # pip install config
 
@@ -223,7 +223,7 @@ To refresh multilingual names (queries Wikidata over SPARQL, about 20 minutes fo
 ## Testing
 
 ```bash
-cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP server, 40 tests
+cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP server, 41 tests
 cd tests/explorer && npm install && npm test             # Explorer UI and data, 18 tests
 ```
 
@@ -235,7 +235,8 @@ See [ROADMAP.md](ROADMAP.md).
 
 | Date | Description |
 |------|-------------|
-| 2026-10-05 | Tech debt cleared: the MCP server now has compound data for all 7,281 ingredients with a structure (it had 1,169), a `requirements.txt` for the build scripts, deterministic SVG chunking, an Explorer test suite (Node + jsdom, 18 tests), a toolbar fix for narrow windows, and five invalid common names removed. MCP tests went from 38 to 40 |
+| 2026-10-15 | Names for the ingredient-only compounds: 3,355 of the 5,411 compounds in `ingredient_compounds.json` now carry English, Chinese, or Japanese names from Wikidata, and the MCP server searches them. Three species names that had been removed as invalid were refilled with real ones |
+| 2026-10-05 | Tech debt cleared: the MCP server now has compound data for all 7,281 ingredients with a structure (it had 1,169), a `requirements.txt` for the build scripts, deterministic SVG chunking, an Explorer test suite (Node + jsdom, 18 tests), a toolbar fix for narrow windows, and five invalid common names removed. MCP tests went from 38 to 41 |
 | 2026-10-02 | Phase 8b-i18n complete: Japanese UI in the Explorer (zh / EN / ja cycle, Japanese names shown and searchable, Japanese help, `?lang=` parameter), a Japanese-aware `cosing-analyze` skill, and a new `README.ja.md` |
 | 2026-10-01 | Phase 8b complete: Wikidata multilingual names (en/zh/ja names and aliases for 6,581 compounds, Japanese names for 1,575 species and 275 families), name search, and Japanese names in the MCP server. Builds are now deterministic, and `build_site.py` has a `--skip-svg` flag. The species name gap shrank only partly (Chinese 519 to 457, English 464 to 379) because Wikidata has no common name for the rest |
 | 2026-09-27 | Phase 8a complete: RDKit molecular descriptors, direct PubChem CID links, a Compound Browser with LogP and MW filters, and a descriptor field in the MCP server |

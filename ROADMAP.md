@@ -152,14 +152,14 @@
 | 項目 | 處理 | 狀態 |
 |------|------|------|
 | 腳本沒有依賴清單 | 新增根目錄 `requirements.txt`（duckdb、rdkit、opencc）。`cosing-mcp` 新增 `dev` extra 與 pytest 設定，可直接執行 `pytest`。用全新 venv 的 `pip install --dry-run` 驗證可解析 | ✅ |
-| MCP 只查得到 Explorer 的化合物 | 實測有結構的 7,281 個成分中，只有 1,169 個查得到化合物資料，其餘是不屬於任何物種的合成化合物。`19_compute_descriptors.py` 擴充到 `cas_structure_v2026`，`build_site.py` 匯出 `ingredient_compounds.json`（5,411 筆、0.57 MB），MCP 以它作後備。覆蓋率從 1,169 提高到 7,281（100%），MCP 測試 38 項增為 40 項 | ✅ |
+| MCP 只查得到 Explorer 的化合物 | 實測有結構的 7,281 個成分中，只有 1,169 個查得到化合物資料，其餘是不屬於任何物種的合成化合物。`19_compute_descriptors.py` 擴充到 `cas_structure_v2026`，`build_site.py` 匯出 `ingredient_compounds.json`（5,411 筆、0.57 MB），MCP 以它作後備。覆蓋率從 1,169 提高到 7,281（100%），MCP 測試 38 項增為 40 項。2026-10-15 補上名稱：5,411 個 InChIKey 中 4,881 個在 Wikidata 有條目、3,355 個有可用名稱（en 3,293、zh 993、ja 830），MCP 的名稱搜尋同步涵蓋，測試增為 41 項 | ✅ |
 | SVG chunk 每次重建都不同 | 程式碼已修：檔案列舉改為排序、gzip 標頭固定 `mtime=0`，連續兩次完整建置的 631 個 chunk 雜湊相同。**刻意不提交重新產生的 chunk**：抽樣檢查新舊檔只差標頭 4 個位元組，但實測 631 個檔案一起推送時 git 沒有做差分（小量時有），推送會多出約 115 MB。第一次完整重建仍會改寫全部 chunk，建議與下一次真正改動 SVG 的工作（8d）一起提交，在那之前用 `--skip-svg` | ✅ 程式碼；資料待 8d |
 | Explorer 沒有前端測試 | 新增 `tests/explorer/`（Node 內建測試執行器加 jsdom，18 項）。8 項檢查建置輸出的資料不變量，10 項檢查介面行為：語言切換、名稱 fallback、搜尋、化合物面板、化合物瀏覽、Help。用故意改壞的副本驗證過，4 種破壞全部被抓到。測試還找出 5 筆「俗名」其實等於學名的資料，已移除 | ✅ |
 | 工具列在約 800px 寬度被擠壓 | 原本搜尋框被壓到 0px、按鈕被壓扁到 18px。改成搜尋框與按鈕保有最小寬度，統計列依剩餘空間逐項隱藏（字型載入後與視窗縮放時會重算）。800px 下搜尋框為 160 至 245px | ✅ |
 
 **仍保留：**
 - MCP 能回傳的化合物資料，只涵蓋 Explorer 的 11,777 個與成分對應的 5,411 個；LOTUS 的 58,996 個化合物中，其餘的沒有提供
-- `ingredient_compounds.json` 的化合物沒有多語名稱，要補需另外對這 5,411 個 InChIKey 跑 Wikidata 抓取
+- `ingredient_compounds.json` 仍有 2,056 個化合物沒有名稱，多半是 Wikidata 沒有條目或只有系統命名的衍生物
 
 ---
 

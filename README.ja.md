@@ -160,14 +160,14 @@ docs/                        # GitHub Pages のルート（Explorer）
 ├── data/
 │   ├── ingredients.json     # 33,638 件の成分 + インデックス + 通称・和名（約 13 MB）
 │   ├── compounds.json       # 11,777 件の化合物インデックス（約 6 MB）
-│   └── ingredient_compounds.json  # MCP Server 用の追加 5,411 件の化合物（約 0.6 MB）
+│   └── ingredient_compounds.json  # MCP Server 用の追加 5,411 件の化合物（約 0.8 MB）
 └── svg/                     # 631 個の SVG チャンク（約 192 MB）
 
 cosing-mcp/                  # AI 質問応答層（MCP Server）
 ├── src/cosing_mcp/
 │   ├── server.py            # MCP Server のエントリポイント + 6 ツールの定義
 │   └── data.py              # GitHub Pages の JSON キャッシュ + メモリ内インデックス
-├── tests/                   # 40 件のテスト
+├── tests/                   # 41 件のテスト
 ├── skill/cosing-analyze.md  # 成分分析スキル（配布用コピー）
 └── pyproject.toml           # pip install 設定
 
@@ -223,7 +223,7 @@ SVG チャンクは gzip ヘッダーを固定して書き出すため、完全�
 ## テスト
 
 ```bash
-cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP Server、40 件
+cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP Server、41 件
 cd tests/explorer && npm install && npm test             # Explorer の UI とデータ、18 件
 ```
 
@@ -235,7 +235,8 @@ cd tests/explorer && npm install && npm test             # Explorer の UI と�
 
 | 日付 | 内容 |
 |------|------|
-| 2026-10-05 | 技術的負債の解消 — MCP Server が構造を持つ全 7,281 成分の化合物データを返せるように（従来は 1,169 件）、ビルドスクリプト用の `requirements.txt`、SVG チャンク生成の決定性、Explorer のテスト（Node + jsdom、18 件）、狭いウィンドウでのツールバー表示の修正、学名と同じ無効な通称 5 件の削除。MCP のテストは 38 件から 40 件に |
+| 2026-10-15 | 成分専用の化合物の名称を追加 — `ingredient_compounds.json` の 5,411 件のうち 3,355 件に Wikidata 由来の英語・中国語・日本語名を付け、MCP Server で検索可能に。無効として削除していた種名 3 件も、正しい名称で補完 |
+| 2026-10-05 | 技術的負債の解消 — MCP Server が構造を持つ全 7,281 成分の化合物データを返せるように（従来は 1,169 件）、ビルドスクリプト用の `requirements.txt`、SVG チャンク生成の決定性、Explorer のテスト（Node + jsdom、18 件）、狭いウィンドウでのツールバー表示の修正、学名と同じ無効な通称 5 件の削除。MCP のテストは 38 件から 41 件に |
 | 2026-10-02 | Phase 8b-i18n 完了 — Explorer が日本語 UI に対応（中 / EN / 日の三言語切り替え、和名の表示と検索、日本語ヘルプ、`?lang=` パラメータ）、`cosing-analyze` スキルが和名に対応、`README.ja.md` を追加 |
 | 2026-10-01 | Phase 8b 完了 — Wikidata 多言語名称：化合物の英/中/日名称と別名（6,581 件）、種の和名 1,575 件・科の和名 275 件、名称検索、MCP での和名対応。ビルドを決定的にし `--skip-svg` を追加 |
 | 2026-09-27 | Phase 8a 完了 — RDKit 分子記述子、PubChem CID への直接リンク、化合物ブラウザ（LogP/MW フィルタ）、MCP の記述子フィールド |

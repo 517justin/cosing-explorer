@@ -63,7 +63,7 @@ Then provide a photo or text of a cosmetic ingredient label:
 
 - `ingredients.json` (~13 MB): 33,638 CosIng ingredients with functions, taxonomy, and regulation
 - `compounds.json` (~6 MB): 11,777 compounds linked to species
-- `ingredient_compounds.json` (~0.6 MB): structure data for 5,411 more compounds that belong to no species, so every ingredient with a structure returns its formula, PubChem link, and descriptors
+- `ingredient_compounds.json` (~0.8 MB): structure data for 5,411 more compounds that belong to no species, so every ingredient with a structure returns its formula, PubChem link, and descriptors. 3,355 of them also carry English, Chinese, or Japanese names, and those names are searchable
 
 Cached at `~/.cache/cosing-mcp/` with 7-day TTL. Works offline after first fetch.
 

@@ -160,14 +160,14 @@ docs/                        # GitHub Pages 根目錄（Explorer）
 ├── data/
 │   ├── ingredients.json     # 33,638 筆原料 + 索引 + 中英文俗名（~13 MB）
 │   ├── compounds.json       # 11,777 筆化合物索引（~6 MB）
-│   └── ingredient_compounds.json  # 另有 5,411 筆化合物，供 MCP Server 使用（~0.6 MB）
+│   └── ingredient_compounds.json  # 另有 5,411 筆化合物，供 MCP Server 使用（~0.8 MB）
 └── svg/                     # 631 個 SVG chunk（~192 MB）
 
 cosing-mcp/                  # AI 問答層（MCP Server）
 ├── src/cosing_mcp/
 │   ├── server.py            # MCP Server 進入點 + 6 個工具定義
 │   └── data.py              # GitHub Pages JSON 快取 + 記憶體索引
-├── tests/                   # 40 項測試
+├── tests/                   # 41 項測試
 ├── skill/cosing-analyze.md  # 成分分析 Skill（分發用副本）
 └── pyproject.toml           # pip install 設定
 
@@ -223,7 +223,7 @@ SVG chunk 現在用固定的 gzip 標頭寫出，連續兩次完整建置的結�
 ## 測試
 
 ```bash
-cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP Server，40 項
+cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP Server，41 項
 cd tests/explorer && npm install && npm test             # Explorer 介面與資料，18 項
 ```
 
@@ -235,7 +235,8 @@ cd tests/explorer && npm install && npm test             # Explorer 介面與資
 
 | 日期 | 內容 |
 |------|------|
-| 2026-10-05 | 技術債清理：MCP Server 現在對全部 7,281 個有結構的成分都能回傳化合物資料（原本只有 1,169 個）、新增建置腳本的 `requirements.txt`、SVG chunk 建置改為確定性、新增 Explorer 測試（Node + jsdom，18 項）、修正窄視窗的工具列排版，並移除 5 筆與學名相同的無效俗名。MCP 測試由 38 項增為 40 項 |
+| 2026-10-15 | 補上僅供成分使用的化合物名稱：`ingredient_compounds.json` 的 5,411 個化合物中，3,355 個現在附有來自 Wikidata 的英、中、日名稱，MCP Server 可以搜尋。先前因無效而移除的 3 筆物種名稱，也補上了真正的名稱 |
+| 2026-10-05 | 技術債清理：MCP Server 現在對全部 7,281 個有結構的成分都能回傳化合物資料（原本只有 1,169 個）、新增建置腳本的 `requirements.txt`、SVG chunk 建置改為確定性、新增 Explorer 測試（Node + jsdom，18 項）、修正窄視窗的工具列排版，並移除 5 筆與學名相同的無效俗名。MCP 測試由 38 項增為 41 項 |
 | 2026-10-02 | Phase 8b-i18n 完成：Explorer 日文介面（中／EN／日三語切換、和名顯示與搜尋、日文說明、`?lang=` 參數）、`cosing-analyze` Skill 支援和名、新增 `README.ja.md` |
 | 2026-10-01 | Phase 8b 完成：Wikidata 多語名稱，包含化合物 en/zh/ja 名稱與別名（6,581 個）、物種和名 1,575／科和名 275、名稱搜尋、MCP 日文名；建置改為確定性、新增 `--skip-svg`。物種中英文名缺口僅部分縮小（519→457／464→379，Wikidata 無對應俗名） |
 | 2026-09-27 | Phase 8a 完成：RDKit 分子描述子、PubChem CID 直連、化合物瀏覽清單頁（LogP/MW 篩選）、MCP 描述子欄位 |
