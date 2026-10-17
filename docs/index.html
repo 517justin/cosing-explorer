@@ -272,6 +272,8 @@ canvas#graph.dragging { cursor: grabbing; }
 .sp-lbl { color: var(--text-sec); min-width: 50px; flex-shrink: 0; }
 .sp-val { word-break: break-word; }
 .sp-desc { font-size: 13px; color: var(--text-sec); line-height: 1.6; }
+.own-btn { margin: 2px 0 8px; padding: 4px 12px; border: 1px solid var(--compound); border-radius: 6px; background: var(--compound-dim); color: var(--compound); cursor: pointer; font-size: 12px; font-family: var(--font); }
+.own-btn:disabled { opacity: 0.5; cursor: default; }
 .pc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 10px; font-size: 12px; }
 .pc-item { display: flex; justify-content: space-between; gap: 6px; }
 .pc-lbl { color: var(--text-sec); }
@@ -557,6 +559,7 @@ const I18N = {
     restrictedCount: '受限原料', restrictedRatio: '受限比例',
     viewRegulation: '查看法規 ↗',
     alsoKnown: '別名',
+    ownCpds: '僅見於此物種的化合物', ownShow: '顯示', ownMore: '顯示更多', ownFail: '載入失敗，點擊重試',
     physProps: '物化性質', mw: '分子量', logp: 'LogP', tpsa: 'TPSA',
     hbd: 'H鍵供體', hba: 'H鍵受體', rotb: '可旋轉鍵', rings: '環數',
     arom: '芳香環', heavy: '重原子', fsp3: 'Fsp3',
@@ -597,6 +600,7 @@ const I18N = {
     restrictedCount: 'Restricted', restrictedRatio: 'Restricted ratio',
     viewRegulation: 'View regulation ↗',
     alsoKnown: 'Also known as',
+    ownCpds: 'Compounds found only in this species', ownShow: 'Show', ownMore: 'Show more', ownFail: 'Could not load, click to retry',
     physProps: 'Physical Properties', mw: 'MW', logp: 'LogP', tpsa: 'TPSA',
     hbd: 'H-Bond Donors', hba: 'H-Bond Acceptors', rotb: 'Rotatable Bonds', rings: 'Rings',
     arom: 'Aromatic Rings', heavy: 'Heavy Atoms', fsp3: 'Fsp3',
@@ -637,6 +641,7 @@ const I18N = {
     restrictedCount: '規制対象の成分', restrictedRatio: '規制対象の割合',
     viewRegulation: '規制を見る ↗',
     alsoKnown: '別名',
+    ownCpds: 'この種にのみ見られる化合物', ownShow: '表示', ownMore: 'さらに表示', ownFail: '読み込めませんでした。クリックで再試行',
     physProps: '物理化学的性質', mw: '分子量', logp: 'LogP', tpsa: 'TPSA',
     hbd: '水素結合供与体', hba: '水素結合受容体', rotb: '回転可能結合', rings: '環数',
     arom: '芳香環', heavy: '重原子', fsp3: 'Fsp3',
@@ -661,6 +666,7 @@ function localName(maps, key) {
   return LANG === 'en' ? get(maps.en) : LANG === 'ja' ? (get(maps.ja) || get(maps.en)) : get(maps.zh);
 }
 function spName(sp) { return localName({ zh: 'sp_zh', en: 'sp_en', ja: 'sp_ja' }, sp); }
+function cpdOf(ik) { return D.ci[ik] || D.own_ci[ik]; }
 function famName(fam) { return localName({ zh: 'fam_zh', en: 'fam_en', ja: 'fam_ja' }, fam); }
 function cpdName(c) {
   const nm = c && c.nm; if (!nm) return '';
@@ -1163,13 +1169,6 @@ function buildEgoGraph(centerType, centerIdx) {
         if (spIdx !== undefined) edges.push({ source: spIdx, target: nodes.length - 1, weight: 1 });
         else edges.push({ source: 0, target: nodes.length - 1, weight: 1 });
       });
-    } else if (it.tc) {
-      it.tc.slice(0, 6).forEach(([ik, formula]) => {
-        const cpdId = 'cpd:' + ik;
-        nodes.push({ id: cpdId, type: 'compound', label: formula || ik.substring(0, 10), r: 8, ik, x: 0, y: 0, vx: 0, vy: 0 });
-        nodeMap[cpdId] = nodes.length - 1;
-        edges.push({ source: 0, target: nodes.length - 1, weight: 1 });
-      });
     }
   } else if (centerType === 'species') {
     centerLabel = centerIdx;
@@ -1223,7 +1222,7 @@ function buildEgoGraph(centerType, centerIdx) {
     });
 
   } else if (centerType === 'compound') {
-    const cpd = D.ci[centerIdx];
+    const cpd = cpdOf(centerIdx);
     centerLabel = cpd ? (cpd.iupac || cpd.f || centerIdx.substring(0, 14)) : centerIdx;
     const cid = 'cpd:' + centerIdx;
     nodes.push({ id: cid, type: 'compound', label: cpd ? cpd.f : centerIdx.substring(0, 14), r: 28, ik: centerIdx, x: 0, y: 0, vx: 0, vy: 0 });
@@ -1793,18 +1792,7 @@ function showPanel(n) {
       if (it.gbif) h += '<div class="sp-photo-sm" id="sp-img-' + it.gbif + '"></div>';
       h += '</div>';
     }
-    const panelCpds = (it.sp && D.ci_by_sp[it.sp])
-      ? D.ci_by_sp[it.sp].map(ik => [ik, D.ci[ik].f || '']).sort((a, b) => (D.ci[b[0]].n_sp || 0) - (D.ci[a[0]].n_sp || 0)).slice(0, 20)
-      : (it.tc || []);
-    if (panelCpds.length) {
-      const totalCpds = (it.sp && D.ci_by_sp[it.sp]) ? D.ci_by_sp[it.sp].length : (it.cc || panelCpds.length);
-      h += '<div class="sp-section"><h3>' + T('compounds') + ' (' + totalCpds + ')</h3><div class="sp-chem-grid">';
-      panelCpds.forEach(([ik, f]) => {
-        h += '<div class="sp-chem-card" onclick="showCompound(\'' + ik + '\')"><div class="sp-chem-svg" id="sv-' + ik + '"><div class="sp-chem-ph">⋯</div></div>';
-        h += '<div class="sp-chem-f">' + esc(f) + '</div></div>';
-      });
-      h += '</div></div>';
-    }
+    if (it.sp) h += speciesCompoundHtml(it.sp);
     h += '<div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border);font-size:10px;color:var(--text-sec)">Ref No: ' + esc(n.refNo) + ' · <a href="https://ec.europa.eu/growth/tools-databases/cosing/details/' + encodeURIComponent(n.refNo) + '" target="_blank" rel="noopener" style="color:var(--accent)">CosIng ↗</a></div>';
     h += '</div>';
 
@@ -1889,11 +1877,12 @@ function showPanel(n) {
     h += '<a href="https://www.gbif.org/species/search?q=' + encodeURIComponent(n.label) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">GBIF ↗</a>';
     h += '<a href="https://powo.science.kew.org/results?q=' + encodeURIComponent(n.label) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">POWO ↗</a>';
     h += '</div>';
+    h += speciesCompoundHtml(n.label);
     if (D.sp_gbif[n.label]) h += '<div class="sp-photo" id="sp-img-' + D.sp_gbif[n.label] + '"></div>';
     h += '</div>';
 
   } else if (n.type === 'compound') {
-    const cpd = n.ik ? D.ci[n.ik] : null;
+    const cpd = n.ik ? cpdOf(n.ik) : null;
     h += '<div class="sp-head"><h2>' + esc(n.label) + '</h2><button class="sp-close" onclick="closePanel()">×</button></div>';
     h += '<div class="sp-body">';
     h += '<div class="sp-tags"><span class="sp-tag" style="background:var(--compound-dim);color:var(--compound)">' + T('compoundTag') + '</span></div>';
@@ -1971,14 +1960,12 @@ function showPanel(n) {
 
   if (n.type === 'ingredient' && n.refNo) {
     const it = D.items[n.refNo];
-    const svgIks = (it.sp && D.ci_by_sp[it.sp])
-      ? D.ci_by_sp[it.sp].slice(0, 20)
-      : (it.tc ? it.tc.map(([ik]) => ik) : []);
-    svgIks.forEach(ik => loadSvgInto(ik, 'sv-' + ik));
+    if (it.sp) speciesCompoundTop(it.sp).forEach(ik => loadSvgInto(ik, 'sv-' + ik));
     if (it.gbif) loadSpeciesImage(it.gbif, 'sp-img-' + it.gbif);
   }
-  if (n.type === 'species' && D.sp_gbif[n.label]) {
-    loadSpeciesImage(D.sp_gbif[n.label], 'sp-img-' + D.sp_gbif[n.label]);
+  if (n.type === 'species') {
+    speciesCompoundTop(n.label).forEach(ik => loadSvgInto(ik, 'sv-' + ik));
+    if (D.sp_gbif[n.label]) loadSpeciesImage(D.sp_gbif[n.label], 'sp-img-' + D.sp_gbif[n.label]);
   }
 }
 
@@ -2085,8 +2072,87 @@ function renderSpeciesImage(info, el) {
     (licShort ? '<span>' + licShort + '</span>' : '') + '</div>';
 }
 
+function speciesCompoundTop(sp) {
+  const iks = D.ci_by_sp[sp] || [];
+  return iks.slice().sort((a, b) => (D.ci[b].n_sp || 0) - (D.ci[a].n_sp || 0)).slice(0, 20);
+}
+function compoundCard(ik, formula, open) {
+  return '<div class="sp-chem-card" onclick="' + open + '(\'' + ik + '\')"><div class="sp-chem-svg" id="sv-' + ik + '"><div class="sp-chem-ph">⋯</div></div>' +
+    '<div class="sp-chem-f">' + esc(formula) + '</div></div>';
+}
+function speciesCompoundHtml(sp) {
+  let h = '';
+  const shared = D.ci_by_sp[sp] || [];
+  if (shared.length) {
+    h += '<div class="sp-section"><h3>' + T('compounds') + ' (' + shared.length + ')</h3><div class="sp-chem-grid">';
+    speciesCompoundTop(sp).forEach(ik => { h += compoundCard(ik, D.ci[ik].f || '', 'showCompound'); });
+    h += '</div></div>';
+  }
+  const own = D.sc.own_n[sp] || 0;
+  if (own) {
+    h += '<div class="sp-section" id="own-sec"><h3>' + T('ownCpds') + ' (' + own + ')</h3>' +
+      '<button class="own-btn" id="own-btn" data-sp="' + esc(sp) + '" onclick="showOwn(this.dataset.sp)">' + T('ownShow') + '</button>' +
+      '<div class="sp-chem-grid" id="own-grid"></div></div>';
+  }
+  return h;
+}
+
+// Compounds found in a single species live in own/<first two letters>.json and load on demand.
+const OWN_PAGE = 24;
+const OWN_CHUNKS = {};
+const OWN_SHOWN = {};
+function ownKey(sp) { return sp.slice(0, 2).toLowerCase().replace(/[^a-z]/g, '_'); }
+async function loadOwn(sp) {
+  if (D.own[sp]) return D.own[sp];
+  const key = ownKey(sp);
+  if (!OWN_CHUNKS[key]) {
+    OWN_CHUNKS[key] = fetch('own/' + key + '.json').then(r => { if (!r.ok) throw new Error('own/' + key + ': ' + r.status); return r.json(); });
+  }
+  let chunk;
+  try { chunk = await OWN_CHUNKS[key]; } catch (e) { delete OWN_CHUNKS[key]; throw e; }
+  for (const [s, rows] of Object.entries(chunk)) {
+    const fam = D.sp_fam[s];
+    D.own[s] = rows;
+    for (const [ik, f, cid, mw, desc, iupac] of rows) {
+      D.own_ci[ik] = { f, iupac, cid: cid || undefined, mw: mw == null ? undefined : mw, desc: desc || undefined,
+        n_sp: 1, n_fam: 1, top_sp: [[s, fam || '']], top_fam: fam ? [[fam, 1]] : [] };
+    }
+  }
+  return D.own[sp] || [];
+}
+async function showOwn(sp) {
+  const btn = document.getElementById('own-btn');
+  if (btn) btn.disabled = true;
+  try {
+    await loadOwn(sp);
+  } catch {
+    if (btn) { btn.disabled = false; btn.textContent = T('ownFail'); }
+    return;
+  }
+  if (btn) btn.remove();
+  OWN_SHOWN[sp] = 0;
+  renderOwnPage(sp);
+}
+function renderOwnPage(sp) {
+  const grid = document.getElementById('own-grid');
+  const rows = D.own[sp] || [];
+  if (!grid) return;
+  const from = OWN_SHOWN[sp] || 0;
+  const to = Math.min(rows.length, from + OWN_PAGE);
+  let h = '';
+  for (const [ik, f] of rows.slice(from, to)) h += compoundCard(ik, f, 'navToCompound');
+  grid.insertAdjacentHTML('beforeend', h);
+  rows.slice(from, to).forEach(([ik]) => loadSvgInto(ik, 'sv-' + ik));
+  OWN_SHOWN[sp] = to;
+  const old = document.getElementById('own-more');
+  if (old) old.remove();
+  if (to < rows.length) {
+    grid.insertAdjacentHTML('afterend', '<button class="own-btn" id="own-more" data-sp="' + esc(sp) + '" onclick="renderOwnPage(this.dataset.sp)">' + T('ownMore') + ' (' + (rows.length - to) + ')</button>');
+  }
+}
+
 function showCompound(ik) {
-  const c = D.ci[ik];
+  const c = cpdOf(ik);
   const ov = document.createElement('div');
   ov.className = 'overlay';
   ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
@@ -2218,28 +2284,35 @@ async function main() {
   CTX = CANVAS.getContext('2d');
   CAM = new Camera();
 
-  const [ir, cr] = await Promise.all([fetch('data/ingredients.json'), fetch('data/compounds.json')]);
+  const [ir, cr, sr] = await Promise.all([fetch('data/ingredients.json'), fetch('data/compounds.json'), fetch('data/species_compounds.json')]);
   D = await ir.json();
   D.ci = await cr.json();
-
-  D.ci_by_sp = {};
-  D.ci_by_fam = {};
-  for (const [ik, cpd] of Object.entries(D.ci)) {
-    if (cpd.nm) cpd.nmq = Object.values(cpd.nm).flat().join('\n').toLowerCase();
-    if (cpd.top_sp) cpd.top_sp.forEach(([sp]) => {
-      if (!D.ci_by_sp[sp]) D.ci_by_sp[sp] = [];
-      D.ci_by_sp[sp].push(ik);
-    });
-    if (cpd.top_fam) cpd.top_fam.forEach(([fam]) => {
-      if (!D.ci_by_fam[fam]) D.ci_by_fam[fam] = [];
-      D.ci_by_fam[fam].push(ik);
-    });
-  }
+  D.sc = await sr.json();
+  D.own = {};
+  D.own_ci = {};
 
   D.sp_gbif = {};
+  D.sp_fam = {};
   for (const it of Object.values(D.items)) {
     if (it.sp && it.gbif && !D.sp_gbif[it.sp]) D.sp_gbif[it.sp] = it.gbif;
+    if (it.sp && it.fm !== undefined && !D.sp_fam[it.sp]) D.sp_fam[it.sp] = D.families[it.fm];
   }
+
+  // species -> compounds from the complete lists (compounds.json only keeps 30 species per compound)
+  const ciKeys = Object.keys(D.ci);
+  for (const cpd of Object.values(D.ci)) {
+    if (cpd.nm) cpd.nmq = Object.values(cpd.nm).flat().join('\n').toLowerCase();
+  }
+  D.ci_by_sp = {};
+  const famSets = {};
+  for (const [sp, idxs] of Object.entries(D.sc.shared)) {
+    const iks = idxs.map(i => ciKeys[i]);
+    D.ci_by_sp[sp] = iks;
+    const fam = D.sp_fam[sp];
+    if (fam) { const set = famSets[fam] || (famSets[fam] = new Set()); iks.forEach(ik => set.add(ik)); }
+  }
+  D.ci_by_fam = {};
+  for (const [fam, set] of Object.entries(famSets)) D.ci_by_fam[fam] = [...set];
 
   if (!D.sp_zh) D.sp_zh = {};
   if (!D.sp_en) D.sp_en = {};

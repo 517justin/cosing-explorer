@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadExplorer } from './helpers.mjs';
+import { loadExplorer, readData, sleep } from './helpers.mjs';
 
 const CAFFEINE = 'RYYVLZVUVIJVGH-UHFFFAOYSA-N';
 const QUERCETIN = 'REFJWTPEDVJJIY-UHFFFAOYSA-N';
@@ -140,4 +140,65 @@ test('Help text renders in every language without falling back to another', () =
     assert.equal(heading('en'), 'Help');
     assert.equal(heading('ja'), '使い方');
     assert.match(ex.document.getElementById('helpBox').textContent, /ノードの種類/);
+  }));
+
+const SC = readData('species_compounds.json');
+
+test('every species lists all of its shared compounds, not just those in the first 30 species of each compound', () =>
+  withExplorer({}, ex => {
+    for (const sp of ['Vitis vinifera', 'Zingiber officinale', 'Solanum lycopersicum']) {
+      assert.equal(ex.get(`D.ci_by_sp['${sp}'].length`), SC.shared[sp].length, sp);
+      assert.ok(SC.shared[sp].length > 300, `${sp} should have hundreds of shared compounds`);
+    }
+    const fam = ex.get(`D.sp_fam['Vitis vinifera']`);
+    const expected = new Set(Object.entries(SC.shared).filter(([sp]) => ex.get(`D.sp_fam[${JSON.stringify(sp)}]`) === fam).flatMap(([, v]) => v));
+    assert.equal(ex.get(`D.ci_by_fam[${JSON.stringify(fam)}].length`), expected.size, 'family index follows the same lists');
+  }));
+
+test('a species with only species-specific compounds offers them on demand and each opens with full details', () =>
+  withExplorer({}, async ex => {
+    const sp = 'Drimia maritima';
+    assert.equal(ex.get(`D.ci_by_sp['${sp}']`), undefined, 'precondition: no shared compound');
+    const n = SC.own_n[sp];
+    assert.ok(n > 24, 'precondition: more than one page');
+
+    ex.window.eval(`GRAPH = buildEgoGraph('species', '${sp}'); selectedNode = GRAPH.nodes[0]; showPanel(selectedNode)`);
+    const sec = ex.document.getElementById('own-sec');
+    assert.match(sec.querySelector('h3').textContent, new RegExp(`\\(${n}\\)`));
+    assert.equal(ex.document.querySelectorAll('#own-grid .sp-chem-card').length, 0, 'nothing loads before the click');
+
+    ex.document.getElementById('own-btn').click();
+    await sleep(300);
+    assert.equal(ex.document.querySelectorAll('#own-grid .sp-chem-card').length, 24);
+    assert.equal(ex.document.getElementById('own-btn'), null);
+    ex.document.getElementById('own-more').click();
+    await sleep(100);
+    assert.equal(ex.document.querySelectorAll('#own-grid .sp-chem-card').length, 48);
+
+    ex.document.querySelector('#own-grid .sp-chem-card').click();
+    const panel = ex.document.getElementById('panel').textContent;
+    assert.match(panel, /物化性質/);
+    assert.match(panel, /LogP/);
+    assert.ok(ex.document.querySelector('#panel a[href^="https://pubchem.ncbi.nlm.nih.gov/compound/"]'), 'PubChem link uses the CID');
+    assert.match(ex.get('GRAPH.nodes[0].label'), /^C\d/);
+    await sleep(300);
+  }));
+
+test('the ingredient panel of such a species shows the species-specific section instead of an empty compound grid', () =>
+  withExplorer({}, async ex => {
+    const ref = ex.get(`Object.keys(D.items).find(k => D.items[k].sp === 'Drimia maritima')`);
+    ex.window.eval(`GRAPH = buildEgoGraph('ingredient', '${ref}'); selectedNode = GRAPH.nodes[0]; showPanel(selectedNode)`);
+    const panel = ex.document.getElementById('panel');
+    assert.ok(panel.querySelector('#own-sec'));
+    assert.equal(panel.querySelectorAll('.sp-chem-card').length, 0);
+    assert.equal(ex.get(`GRAPH.nodes.filter(n => n.type === 'compound').length`), 0, 'graph shows no compound without data');
+    await sleep(100);
+  }));
+
+test('species-specific section follows the language', () =>
+  withExplorer({ query: '?lang=ja' }, async ex => {
+    ex.window.eval(`GRAPH = buildEgoGraph('species', 'Drimia maritima'); selectedNode = GRAPH.nodes[0]; showPanel(selectedNode)`);
+    assert.match(ex.document.querySelector('#own-sec h3').textContent, /この種にのみ見られる化合物/);
+    assert.equal(ex.document.getElementById('own-btn').textContent, '表示');
+    await sleep(100);
   }));
