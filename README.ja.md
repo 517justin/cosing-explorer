@@ -18,8 +18,9 @@ EU CosIng データベースに登録された 33,638 種類の化粧品成分�
 - **エゴグラフ表示** — ノードをクリックすると周辺ネットワークを展開。パンくずリストで元の画面に戻れます
 - **ディープリンク** — URL パラメータで特定の成分・科・種・用途・化合物・検索結果を直接開けます
 - **化合物の構造式** — 58,596 件の分子構造 SVG を DecompressionStream でオンデマンド読み込み
+- **一つの種に固有の化合物** — 単一の種でのみ報告された 47,219 件の化合物を、種・成分パネルで必要なときに 24 件ずつ読み込み、詳細も表示できます
 - **物理化学的性質** — 化合物パネルに RDKit の記述子 9 項目（LogP、TPSA、水素結合供与体・受容体、回転可能結合、環数と芳香環数、重原子数、Fsp3）を表示し、PubChem へ直接リンク
-- **化合物ブラウザ** — 全 11,777 件の化合物を一覧表示する専用画面。LogP と分子量の範囲での絞り込み、分子式・名前での検索、並べ替え、ページ送りに対応
+- **化合物ブラウザ** — 2 種以上の種で報告された 11,777 件の化合物を一覧表示する専用画面。LogP と分子量の範囲での絞り込み、分子式・名前での検索、並べ替え、ページ送りに対応
 - **種の写真** — GBIF Occurrence API から自動取得
 - **通称・和名** — 中国語の通称は 2,368 種、英語の通称は 2,448 種に、376 科すべてに中国語・英語の通称を収録。和名は 1,575 種と 275 科に収録しています。検索・表示の両方で利用できます
 - **化合物の多言語名称** — 6,581 件の化合物に英語・中国語・日本語の名称と別名を収録（Wikidata 由来）。「caffeine」「槲皮素」「ケルセチン」で検索できます
@@ -161,16 +162,18 @@ MCP Server は 6 つのツールを提供し、Claude が質問に応じて自�
 docs/                        # GitHub Pages のルート（Explorer）
 ├── index.html               # シングルページアプリ（CSS/JS 埋め込み）
 ├── data/
-│   ├── ingredients.json     # 33,638 件の成分 + インデックス + 通称・和名（約 13 MB）
-│   ├── compounds.json       # 11,777 件の化合物インデックス（約 6 MB）
+│   ├── ingredients.json     # 33,638 件の成分 + インデックス + 通称・和名（約 8 MB）
+│   ├── compounds.json       # 11,777 件の化合物インデックス。2 種以上に共通するもの（約 6 MB）
+│   ├── species_compounds.json  # 種 → 化合物の完全なリスト（約 0.4 MB）
 │   └── ingredient_compounds.json  # MCP Server 用の追加 5,411 件の化合物（約 0.8 MB）
+├── own/                     # 種に固有の 47,219 件の化合物。必要時に読み込む 178 チャンク（約 11 MB）
 └── svg/                     # 631 個の SVG チャンク（約 194 MB）
 
 cosing-mcp/                  # AI 質問応答層（MCP Server）
 ├── src/cosing_mcp/
 │   ├── server.py            # MCP Server のエントリポイント + 6 ツールの定義
 │   └── data.py              # GitHub Pages の JSON キャッシュ + メモリ内インデックス
-├── tests/                   # 41 件のテスト
+├── tests/                   # 43 件のテスト
 ├── skill/cosing-analyze.md  # 成分分析スキル（配布用コピー）
 └── pyproject.toml           # pip install 設定
 
@@ -178,7 +181,7 @@ cosing-mcp/                  # AI 質問応答層（MCP Server）
 ├── commands/cosing-analyze.md  # Claude Code スキル
 └── settings.json               # MCP Server 設定
 
-tests/explorer/              # Explorer の UI とデータのテスト（Node + jsdom、18 件）
+tests/explorer/              # Explorer の UI とデータのテスト（Node + jsdom、25 件）
 requirements.txt             # _scripts/ 用の Python 依存パッケージ
 ```
 
@@ -226,8 +229,8 @@ SVG チャンクは gzip ヘッダーを固定して書き出すため、完全�
 ## テスト
 
 ```bash
-cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP Server、41 件
-cd tests/explorer && npm install && npm test             # Explorer の UI とデータ、18 件
+cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP Server、43 件
+cd tests/explorer && npm install && npm test             # Explorer の UI とデータ、25 件
 ```
 
 ## ロードマップ
@@ -238,6 +241,7 @@ cd tests/explorer && npm install && npm test             # Explorer の UI と�
 
 | 日付 | 内容 |
 |------|------|
+| 2026-10-17 | LOTUS の表示問題を 3 件修正 — 種から化合物へのインデックスが化合物ごとに 30 種で切られていた（リンクの 22.7% が欠落。例：Vitis vinifera は共通化合物 352 件のうち 222 件しか表示されなかった）、成分パネルが開いても空のページになる化合物を列挙していた（188 成分）、単一の種にしか現れない 47,219 件の化合物がまったく見えなかった。Explorer は完全な種リストを読み込み、種に固有の化合物は必要時に読み込みます。`ingredients.json` は 13 MB から 8 MB に縮小し、MCP も完全なインデックスで種の化合物数を数えます |
 | 2026-10-15 | 成分専用の化合物の名称を追加 — `ingredient_compounds.json` の 5,411 件のうち 3,355 件に Wikidata 由来の英語・中国語・日本語名を付け、MCP Server で検索可能に。無効として削除していた種名 3 件も、正しい名称で補完 |
 | 2026-10-05 | 技術的負債の解消 — MCP Server が構造を持つ全 7,281 成分の化合物データを返せるように（従来は 1,169 件）、ビルドスクリプト用の `requirements.txt`、SVG チャンク生成の決定性、Explorer のテスト（Node + jsdom、18 件）、狭いウィンドウでのツールバー表示の修正、学名と同じ無効な通称 5 件の削除。MCP のテストは 38 件から 41 件に |
 | 2026-10-02 | Phase 8b-i18n 完了 — Explorer が日本語 UI に対応（中 / EN / 日の三言語切り替え、和名の表示と検索、日本語ヘルプ、`?lang=` パラメータ）、`cosing-analyze` スキルが和名に対応、`README.ja.md` を追加 |

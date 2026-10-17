@@ -19,7 +19,8 @@ Live demo: [517justin.github.io/cosing-explorer](https://517justin.github.io/cos
 - Deep linking: URL parameters open a specific ingredient, family, species, function, compound, or search
 - Compound structures: 58,596 molecular structure SVGs, loaded on demand and decompressed in the browser with DecompressionStream
 - Molecular properties: the compound panel shows nine RDKit descriptors (LogP, TPSA, hydrogen-bond donors and acceptors, rotatable bonds, ring and aromatic ring counts, heavy atoms, Fsp3) and links straight to PubChem
-- Compound Browser: a separate list of all 11,777 compounds with LogP and molecular weight range filters, formula and name search, sorting, and paging
+- Compound Browser: a separate list of the 11,777 compounds reported from two or more species, with LogP and molecular weight range filters, formula and name search, sorting, and paging
+- Species-specific compounds: the 47,219 compounds reported from only one species load on demand in the species and ingredient panels, 24 at a time, and each opens with its full details
 - Species photos: loaded automatically from the GBIF Occurrence API
 - Common names: Chinese names for 2,368 species and English names for 2,448, plus Chinese and English names for all 376 families, shown throughout the interface and searchable. Japanese names (和名) cover 1,575 species and 275 families
 - Multilingual compound names: 6,581 compounds have English, Chinese, and Japanese names and aliases from Wikidata, so you can search for "caffeine", "槲皮素", or "ケルセチン"
@@ -161,16 +162,18 @@ The MCP server provides six tools, and Claude picks the right one for each quest
 docs/                        # GitHub Pages root (Explorer)
 ├── index.html               # Single-page app (CSS/JS inlined, ~2,400 lines)
 ├── data/
-│   ├── ingredients.json     # 33,638 ingredients + indexes + common names (~13 MB)
-│   ├── compounds.json       # 11,777 compound index (~6 MB)
+│   ├── ingredients.json     # 33,638 ingredients + indexes + common names (~8 MB)
+│   ├── compounds.json       # 11,777 compound index, compounds in 2+ species (~6 MB)
+│   ├── species_compounds.json  # complete species -> compound lists (~0.4 MB)
 │   └── ingredient_compounds.json  # 5,411 more compounds, for the MCP server (~0.8 MB)
+├── own/                     # 47,219 species-specific compounds in 178 on-demand chunks (~11 MB)
 └── svg/                     # 631 SVG chunks (~194 MB)
 
 cosing-mcp/                  # AI query layer (MCP Server)
 ├── src/cosing_mcp/
 │   ├── server.py            # MCP Server entry point + 6 tool definitions
 │   └── data.py              # GitHub Pages JSON cache + in-memory indexes
-├── tests/                   # 41 tests
+├── tests/                   # 43 tests
 ├── skill/cosing-analyze.md  # Ingredient analysis skill (distributable copy)
 └── pyproject.toml           # pip install config
 
@@ -178,7 +181,7 @@ cosing-mcp/                  # AI query layer (MCP Server)
 ├── commands/cosing-analyze.md  # Claude Code Skill
 └── settings.json               # MCP Server config
 
-tests/explorer/              # Explorer UI and data tests (Node + jsdom, 18 tests)
+tests/explorer/              # Explorer UI and data tests (Node + jsdom, 25 tests)
 requirements.txt             # Python dependencies for _scripts/
 ```
 
@@ -226,8 +229,8 @@ To refresh multilingual names (queries Wikidata over SPARQL, about 20 minutes fo
 ## Testing
 
 ```bash
-cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP server, 41 tests
-cd tests/explorer && npm install && npm test             # Explorer UI and data, 18 tests
+cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP server, 43 tests
+cd tests/explorer && npm install && npm test             # Explorer UI and data, 25 tests
 ```
 
 ## Roadmap
@@ -238,6 +241,7 @@ See [ROADMAP.md](ROADMAP.md).
 
 | Date | Description |
 |------|-------------|
+| 2026-10-17 | Fixed three LOTUS display problems: the species-to-compound index was cut to 30 species per compound (22.7% of links lost, e.g. Vitis vinifera showed 222 of 352 shared compounds), ingredient panels listed compounds whose pages were empty (188 ingredients), and the 47,219 compounds reported from a single species were invisible. The Explorer now reads complete species lists, and species-specific compounds load on demand. `ingredients.json` shrank from 13 MB to 8 MB, and the MCP server counts a species' compounds from the complete index |
 | 2026-10-15 | Names for the ingredient-only compounds: 3,355 of the 5,411 compounds in `ingredient_compounds.json` now carry English, Chinese, or Japanese names from Wikidata, and the MCP server searches them. Three species names that had been removed as invalid were refilled with real ones |
 | 2026-10-05 | Tech debt cleared: the MCP server now has compound data for all 7,281 ingredients with a structure (it had 1,169), a `requirements.txt` for the build scripts, deterministic SVG chunking, an Explorer test suite (Node + jsdom, 18 tests), a toolbar fix for narrow windows, and five invalid common names removed. MCP tests went from 38 to 41 |
 | 2026-10-02 | Phase 8b-i18n complete: Japanese UI in the Explorer (zh / EN / ja cycle, Japanese names shown and searchable, Japanese help, `?lang=` parameter), a Japanese-aware `cosing-analyze` skill, and a new `README.ja.md` |

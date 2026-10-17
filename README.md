@@ -19,7 +19,8 @@
 - 深度連結：支援用 URL 參數直接開啟特定成分、科、物種、用途、化合物或搜尋結果
 - 化合物結構式：58,596 個分子結構 SVG 即時載入，以 DecompressionStream 解壓
 - 物化性質：化合物面板顯示 9 項 RDKit 描述子（LogP、TPSA、氫鍵供體與受體、可旋轉鍵、環數與芳香環數、重原子數、Fsp3），並直連 PubChem
-- 化合物瀏覽：獨立的清單頁，列出全部 11,777 個化合物，可依 LogP 與分子量範圍篩選、搜尋分子式或名稱、排序與分頁
+- 化合物瀏覽：獨立的清單頁，列出被 2 個以上物種報告的 11,777 個化合物，可依 LogP 與分子量範圍篩選、搜尋分子式或名稱、排序與分頁
+- 物種特有化合物：只在一個物種中被報告的 47,219 個化合物，會在物種與成分面板中按需載入（每次 24 個），點進去可看到完整資料
 - 物種照片：透過 GBIF Occurrence API 自動載入實物照片
 - 中英文俗名：2,368 種物種有中文俗名、2,448 種有英文俗名，376 科全數附有中英文俗名，搜尋和顯示都支援。日文和名涵蓋 1,575 種物種與 275 科
 - 化合物多語名稱：6,581 個化合物附英/中/日名稱與別名（來自 Wikidata），可用「caffeine」「槲皮素」「ケルセチン」搜尋
@@ -161,16 +162,18 @@ MCP Server 提供 6 個工具，Claude 會根據問題自動選用：
 docs/                        # GitHub Pages 根目錄（Explorer）
 ├── index.html               # 單頁應用（CSS/JS 內嵌，~2,400 行）
 ├── data/
-│   ├── ingredients.json     # 33,638 筆原料 + 索引 + 中英文俗名（~13 MB）
-│   ├── compounds.json       # 11,777 筆化合物索引（~6 MB）
+│   ├── ingredients.json     # 33,638 筆原料 + 索引 + 中英文俗名（~8 MB）
+│   ├── compounds.json       # 11,777 筆化合物索引，限 2 個以上物種共有（~6 MB）
+│   ├── species_compounds.json  # 完整的物種 → 化合物清單（~0.4 MB）
 │   └── ingredient_compounds.json  # 另有 5,411 筆化合物，供 MCP Server 使用（~0.8 MB）
+├── own/                     # 47,219 個物種特有化合物，分成 178 個按需載入的 chunk（~11 MB）
 └── svg/                     # 631 個 SVG chunk（~194 MB）
 
 cosing-mcp/                  # AI 問答層（MCP Server）
 ├── src/cosing_mcp/
 │   ├── server.py            # MCP Server 進入點 + 6 個工具定義
 │   └── data.py              # GitHub Pages JSON 快取 + 記憶體索引
-├── tests/                   # 41 項測試
+├── tests/                   # 43 項測試
 ├── skill/cosing-analyze.md  # 成分分析 Skill（分發用副本）
 └── pyproject.toml           # pip install 設定
 
@@ -178,7 +181,7 @@ cosing-mcp/                  # AI 問答層（MCP Server）
 ├── commands/cosing-analyze.md  # Claude Code Skill
 └── settings.json               # MCP Server 設定
 
-tests/explorer/              # Explorer 介面與資料測試（Node + jsdom，18 項）
+tests/explorer/              # Explorer 介面與資料測試（Node + jsdom，25 項）
 requirements.txt             # _scripts/ 的 Python 依賴
 ```
 
@@ -226,8 +229,8 @@ SVG chunk 現在用固定的 gzip 標頭寫出，連續兩次完整建置的結�
 ## 測試
 
 ```bash
-cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP Server，41 項
-cd tests/explorer && npm install && npm test             # Explorer 介面與資料，18 項
+cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP Server，43 項
+cd tests/explorer && npm install && npm test             # Explorer 介面與資料，25 項
 ```
 
 ## 路線圖
@@ -238,6 +241,7 @@ cd tests/explorer && npm install && npm test             # Explorer 介面與資
 
 | 日期 | 內容 |
 |------|------|
+| 2026-10-17 | 修正 3 個 LOTUS 顯示問題：物種到化合物的索引每個化合物只留 30 個物種（22.7% 的連結消失，例如 Vitis vinifera 的 352 個共享化合物只顯示 222 個）、成分面板列出點進去是空頁的化合物（188 個成分）、以及只在單一物種出現的 47,219 個化合物完全看不到。Explorer 現在讀取完整的物種清單，物種特有化合物按需載入；`ingredients.json` 從 13 MB 縮到 8 MB，MCP 也改用完整索引計算物種的化合物數 |
 | 2026-10-15 | 補上僅供成分使用的化合物名稱：`ingredient_compounds.json` 的 5,411 個化合物中，3,355 個現在附有來自 Wikidata 的英、中、日名稱，MCP Server 可以搜尋。先前因無效而移除的 3 筆物種名稱，也補上了真正的名稱 |
 | 2026-10-05 | 技術債清理：MCP Server 現在對全部 7,281 個有結構的成分都能回傳化合物資料（原本只有 1,169 個）、新增建置腳本的 `requirements.txt`、SVG chunk 建置改為確定性、新增 Explorer 測試（Node + jsdom，18 項）、修正窄視窗的工具列排版，並移除 5 筆與學名相同的無效俗名。MCP 測試由 38 項增為 41 項 |
 | 2026-10-02 | Phase 8b-i18n 完成：Explorer 日文介面（中／EN／日三語切換、和名顯示與搜尋、日文說明、`?lang=` 參數）、`cosing-analyze` Skill 支援和名、新增 `README.ja.md` |
