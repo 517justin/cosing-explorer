@@ -7,6 +7,8 @@ Outputs:
   docs/data/ingredients.json  – all ingredients with search/filter data
   docs/data/compounds.json    – compound details for molecular viewer
   docs/data/ingredient_compounds.json – structure data for ingredients outside compounds.json (MCP)
+  docs/data/species_compounds.json – full species -> compound index (shared compounds + counts of species-specific ones)
+  docs/own/{xx}.json          – species-specific compounds, loaded on demand by the Explorer
   docs/svg/{XX}.json          – gzip+base64 SVG chunks by InChIKey prefix
 
 Run: .venv/bin/python _scripts/build_site.py [--skip-svg]
@@ -54,21 +56,14 @@ fam_species = [r[2] for r in fam_rows]
 fam_idx = {name: i for i, name in enumerate(fam_list)}
 print(f"  {len(fam_list)} families")
 
-# ─── 3. Compounds per species (top 8) ───
-print("Loading compounds per species...")
-cpd_rows = db.execute('''
-    SELECT sc.species, sc.inchikey, c.formula, c.iupac_name
+# ─── 3. Compound count per species ───
+print("Counting compounds per species...")
+sp_cpd_count = dict(db.execute('''
+    SELECT sc.species, count(DISTINCT sc.inchikey)
     FROM species_compounds_v2026 sc
     JOIN compound_v2026 c ON sc.inchikey = c.inchikey
-    WHERE c.has_svg = true
-    ORDER BY sc.species, c.formula
-''').fetchall()
-sp_cpds = defaultdict(list)
-sp_cpd_count = defaultdict(int)
-for sp, ik, formula, iupac in cpd_rows:
-    sp_cpd_count[sp] += 1
-    if len(sp_cpds[sp]) < 8:
-        sp_cpds[sp].append([ik, formula, iupac or ''])
+    GROUP BY 1
+''').fetchall())
 print(f"  {len(sp_cpd_count)} species with compounds")
 
 # ─── 4. CAS → InChIKey mapping ───
@@ -163,7 +158,6 @@ for row in rows:
         cc = sp_cpd_count.get(species, 0)
         if cc > 0:
             item['cc'] = cc
-            item['tc'] = sp_cpds[species]
 
     # CAS-derived structure
     if cas and cas in cas_ik:
@@ -275,6 +269,62 @@ cpd_path = os.path.join(OUT_DIR, 'data', 'compounds.json')
 with open(cpd_path, 'w') as f:
     f.write(cpd_json)
 print(f"  compounds.json: {len(cpd_json)/1024/1024:.2f} MB ({len(cpd_result)} compounds)")
+
+# ─── 7a. Species → compounds, complete (compounds.json caps top_sp at 30 species) ───
+# `shared` lists indexes into compounds.json key order, one entry per species, with
+# no cap. `own` holds compounds reported from a single species; there are too many
+# to ship with compounds.json, so they go into small chunks the Explorer loads on
+# demand (own/<first two letters of the species>.json).
+print("Building species -> compound index...")
+cpd_pos = {ik: i for i, ik in enumerate(cpd_result)}
+sp_shared = defaultdict(list)
+for ik, d in compounds.items():
+    for sp in d['sp_map']:
+        sp_shared[sp].append(cpd_pos[ik])
+
+own_rows = db.execute('''
+    SELECT sc.species, c.inchikey, c.formula, c.iupac_name, c.cid, c.mw,
+           c.logp, c.tpsa, c.hbd, c.hba, c.rotb, c.rings, c.arom, c.heavy, c.fsp3
+    FROM species_compounds_v2026 sc
+    JOIN compound_v2026 c ON sc.inchikey = c.inchikey
+    WHERE sc.inchikey IN (SELECT inchikey FROM species_compounds_v2026
+                          GROUP BY 1 HAVING count(DISTINCT species) = 1)
+    ORDER BY sc.species, c.formula, c.inchikey
+''').fetchall()
+
+
+def own_key(species):
+    return re.sub(r'[^a-z]', '_', species[:2].lower())
+
+
+own_chunks = defaultdict(lambda: defaultdict(list))
+for sp, ik, formula, iupac, cid, mw, *desc in own_rows:
+    own_chunks[own_key(sp)][sp].append(
+        [ik, formula or '', cid, mw, desc if desc[0] is not None else None, iupac or ''])
+
+sc_data = {
+    'shared': {sp: sorted(v) for sp, v in sorted(sp_shared.items())},
+    'own_n': {sp: len(v) for ck in own_chunks.values() for sp, v in sorted(ck.items())},
+}
+sc_data['own_n'] = dict(sorted(sc_data['own_n'].items()))
+sc_json = json.dumps(sc_data, separators=(',', ':'), ensure_ascii=False)
+with open(os.path.join(OUT_DIR, 'data', 'species_compounds.json'), 'w') as f:
+    f.write(sc_json)
+print(f"  species_compounds.json: {len(sc_json)/1024/1024:.2f} MB "
+      f"({sum(len(v) for v in sp_shared.values())} shared links, {len(own_rows)} species-specific compounds)")
+
+own_dir = os.path.join(OUT_DIR, 'own')
+os.makedirs(own_dir, exist_ok=True)
+for fname in os.listdir(own_dir):
+    if fname[:-5] not in own_chunks:
+        os.remove(os.path.join(own_dir, fname))
+own_bytes = 0
+for key, chunk in sorted(own_chunks.items()):
+    text = json.dumps(dict(sorted(chunk.items())), separators=(',', ':'), ensure_ascii=False)
+    own_bytes += len(text.encode())
+    with open(os.path.join(own_dir, f'{key}.json'), 'w') as f:
+        f.write(text)
+print(f"  own/: {len(own_chunks)} chunks, {own_bytes/1024/1024:.2f} MB")
 
 # ─── 7b. Compounds behind ingredient CAS numbers (read by the MCP server) ───
 # Most CAS-resolved structures are synthetic and appear in no species, so they
