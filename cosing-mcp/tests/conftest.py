@@ -113,6 +113,12 @@ def _build_mini_data():
     return ingredients, compounds, ingredient_compounds
 
 
+SPECIES_COMPOUNDS = {
+    "shared": {"Rosa damascena": [0]},
+    "own_n": {"Rosa damascena": 4, "Lavandula angustifolia": 2},
+}
+
+
 def mini_fetch():
     """Stand-in for cosing_mcp.data._fetch_json that serves the mini dataset."""
     ingredients, compounds, ingredient_compounds = _build_mini_data()
@@ -120,6 +126,7 @@ def mini_fetch():
         "ingredients.json": ingredients,
         "compounds.json": compounds,
         "ingredient_compounds.json": ingredient_compounds,
+        "species_compounds.json": SPECIES_COMPOUNDS,
     }
     return files.__getitem__
 

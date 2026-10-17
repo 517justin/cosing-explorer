@@ -69,6 +69,7 @@ class CosIngData:
         self.families: list[str] = []
         self.compounds: dict[str, dict] = {}
         self.ing_compounds: dict[str, dict] = {}
+        self.sp_compound_total: dict[str, int] = {}
         self.sp_zh: dict[str, str] = {}
         self.sp_en: dict[str, str] = {}
         self.fam_zh: dict[str, str] = {}
@@ -86,6 +87,11 @@ class CosIngData:
         ing = _fetch_json("ingredients.json")
         cpd = _fetch_json("compounds.json")
         self.ing_compounds = _fetch_json_optional("ingredient_compounds.json")
+        sc = _fetch_json_optional("species_compounds.json")
+        shared, own = sc.get("shared", {}), sc.get("own_n", {})
+        self.sp_compound_total = {
+            sp: len(shared.get(sp, ())) + own.get(sp, 0) for sp in shared.keys() | own.keys()
+        }
 
         self.items = ing["items"]
         self.order = ing["order"]
@@ -290,14 +296,14 @@ class CosIngData:
             extracts.append(e)
         result["extracts"] = extracts
 
-        cpd_count = 0
-        for cpd in self.compounds.values():
-            if cpd.get("top_sp"):
-                for sp_entry in cpd["top_sp"]:
-                    if sp_entry[0] == name:
-                        cpd_count += 1
-                        break
-        result["compound_count"] = cpd_count
+        if self.sp_compound_total:
+            result["compound_count"] = self.sp_compound_total.get(name, 0)
+        else:
+            # older deployments: top_sp keeps only 30 species per compound, so this undercounts
+            result["compound_count"] = sum(
+                1 for cpd in self.compounds.values()
+                if any(sp[0] == name for sp in cpd.get("top_sp", ()))
+            )
         return result
 
     def get_family_info(self, name: str) -> dict | None:

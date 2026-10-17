@@ -67,6 +67,31 @@ def test_get_species(mini_db):
     assert len(r["extracts"]) == 1
 
 
+def test_get_species_counts_shared_and_species_specific_compounds(mini_db):
+    assert mini_db.get_species_info("Rosa damascena")["compound_count"] == 1 + 4
+    assert mini_db.get_species_info("Lavandula angustifolia")["compound_count"] == 2
+
+
+def test_species_compound_count_falls_back_when_the_index_is_missing():
+    from unittest.mock import patch
+
+    from conftest import _build_mini_data
+    from cosing_mcp.data import CosIngData
+
+    ingredients, compounds, _ = _build_mini_data()
+
+    def fetch(name):
+        if name in ("species_compounds.json", "ingredient_compounds.json"):
+            raise RuntimeError("no cache and no network")
+        return ingredients if name == "ingredients.json" else compounds
+
+    db = CosIngData()
+    with patch("cosing_mcp.data._fetch_json", side_effect=fetch):
+        db.load()
+    assert db.sp_compound_total == {}
+    assert db.get_species_info("Rosa damascena")["compound_count"] == 1
+
+
 def test_get_species_not_found(mini_db):
     assert mini_db.get_species_info("Fake species") is None
 
@@ -167,7 +192,7 @@ def test_missing_ingredient_compounds_file_is_tolerated():
     ingredients, compounds, _ = _build_mini_data()
 
     def fetch(name):
-        if name == "ingredient_compounds.json":
+        if name in ("ingredient_compounds.json", "species_compounds.json"):
             raise RuntimeError("no cache and no network")
         return ingredients if name == "ingredients.json" else compounds
 
