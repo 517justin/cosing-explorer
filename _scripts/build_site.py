@@ -11,8 +11,10 @@ Outputs:
   docs/own/{xx}.json          – species-specific compounds, loaded on demand by the Explorer
   docs/svg/{XX}.json          – gzip+base64 SVG chunks by InChIKey prefix
 
-Run: .venv/bin/python _scripts/build_site.py [--skip-svg]
-  --skip-svg  leave docs/svg/ untouched (the SVG step is the slow part)
+Run: .venv/bin/python _scripts/build_site.py [--skip-svg | --svg-new-only]
+  --skip-svg       leave docs/svg/ untouched
+  --svg-new-only   add structures that are not in docs/svg/ yet and leave every published
+                   entry as it is, so only the chunks that gain a structure change
 """
 import json, os, re, gzip, base64, sys
 from collections import defaultdict
@@ -387,7 +389,17 @@ def optimize_svg(raw):
     s = re.sub(r'\s+', ' ', s).strip()
     return s
 
+svg_out_dir = os.path.join(OUT_DIR, 'svg')
+os.makedirs(svg_out_dir, exist_ok=True)
+NEW_ONLY = '--svg-new-only' in sys.argv
 svg_files = [] if '--skip-svg' in sys.argv else sorted(f for f in os.listdir(SVG_DIR) if f.endswith('.svg'))
+if NEW_ONLY:
+    # keep every chunk entry already published, so only chunks that gain a structure change on disk
+    published = {}
+    for fname in os.listdir(svg_out_dir):
+        with open(os.path.join(svg_out_dir, fname)) as f:
+            published[fname[:-5]] = json.load(f)
+    svg_files = [f for f in svg_files if f[:-4] not in published.get(f[:2], {})]
 chunks = defaultdict(dict)
 total_raw = 0
 total_compressed = 0
@@ -410,14 +422,14 @@ for i, fname in enumerate(svg_files):
     if (i + 1) % 10000 == 0:
         print(f"  processed {i+1}/{len(svg_files)} SVGs...")
 
-svg_out_dir = os.path.join(OUT_DIR, 'svg')
-os.makedirs(svg_out_dir, exist_ok=True)
 for prefix, data in chunks.items():
+    if NEW_ONLY:
+        data = dict(sorted({**published.get(prefix, {}), **data}.items()))
     chunk_path = os.path.join(svg_out_dir, f'{prefix}.json')
     with open(chunk_path, 'w') as f:
         json.dump(data, f, separators=(',', ':'))
 
-print(f"  {len(svg_files)} SVGs -> {len(chunks)} chunks")
+print(f"  {len(svg_files)} SVGs -> {len(chunks)} chunks{' (new structures only)' if NEW_ONLY else ''}")
 print(f"  Raw: {total_raw/1024/1024:.0f} MB -> Compressed: {total_compressed/1024/1024:.0f} MB")
 
 # ─── Summary ───
