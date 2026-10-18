@@ -9,6 +9,11 @@ The join is on the GBIF accepted name produced in Phase 2, never on the raw
 COSING name -- LOTUS uses accepted names, and matching raw synonyms would miss
 most of the hits.
 
+Names are compared after dropping the hybrid marker: LOTUS writes
+"Rosa x damascena" where GBIF's canonical name is "Rosa damascena", and an exact
+comparison silently loses those species. The species column keeps the project's
+own spelling.
+
 THE BIAS THAT MATTERS: a species absent from LOTUS is not a species without
 compounds, it is a species without published phytochemistry. Well-studied
 plants dominate. Every count here therefore separates "no data" from "no
@@ -23,6 +28,12 @@ from pathlib import Path
 from common import DATA, REPORTS, SUFFIX, T, connect
 
 LOTUS = DATA / "lotus" / "lotus_260413.csv.gz"
+
+
+def norm(col):
+    """SQL: a name without hybrid markers (x between words, leading x), lowercase, single-spaced."""
+    return (f"lower(trim(regexp_replace(regexp_replace(replace({col}, '\u00d7', ' '), "
+            f"'(^| )x ', ' ', 'g'), ' +', ' ', 'g')))")
 
 
 def load_lotus(con):
@@ -44,7 +55,10 @@ def load_lotus(con):
     if batch:
         con.executemany("INSERT INTO lotus_pair VALUES (?,?,?,?)", batch)
         rows += len(batch)
+    con.execute("ALTER TABLE lotus_pair ADD COLUMN organism_norm VARCHAR")
+    con.execute(f"UPDATE lotus_pair SET organism_norm = {norm('organism')}")
     con.execute("CREATE INDEX IF NOT EXISTS idx_lotus_org ON lotus_pair(organism)")
+    con.execute("CREATE INDEX IF NOT EXISTS idx_lotus_org_norm ON lotus_pair(organism_norm)")
     return rows
 
 
@@ -65,9 +79,9 @@ def main():
                l.inchikey,
                count(DISTINCT l.doi) AS n_references,
                max(CASE WHEN l.validated <> '' THEN 1 ELSE 0 END) = 1 AS manually_validated
-        FROM (SELECT DISTINCT species_accepted FROM {ex}
-              WHERE species_accepted IS NOT NULL) e
-        JOIN lotus_pair l ON l.organism = e.species_accepted
+        FROM (SELECT DISTINCT species_accepted, {norm('species_accepted')} AS name_norm
+              FROM {ex} WHERE species_accepted IS NOT NULL) e
+        JOIN lotus_pair l ON l.organism_norm = e.name_norm
         GROUP BY 1, 2""")
 
     _report(con, ex, sc, n, orgs, cmps)
@@ -79,6 +93,8 @@ def _report(con, ex, sc, n, orgs, cmps):
     species = q(f"SELECT count(DISTINCT species_accepted) FROM {ex} "
                 f"WHERE species_accepted IS NOT NULL")[0][0]
     hit = q(f"SELECT count(DISTINCT species) FROM {sc}")[0][0]
+    exact = q(f"""SELECT count(DISTINCT e.species_accepted) FROM {ex} e
+                  WHERE e.species_accepted IN (SELECT organism FROM lotus_pair)""")[0][0]
     pairs = q(f"SELECT count(*) FROM {sc}")[0][0]
     rows_cov = q(f"""SELECT count(*) FROM {ex} e WHERE e.species_accepted IN
                      (SELECT species FROM {sc})""")[0][0]
@@ -104,6 +120,7 @@ def _report(con, ex, sc, n, orgs, cmps):
     print(f"species with compounds: {hit}/{species} ({hit/species*100:.1f}%)")
     print(f"  species-compound 配對: {pairs:,}")
     print(f"  萃取物覆蓋           : {rows_cov}/{rows_tot} ({rows_cov/rows_tot*100:.1f}%)")
+    print(f"  雜交種記號正規化救回 : {hit - exact}")
     print(f"  種查無但同屬有資料   : {genus_only}")
 
     L = [f"# Phase 4 — LOTUS 化學成分富集{' (2026)' if SUFFIX else ''}", "",
@@ -118,6 +135,7 @@ def _report(con, ex, sc, n, orgs, cmps):
          f"| 物種—化合物配對 | {pairs:,} |",
          f"| 有成分資料的萃取物 | {rows_cov:,} / {rows_tot:,}"
          f"（{rows_cov/rows_tot*100:.1f}%）|",
+         f"| 其中靠忽略雜交種記號（×）才比對到 | {hit - exact:,} |",
          f"| 種層級查無、但同屬有資料 | {genus_only:,} |", "",
          "## 二、⚠️ 覆蓋率偏誤（務必理解）", "",
          "**LOTUS 查不到 ≠ 該物種沒有成分。** 只代表沒有已發表的植化研究。"
