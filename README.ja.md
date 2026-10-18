@@ -17,7 +17,7 @@ EU CosIng データベースに登録された 33,638 種類の化粧品成分�
 - **5 種類のノード** — 科（Family）、用途（Function）、成分（Ingredient）、種（Species）、化合物（Compound）
 - **エゴグラフ表示** — ノードをクリックすると周辺ネットワークを展開。パンくずリストで元の画面に戻れます
 - **ディープリンク** — URL パラメータで特定の成分・科・種・用途・化合物・検索結果を直接開けます
-- **化合物の構造式** — 58,596 件の分子構造 SVG を DecompressionStream でオンデマンド読み込み
+- **化合物の構造式** — 58,690 件の分子構造 SVG を DecompressionStream でオンデマンド読み込み
 - **一つの種に固有の化合物** — 単一の種でのみ報告された 47,280 件の化合物を、種・成分パネルで必要なときに 24 件ずつ読み込み、詳細も表示できます
 - **物理化学的性質** — 化合物パネルに RDKit の記述子 9 項目（LogP、TPSA、水素結合供与体・受容体、回転可能結合、環数と芳香環数、重原子数、Fsp3）を表示し、PubChem へ直接リンク
 - **化合物ブラウザ** — 2 種以上の種で報告された 11,810 件の化合物を一覧表示する専用画面。LogP と分子量の範囲での絞り込み、分子式・名前での検索、並べ替え、ページ送りに対応
@@ -181,13 +181,13 @@ cosing-mcp/                  # AI 質問応答層（MCP Server）
 ├── commands/cosing-analyze.md  # Claude Code スキル
 └── settings.json               # MCP Server 設定
 
-tests/explorer/              # Explorer の UI とデータのテスト（Node + jsdom、25 件）
+tests/explorer/              # Explorer の UI とデータのテスト（Node + jsdom、26 件）
 requirements.txt             # _scripts/ 用の Python 依存パッケージ
 ```
 
 ### SVG の圧縮方式
 
-58,596 個の分子構造 SVG は 1 ページに埋め込めません。そこで次の方法を採っています。
+58,690 個の分子構造 SVG は 1 ページに埋め込めません。そこで次の方法を採っています。
 
 1. 冗長な XML 宣言とスタイルを除去
 2. gzip 圧縮（レベル 9）
@@ -233,7 +233,7 @@ LOTUS の照合（`COSING_SOURCE=2026 .venv/bin/python _scripts/13_lotus.py`）�
 
 ```bash
 cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP Server、43 件
-cd tests/explorer && npm install && npm test             # Explorer の UI とデータ、25 件
+cd tests/explorer && npm install && npm test             # Explorer の UI とデータ、26 件
 ```
 
 ## ロードマップ

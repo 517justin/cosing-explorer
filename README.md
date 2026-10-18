@@ -17,7 +17,7 @@
 - 五種節點類型：科（Family）、用途（Function）、原料（Ingredient）、物種（Species）、化合物（Compound）
 - Ego-graph 導航：點擊任何節點展開其關聯網絡，可用麵包屑路徑回溯
 - 深度連結：支援用 URL 參數直接開啟特定成分、科、物種、用途、化合物或搜尋結果
-- 化合物結構式：58,596 個分子結構 SVG 即時載入，以 DecompressionStream 解壓
+- 化合物結構式：58,690 個分子結構 SVG 即時載入，以 DecompressionStream 解壓
 - 物化性質：化合物面板顯示 9 項 RDKit 描述子（LogP、TPSA、氫鍵供體與受體、可旋轉鍵、環數與芳香環數、重原子數、Fsp3），並直連 PubChem
 - 化合物瀏覽：獨立的清單頁，列出被 2 個以上物種報告的 11,810 個化合物，可依 LogP 與分子量範圍篩選、搜尋分子式或名稱、排序與分頁
 - 物種特有化合物：只在一個物種中被報告的 47,280 個化合物，會在物種與成分面板中按需載入（每次 24 個），點進去可看到完整資料
@@ -160,7 +160,7 @@ MCP Server 提供 6 個工具，Claude 會根據問題自動選用：
 
 ```
 docs/                        # GitHub Pages 根目錄（Explorer）
-├── index.html               # 單頁應用（CSS/JS 內嵌，~2,400 行）
+├── index.html               # 單頁應用（CSS/JS 內嵌，~2,500 行）
 ├── data/
 │   ├── ingredients.json     # 33,638 筆原料 + 索引 + 中英文俗名（~8 MB）
 │   ├── compounds.json       # 11,810 筆化合物索引，限 2 個以上物種共有（~6 MB）
@@ -181,13 +181,13 @@ cosing-mcp/                  # AI 問答層（MCP Server）
 ├── commands/cosing-analyze.md  # Claude Code Skill
 └── settings.json               # MCP Server 設定
 
-tests/explorer/              # Explorer 介面與資料測試（Node + jsdom，25 項）
+tests/explorer/              # Explorer 介面與資料測試（Node + jsdom，26 項）
 requirements.txt             # _scripts/ 的 Python 依賴
 ```
 
 ### SVG 壓縮策略
 
-58,596 個分子結構 SVG 無法內嵌於單頁，所以建置時先壓縮再切成 chunk：
+58,690 個分子結構 SVG 無法內嵌於單頁，所以建置時先壓縮再切成 chunk：
 
 1. 去除冗餘 XML 宣告與樣式
 2. gzip 壓縮（level 9）
@@ -233,7 +233,7 @@ LOTUS 比對（`COSING_SOURCE=2026 .venv/bin/python _scripts/13_lotus.py`）找�
 
 ```bash
 cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP Server，43 項
-cd tests/explorer && npm install && npm test             # Explorer 介面與資料，25 項
+cd tests/explorer && npm install && npm test             # Explorer 介面與資料，26 項
 ```
 
 ## 路線圖

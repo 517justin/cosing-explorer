@@ -17,7 +17,7 @@ Live demo: [517justin.github.io/cosing-explorer](https://517justin.github.io/cos
 - Five node types: family, function, ingredient, species, and compound
 - Ego-graph navigation: click any node to expand its neighborhood, and use the breadcrumb trail to go back
 - Deep linking: URL parameters open a specific ingredient, family, species, function, compound, or search
-- Compound structures: 58,596 molecular structure SVGs, loaded on demand and decompressed in the browser with DecompressionStream
+- Compound structures: 58,690 molecular structure SVGs, loaded on demand and decompressed in the browser with DecompressionStream
 - Molecular properties: the compound panel shows nine RDKit descriptors (LogP, TPSA, hydrogen-bond donors and acceptors, rotatable bonds, ring and aromatic ring counts, heavy atoms, Fsp3) and links straight to PubChem
 - Compound Browser: a separate list of the 11,810 compounds reported from two or more species, with LogP and molecular weight range filters, formula and name search, sorting, and paging
 - Species-specific compounds: the 47,280 compounds reported from only one species load on demand in the species and ingredient panels, 24 at a time, and each opens with its full details
@@ -160,7 +160,7 @@ The MCP server provides six tools, and Claude picks the right one for each quest
 
 ```
 docs/                        # GitHub Pages root (Explorer)
-├── index.html               # Single-page app (CSS/JS inlined, ~2,400 lines)
+├── index.html               # Single-page app (CSS/JS inlined, ~2,500 lines)
 ├── data/
 │   ├── ingredients.json     # 33,638 ingredients + indexes + common names (~8 MB)
 │   ├── compounds.json       # 11,810 compound index, compounds in 2+ species (~6 MB)
@@ -181,13 +181,13 @@ cosing-mcp/                  # AI query layer (MCP Server)
 ├── commands/cosing-analyze.md  # Claude Code Skill
 └── settings.json               # MCP Server config
 
-tests/explorer/              # Explorer UI and data tests (Node + jsdom, 25 tests)
+tests/explorer/              # Explorer UI and data tests (Node + jsdom, 26 tests)
 requirements.txt             # Python dependencies for _scripts/
 ```
 
 ### SVG compression strategy
 
-58,596 molecular structure SVGs are too many to inline into a single page, so the build compresses and chunks them:
+58,690 molecular structure SVGs are too many to inline into a single page, so the build compresses and chunks them:
 
 1. Strip redundant XML declarations and styles
 2. gzip compression (level 9)
@@ -233,7 +233,7 @@ To refresh multilingual names (queries Wikidata over SPARQL, about 20 minutes fo
 
 ```bash
 cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP server, 43 tests
-cd tests/explorer && npm install && npm test             # Explorer UI and data, 25 tests
+cd tests/explorer && npm install && npm test             # Explorer UI and data, 26 tests
 ```
 
 ## Roadmap
