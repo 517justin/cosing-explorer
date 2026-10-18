@@ -19,11 +19,11 @@
 - 深度連結：支援用 URL 參數直接開啟特定成分、科、物種、用途、化合物或搜尋結果
 - 化合物結構式：58,596 個分子結構 SVG 即時載入，以 DecompressionStream 解壓
 - 物化性質：化合物面板顯示 9 項 RDKit 描述子（LogP、TPSA、氫鍵供體與受體、可旋轉鍵、環數與芳香環數、重原子數、Fsp3），並直連 PubChem
-- 化合物瀏覽：獨立的清單頁，列出被 2 個以上物種報告的 11,777 個化合物，可依 LogP 與分子量範圍篩選、搜尋分子式或名稱、排序與分頁
-- 物種特有化合物：只在一個物種中被報告的 47,219 個化合物，會在物種與成分面板中按需載入（每次 24 個），點進去可看到完整資料
+- 化合物瀏覽：獨立的清單頁，列出被 2 個以上物種報告的 11,810 個化合物，可依 LogP 與分子量範圍篩選、搜尋分子式或名稱、排序與分頁
+- 物種特有化合物：只在一個物種中被報告的 47,280 個化合物，會在物種與成分面板中按需載入（每次 24 個），點進去可看到完整資料
 - 物種照片：透過 GBIF Occurrence API 自動載入實物照片
-- 中英文俗名：2,368 種物種有中文俗名、2,448 種有英文俗名，376 科全數附有中英文俗名，搜尋和顯示都支援。日文和名涵蓋 1,575 種物種與 275 科
-- 化合物多語名稱：6,581 個化合物附英/中/日名稱與別名（來自 Wikidata），可用「caffeine」「槲皮素」「ケルセチン」搜尋
+- 中英文俗名：2,375 種物種有中文俗名、2,448 種有英文俗名，376 科全數附有中英文俗名，搜尋和顯示都支援。日文和名涵蓋 1,587 種物種與 275 科
+- 化合物多語名稱：6,589 個化合物附英/中/日名稱與別名（來自 Wikidata），可用「caffeine」「槲皮素」「ケルセチン」搜尋
 - 三語介面：用按鈕在中文、English、日本語之間切換，介面文字、俗名與和名隨語系變更；日文模式支援和名搜尋（如「ラベンダー」）
 - 篩選與排序：植物來源 / 有限制 / 有結構 / 用途 / 科篩選，多種排序模式
 - 法規資料：EU 化妝品法規 EC 1223/2009 Annex II–VI 結構化顯示，色彩編碼
@@ -163,10 +163,10 @@ docs/                        # GitHub Pages 根目錄（Explorer）
 ├── index.html               # 單頁應用（CSS/JS 內嵌，~2,400 行）
 ├── data/
 │   ├── ingredients.json     # 33,638 筆原料 + 索引 + 中英文俗名（~8 MB）
-│   ├── compounds.json       # 11,777 筆化合物索引，限 2 個以上物種共有（~6 MB）
+│   ├── compounds.json       # 11,810 筆化合物索引，限 2 個以上物種共有（~6 MB）
 │   ├── species_compounds.json  # 完整的物種 → 化合物清單（~0.4 MB）
 │   └── ingredient_compounds.json  # 另有 5,411 筆化合物，供 MCP Server 使用（~0.8 MB）
-├── own/                     # 47,219 個物種特有化合物，分成 178 個按需載入的 chunk（~11 MB）
+├── own/                     # 47,280 個物種特有化合物，分成 178 個按需載入的 chunk（~11 MB）
 └── svg/                     # 631 個 SVG chunk（~194 MB）
 
 cosing-mcp/                  # AI 問答層（MCP Server）
@@ -215,9 +215,12 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 # 需要 _data/kb.duckdb 與 _data/structures/
 .venv/bin/python _scripts/build_site.py              # 重建全部 JSON 與 SVG chunk
 .venv/bin/python _scripts/build_site.py --skip-svg   # 只重建 JSON（不動 docs/svg/）
+.venv/bin/python _scripts/build_site.py --svg-new-only   # 重建 JSON，並加入尚未發布的結構圖
 ```
 
-SVG chunk 現在用固定的 gzip 標頭寫出，連續兩次完整建置的結果位元組完全相同。目前已提交的 chunk 仍帶有建置時間戳，所以第一次完整重建會一次改寫全部 631 個檔案；除非結構式有變動，請用 `--skip-svg`。
+SVG chunk 現在用固定的 gzip 標頭寫出，連續兩次完整建置的結果位元組完全相同。目前已提交的 chunk 仍帶有建置時間戳，所以完整重建會一次改寫全部 631 個檔案。新增化合物後請用 `--svg-new-only`（已發布的項目一律不動，只有新增結構圖的 chunk 會變），其他情況用 `--skip-svg`。
+
+LOTUS 比對（`COSING_SOURCE=2026 .venv/bin/python _scripts/13_lotus.py`）找到新化合物時，建置前要依序執行 `17_fetch_compound_smiles.py`、`18_render_structures.py`、`19_compute_descriptors.py`，因為第 17 步會重建 `compound_v2026` 表。
 
 更新多語名稱（會向 Wikidata 發送 SPARQL 查詢，全量約 20 分鐘）：
 
@@ -241,6 +244,7 @@ cd tests/explorer && npm install && npm test             # Explorer 介面與資
 
 | 日期 | 內容 |
 |------|------|
+| 2026-10-18 | 處理雜交種記號：LOTUS 與 Wikidata 把雜交種寫成帶乘號的 `Rosa × damascena`，使 5 個物種的化合物（包含示範物種 Rosa damascena，現有 75 個化合物）和 16 個物種的 Wikidata 名稱（例如 Citrus limon，現為 レモン 與 檸檬）都對不上。比對時改為忽略乘號。另外抓取並繪製了 94 個新化合物，並新增 `build_site.py --svg-new-only`，只加入新結構圖、不改寫其他 chunk |
 | 2026-10-17 | 修正 3 個 LOTUS 顯示問題：物種到化合物的索引每個化合物只留 30 個物種（22.7% 的連結消失，例如 Vitis vinifera 的 352 個共享化合物只顯示 222 個）、成分面板列出點進去是空頁的化合物（188 個成分）、以及只在單一物種出現的 47,219 個化合物完全看不到。Explorer 現在讀取完整的物種清單，物種特有化合物按需載入；`ingredients.json` 從 13 MB 縮到 8 MB，MCP 也改用完整索引計算物種的化合物數 |
 | 2026-10-15 | 補上僅供成分使用的化合物名稱：`ingredient_compounds.json` 的 5,411 個化合物中，3,355 個現在附有來自 Wikidata 的英、中、日名稱，MCP Server 可以搜尋。先前因無效而移除的 3 筆物種名稱，也補上了真正的名稱 |
 | 2026-10-05 | 技術債清理：MCP Server 現在對全部 7,281 個有結構的成分都能回傳化合物資料（原本只有 1,169 個）、新增建置腳本的 `requirements.txt`、SVG chunk 建置改為確定性、新增 Explorer 測試（Node + jsdom，18 項）、修正窄視窗的工具列排版，並移除 5 筆與學名相同的無效俗名。MCP 測試由 38 項增為 41 項 |

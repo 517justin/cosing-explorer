@@ -163,7 +163,7 @@
 
 ---
 
-## LOTUS 資料問題（2026-10-16 調查，2026-10-17 處理前三項）
+## LOTUS 資料問題（2026-10-16 調查，2026-10-17 處理前三項，2026-10-18 處理第 5 項）
 
 | # | 問題 | 處理 | 狀態 |
 |---|------|------|------|
@@ -171,7 +171,7 @@
 | 2 | 成分面板的化合物數與前 8 個是用全部化合物算的，但 `compounds.json` 只收 2 個以上物種共有的，點進去是只有 InChIKey 的空頁（188 個成分、119 個物種） | 移除 `tc` 預覽（`ingredients.json` 從 13.4 MB 縮到 8.2 MB）。面板分成「化合物（共有）」與「僅見於此物種的化合物」兩區，後者每張卡片都能開啟完整頁面 | ✅ |
 | 3 | 「至少 2 個物種」的門檻讓 38.5% 的配對查不到，多半是物種特有、資訊量最大的化合物 | 47,219 個單一物種化合物依物種前兩個字母切成 178 個 `own/` chunk（共 11 MB），在物種與成分面板按需載入，每次顯示 24 個。測試 Explorer 18 → 25 項、MCP 41 → 43 項 | ✅ |
 | 4 | 1,770 個化合物（2,500 筆配對）因 PubChem 查無而在 JOIN 時被丟掉，其中 164 個被 2 個以上物種共有。另有 400 個有 CID 但沒有 SMILES，沒有結構圖與描述子 | 未處理。LOTUS 原始檔對這 1,770 個都附有 Wikidata QID，可嘗試從 Wikidata 取結構，需先確認它有提供 | 待做 |
-| 5 | 雜交種記號 × 造成漏配：LOTUS 寫 `Rosa × damascena`，專案寫 `Rosa damascena`。可救回 5 個物種（373 筆配對、253 個化合物），包含 README 的示範物種 Rosa damascena，另有 Rosa centifolia、Iris germanica、Hibiscus rosa-sinensis、Citrus tachibana | 未處理，在 `13_lotus.py` 比對時正規化 × 即可 | 待做 |
+| 5 | 雜交種記號 × 造成漏配：LOTUS 寫 `Rosa × damascena`，專案寫 `Rosa damascena`。可救回 5 個物種（373 筆配對、253 個化合物），包含 README 的示範物種 Rosa damascena，另有 Rosa centifolia、Iris germanica、Hibiscus rosa-sinensis、Citrus tachibana | `13_lotus.py` 改以去掉 × 的名稱比對，救回 5 個物種（2,219 → 2,224）與 268 筆配對。新增 94 個化合物已從 PubChem 抓取並繪圖，共有化合物 11,777 → 11,810、物種特有 47,219 → 47,280。同一原因也讓 16 個物種沒有 Wikidata 名稱（如 Citrus limon），抓取改為同時查詢雜交種寫法（新增 `--retry-missing`），合併時也忽略 × 來判斷名稱是否只是學名。另新增 `build_site.py --svg-new-only`，只加入新結構圖、不改寫既有項目，64 個 chunk 變動而非 631 個 | ✅ |
 | 6 | 「LOTUS 使用接受名」的假設不完全成立，例如專案是 Vetiveria zizanioides、LOTUS 是 Chrysopogon zizanioides，另有 9 個只以變種名出現。608 個無資料物種中有多少能靠 GBIF 同義名救回，尚未量測 | 未處理，需要用 GBIF 同義名做一次實驗 | 待做 |
 | 7 | 證據品質沒有呈現：81%（102,463／126,775 筆）配對只有 1 篇文獻，人工驗證僅 62 筆。`n_references` 與 DOI 已在資料裡但介面不顯示 | 未處理 | 待做 |
 | 8 | 介面沒有區分「LOTUS 無資料」與「無成分」：608 個物種（21.5%）只是被悄悄省略，介面文字完全沒出現 LOTUS 或「無資料」 | 未處理 | 待做 |
@@ -199,3 +199,4 @@
 | Phase 8b-i18n | Explorer 日文介面（中／EN／日三語）+ 和名搜尋 + README.ja.md | 2026-10-02 |
 | 技術債清理 | requirements.txt、MCP 化合物覆蓋 100%、Explorer 測試、工具列排版 | 2026-10-05 |
 | LOTUS 顯示問題（1 至 3） | 完整的物種化合物索引、物種特有化合物按需載入 | 2026-10-17 |
+| LOTUS 雜交種記號（5） | 比對時忽略 ×，救回 5 個物種的化合物與 16 個物種的 Wikidata 名稱 | 2026-10-18 |

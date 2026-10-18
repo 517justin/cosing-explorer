@@ -36,13 +36,26 @@ test('common names only refer to known species and families', () => {
   for (const k of ['fam_zh', 'fam_en', 'fam_ja']) for (const f of Object.keys(ing[k])) assert.ok(families.has(f), `${k}: unknown family ${f}`);
 });
 
+// "Rosa x damascena", "Rosa ×damascena" and "Rosa damascena" are the same name
+const plain = n => n.replace('\u00d7', '\u00d7 ').replace(/(^| )[\u00d7x] /g, '$1').replace(/\s+/g, ' ').trim().toLowerCase();
+
 test('no common name is blank or equal to the scientific name', () => {
   for (const k of ['sp_zh', 'sp_en', 'sp_ja', 'fam_zh', 'fam_en', 'fam_ja']) {
     for (const [sci, name] of Object.entries(ing[k])) {
       assert.ok(name.trim(), `${k}[${sci}] is blank`);
-      assert.notEqual(name.toLowerCase(), sci.toLowerCase(), `${k}[${sci}] repeats the scientific name`);
+      assert.notEqual(plain(name), plain(sci), `${k}[${sci}] repeats the scientific name`);
+      assert.ok(!name.includes('\u00d7'), `${k}[${sci}] contains a hybrid sign: ${name}`);
     }
   }
+});
+
+test('hybrid species are matched to their LOTUS compounds and Wikidata names', () => {
+  // LOTUS and Wikidata write these with a multiplication sign, the project does not
+  for (const sp of ['Rosa damascena', 'Rosa centifolia', 'Iris germanica', 'Hibiscus rosa-sinensis', 'Citrus tachibana']) {
+    assert.ok((sc.shared[sp]?.length || 0) + (sc.own_n[sp] || 0) > 0, `${sp} has no compounds`);
+  }
+  assert.equal(ing.sp_ja['Citrus limon'], 'レモン');
+  assert.equal(ing.sp_ja['Rosa damascena'], 'ロサダマスケナ');
 });
 
 test('compound names respect the per-language caps and contain no blanks', () => {
