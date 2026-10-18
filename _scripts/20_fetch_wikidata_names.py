@@ -16,7 +16,8 @@ Etiquette: <=50 keys/query, 2 s between queries, descriptive User-Agent,
 Retry-After honoured on 429.
 
 Usage:
-    .venv/bin/python _scripts/20_fetch_wikidata_names.py species|families|compounds|ingredient_compounds [--limit N] [--all]
+    .venv/bin/python _scripts/20_fetch_wikidata_names.py species|families|compounds|ingredient_compounds
+        [--limit N] [--all] [--retry-missing]
 """
 import argparse
 import json
@@ -67,14 +68,28 @@ def esc(s):
     return s.replace("\\", "\\\\").replace('"', '\\"')
 
 
+def spellings(kind, key):
+    """Names to look up for one key. Wikidata writes hybrids as "Rosa x damascena" (with a
+    multiplication sign) where GBIF's canonical name, and so the project's, has none."""
+    if kind == "species" and key.count(" ") == 1:
+        genus, epithet = key.split(" ")
+        return [key, f"{genus} \u00d7 {epithet}"]
+    return [key]
+
+
 def build_query(kind, keys):
-    values = " ".join(f'"{esc(k)}"' for k in keys)
     is_compound = kind in COMPOUND_KINDS
-    prop = "wdt:P235" if is_compound else "wdt:P225"
+    if is_compound:
+        values = "VALUES ?key { " + " ".join(f'"{esc(k)}"' for k in keys) + " }"
+        match = "?item wdt:P235 ?key ."
+    else:
+        pairs = " ".join(f'("{esc(k)}" "{esc(n)}")' for k in keys for n in spellings(kind, k))
+        values = "VALUES (?key ?name) { " + pairs + " }"
+        match = "?item wdt:P225 ?name ."
     common = '' if is_compound else '\n    UNION { ?item wdt:P1843 ?text . BIND("c" AS ?kind) }'
     return f"""SELECT ?key ?item ?kind ?text WHERE {{
-  VALUES ?key {{ {values} }}
-  ?item {prop} ?key .
+  {values}
+  {match}
   {{ ?item rdfs:label ?text . BIND("l" AS ?kind) }}
   UNION {{ ?item skos:altLabel ?text . BIND("a" AS ?kind) }}{common}
   FILTER(lang(?text) IN ({LANG_FILTER}))
@@ -144,6 +159,7 @@ def main():
     ap.add_argument("kind", choices=["species", "families", "compounds", "ingredient_compounds"])
     ap.add_argument("--limit", type=int, default=0, help="Max uncached keys to query (0=all)")
     ap.add_argument("--all", action="store_true", help="compounds: all InChIKeys, not just Explorer set")
+    ap.add_argument("--retry-missing", action="store_true", help="query cached keys that had no hit again")
     args = ap.parse_args()
 
     CACHE_DIR.mkdir(exist_ok=True)
@@ -151,7 +167,7 @@ def main():
     cache = json.loads(cache_path.read_text("utf-8")) if cache_path.exists() else {}
 
     keys = load_keys(args.kind, args.all)
-    todo = [k for k in keys if k not in cache]
+    todo = [k for k in keys if k not in cache or (args.retry_missing and cache[k] is None)]
     if args.limit:
         todo = todo[: args.limit]
     print(f"{args.kind}: {len(keys):,} keys, {len(keys) - len(todo):,} cached, {len(todo):,} to query")

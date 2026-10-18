@@ -29,7 +29,7 @@ DB = ROOT / "_data" / "kb.duckdb"
 s2t = OpenCC("s2twp")
 ZH_TRAD = ["zh-hant", "zh-tw", "zh-hk"]
 ZH_SIMP = ["zh", "zh-hans", "zh-cn", "zh-sg"]
-LATIN = re.compile(r"^[\x00-\x7f]+$")
+LATIN = re.compile(r"^[\x00-\x7f\u00d7]+$")
 
 
 def pools(rec, lang):
@@ -59,10 +59,15 @@ def dedupe(seq):
     return out
 
 
+def plain(name):
+    """Lowercase, single-spaced, without hybrid markers: "Rosa x damascena" == "Rosa damascena"."""
+    return re.sub(r"\s+", " ", re.sub(r"(^| )[\u00d7x] ", r"\1", name.replace("\u00d7", "\u00d7 "))).strip().lower()
+
+
 def taxon_name(rec, lang, sci):
     """Single best common name for a taxon in `lang`, or None."""
     for v in pools(rec, lang):
-        if v.lower() == sci.lower() or v.lower().startswith(sci.split()[0].lower() + " "):
+        if plain(v) == plain(sci) or plain(v).startswith(plain(sci).split()[0] + " "):
             continue
         if lang in ("zh", "ja") and LATIN.match(v):
             continue
