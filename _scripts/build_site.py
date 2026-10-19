@@ -13,10 +13,10 @@ Outputs:
 
 Run: .venv/bin/python _scripts/build_site.py [--skip-svg | --svg-new-only]
   --skip-svg       leave docs/svg/ untouched
-  --svg-new-only   add structures that are not in docs/svg/ yet and leave every published
-                   entry as it is, so only the chunks that gain a structure change
+  --svg-new-only   write structures that are not published yet to docs/svg/add/ and leave the
+                   main chunks untouched (a full rebuild folds svg/add/ back into them)
 """
-import json, os, re, gzip, base64, sys
+import json, os, re, gzip, base64, shutil, sys
 from collections import defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -393,13 +393,25 @@ svg_out_dir = os.path.join(OUT_DIR, 'svg')
 os.makedirs(svg_out_dir, exist_ok=True)
 NEW_ONLY = '--svg-new-only' in sys.argv
 svg_files = [] if '--skip-svg' in sys.argv else sorted(f for f in os.listdir(SVG_DIR) if f.endswith('.svg'))
+add_dir = os.path.join(svg_out_dir, 'add')
+
+
+def read_chunks(directory):
+    if not os.path.isdir(directory):
+        return {}
+    out = {}
+    for fname in os.listdir(directory):
+        if fname.endswith('.json'):
+            with open(os.path.join(directory, fname)) as f:
+                out[fname[:-5]] = json.load(f)
+    return out
+
+
 if NEW_ONLY:
-    # keep every chunk entry already published, so only chunks that gain a structure change on disk
-    published = {}
-    for fname in os.listdir(svg_out_dir):
-        with open(os.path.join(svg_out_dir, fname)) as f:
-            published[fname[:-5]] = json.load(f)
-    svg_files = [f for f in svg_files if f[:-4] not in published.get(f[:2], {})]
+    # published chunks stay untouched: structures that are not there yet go to svg/add/,
+    # which the Explorer reads when the main chunk has no entry
+    base, added = read_chunks(svg_out_dir), read_chunks(add_dir)
+    svg_files = [f for f in svg_files if f[:-4] not in base.get(f[:2], {}) and f[:-4] not in added.get(f[:2], {})]
 chunks = defaultdict(dict)
 total_raw = 0
 total_compressed = 0
@@ -422,14 +434,18 @@ for i, fname in enumerate(svg_files):
     if (i + 1) % 10000 == 0:
         print(f"  processed {i+1}/{len(svg_files)} SVGs...")
 
+if NEW_ONLY and chunks:
+    os.makedirs(add_dir, exist_ok=True)
+elif not NEW_ONLY and svg_files and os.path.isdir(add_dir):
+    shutil.rmtree(add_dir)  # a full rebuild folds everything into the main chunks
 for prefix, data in chunks.items():
     if NEW_ONLY:
-        data = dict(sorted({**published.get(prefix, {}), **data}.items()))
-    chunk_path = os.path.join(svg_out_dir, f'{prefix}.json')
+        data = dict(sorted({**added.get(prefix, {}), **data}.items()))
+    chunk_path = os.path.join(add_dir if NEW_ONLY else svg_out_dir, f'{prefix}.json')
     with open(chunk_path, 'w') as f:
         json.dump(data, f, separators=(',', ':'))
 
-print(f"  {len(svg_files)} SVGs -> {len(chunks)} chunks{' (new structures only)' if NEW_ONLY else ''}")
+print(f"  {len(svg_files)} SVGs -> {len(chunks)} chunks{' (new structures only, in svg/add/)' if NEW_ONLY else ''}")
 print(f"  Raw: {total_raw/1024/1024:.0f} MB -> Compressed: {total_compressed/1024/1024:.0f} MB")
 
 # ─── Summary ───

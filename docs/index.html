@@ -2014,17 +2014,26 @@ async function decompressSvg(b64) {
   return new TextDecoder().decode(m);
 }
 
+// Structures live in svg/<xx>.json; ones added later are in svg/add/<xx>.json (missing there is normal)
+async function loadSvgChunk(path, allowMissing) {
+  if (SVG_CACHE[path]) return SVG_CACHE[path];
+  try {
+    const r = await fetch(path);
+    if (r.ok) return (SVG_CACHE[path] = await r.json());
+    if (allowMissing && r.status === 404) return (SVG_CACHE[path] = {});
+  } catch {}
+  return null;
+}
+
 async function getSvg(ik) {
   if (!ik) return null;
   const px = ik.substring(0, 2);
-  if (!SVG_CACHE[px]) {
-    try {
-      const r = await fetch('svg/' + px + '.json');
-      if (!r.ok) return null;
-      SVG_CACHE[px] = await r.json();
-    } catch { return null; }
+  const main = await loadSvgChunk('svg/' + px + '.json', false);
+  let b = main && main[ik];
+  if (!b) {
+    const add = await loadSvgChunk('svg/add/' + px + '.json', true);
+    b = add && add[ik];
   }
-  const b = SVG_CACHE[px]?.[ik];
   return b ? await decompressSvg(b) : null;
 }
 
