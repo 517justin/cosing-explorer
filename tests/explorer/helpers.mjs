@@ -8,6 +8,7 @@ const DOCS = process.env.COSING_DOCS
   ? pathToFileURL(path.resolve(process.env.COSING_DOCS) + path.sep)
   : new URL('../../docs/', import.meta.url);
 
+export const docsUrl = rel => new URL(rel, DOCS);
 export const readData = name => JSON.parse(fs.readFileSync(new URL(`data/${name}`, DOCS), 'utf8'));
 export const sleep = ms => new Promise(r => setTimeout(r, ms));
 

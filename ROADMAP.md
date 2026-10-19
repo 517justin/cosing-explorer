@@ -153,7 +153,7 @@
 |------|------|------|
 | 腳本沒有依賴清單 | 新增根目錄 `requirements.txt`（duckdb、rdkit、opencc）。`cosing-mcp` 新增 `dev` extra 與 pytest 設定，可直接執行 `pytest`。用全新 venv 的 `pip install --dry-run` 驗證可解析 | ✅ |
 | MCP 只查得到 Explorer 的化合物 | 實測有結構的 7,281 個成分中，只有 1,169 個查得到化合物資料，其餘是不屬於任何物種的合成化合物。`19_compute_descriptors.py` 擴充到 `cas_structure_v2026`，`build_site.py` 匯出 `ingredient_compounds.json`（5,411 筆、0.57 MB），MCP 以它作後備。覆蓋率從 1,169 提高到 7,281（100%），MCP 測試 38 項增為 40 項。2026-10-15 補上名稱：5,411 個 InChIKey 中 4,881 個在 Wikidata 有條目、3,355 個有可用名稱（en 3,293、zh 993、ja 830），MCP 的名稱搜尋同步涵蓋，測試增為 41 項 | ✅ |
-| SVG chunk 每次重建都不同 | 程式碼已修：檔案列舉改為排序、gzip 標頭固定 `mtime=0`，連續兩次完整建置的 631 個 chunk 雜湊相同。**刻意不提交重新產生的 chunk**：抽樣檢查新舊檔只差標頭 4 個位元組，但實測 631 個檔案一起推送時 git 沒有做差分（小量時有），推送會多出約 115 MB。第一次完整重建仍會改寫全部 chunk，建議與下一次真正改動 SVG 的工作（8d）一起提交，在那之前用 `--skip-svg` | ✅ 程式碼；資料待 8d |
+| SVG chunk 每次重建都不同 | 程式碼已修：檔案列舉改為排序、gzip 標頭固定 `mtime=0`，連續兩次完整建置的 631 個 chunk 雜湊相同。**刻意不提交重新產生的 chunk**：抽樣檢查新舊檔只差標頭 4 個位元組，但實測 631 個檔案一起推送時 git 沒有做差分（小量時有），推送會多出約 115 MB。完整重建仍會改寫全部 chunk，所以新增結構圖改用 `--svg-new-only` 寫入 `svg/add/` 附加層（見 LOTUS 第 4 項），其他情況用 `--skip-svg` | ✅ 程式碼；資料待 8d |
 | Explorer 沒有前端測試 | 新增 `tests/explorer/`（Node 內建測試執行器加 jsdom，18 項）。8 項檢查建置輸出的資料不變量，10 項檢查介面行為：語言切換、名稱 fallback、搜尋、化合物面板、化合物瀏覽、Help。用故意改壞的副本驗證過，4 種破壞全部被抓到。測試還找出 5 筆「俗名」其實等於學名的資料，已移除 | ✅ |
 | 工具列在約 800px 寬度被擠壓 | 原本搜尋框被壓到 0px、按鈕被壓扁到 18px。改成搜尋框與按鈕保有最小寬度，統計列依剩餘空間逐項隱藏（字型載入後與視窗縮放時會重算）。800px 下搜尋框為 160 至 245px | ✅ |
 
@@ -163,14 +163,14 @@
 
 ---
 
-## LOTUS 資料問題（2026-10-16 調查，2026-10-17 處理前三項，2026-10-18 處理第 5 項）
+## LOTUS 資料問題（2026-10-16 調查，2026-10-17 處理前三項，2026-10-18 處理第 5 項，2026-10-19 處理第 4 項）
 
 | # | 問題 | 處理 | 狀態 |
 |---|------|------|------|
 | 1 | `compounds.json` 的 `top_sp` 每個化合物只留按字母排序的前 30 個物種，Explorer 的「物種 → 化合物」索引由它建立，22.7% 的連結（17,502／77,056）消失。1,507 個物種顯示的比實際少，46 個一個都沒有，例如 Vitis vinifera 實際 352 個只顯示 222 個 | 新增 `species_compounds.json`（0.4 MB）保存完整的物種清單，以 `compounds.json` 的順序索引。Explorer 與 MCP 都改讀它，科的索引也改由物種清單推得，不再受 `top_fam` 前 10 科的限制 | ✅ |
 | 2 | 成分面板的化合物數與前 8 個是用全部化合物算的，但 `compounds.json` 只收 2 個以上物種共有的，點進去是只有 InChIKey 的空頁（188 個成分、119 個物種） | 移除 `tc` 預覽（`ingredients.json` 從 13.4 MB 縮到 8.2 MB）。面板分成「化合物（共有）」與「僅見於此物種的化合物」兩區，後者每張卡片都能開啟完整頁面 | ✅ |
 | 3 | 「至少 2 個物種」的門檻讓 38.5% 的配對查不到，多半是物種特有、資訊量最大的化合物 | 47,219 個單一物種化合物依物種前兩個字母切成 178 個 `own/` chunk（共 11 MB），在物種與成分面板按需載入，每次顯示 24 個。測試 Explorer 18 → 25 項、MCP 41 → 43 項 | ✅ |
-| 4 | 1,770 個化合物（2,500 筆配對）因 PubChem 查無而在 JOIN 時被丟掉，其中 164 個被 2 個以上物種共有。另有 400 個有 CID 但沒有 SMILES，沒有結構圖與描述子 | 未處理。LOTUS 原始檔對這 1,770 個都附有 Wikidata QID，可嘗試從 Wikidata 取結構，需先確認它有提供 | 待做 |
+| 4 | 1,770 個化合物（2,500 筆配對）因 PubChem 查無而在 JOIN 時被丟掉，其中 164 個被 2 個以上物種共有。另有 400 個有 CID 但沒有 SMILES，沒有結構圖與描述子 | 新增 `17b_wikidata_structures.py`：依 LOTUS 附的 Wikidata QID 取 SMILES，並以 RDKit 重算 InChIKey 驗證，必須與 LOTUS 的 key 相同才採用。1,772 個中 1,764 個完全一致、4 個是同一結構但缺立體資訊、3 個因 Wikidata 項目對應到別的化合物被拒絕、1 個沒有 SMILES。`17_fetch_compound_smiles.py` 新增依 CID 補 SMILES（PubChem 回傳的 InChIKey 須一致），400 筆全數補齊。結果：共有化合物 11,810 → 11,978、物種特有 47,280 → 48,880，Zingiber officinale 694 → 713 個（與 LOTUS 報告相同）。仍有 4 個化合物沒有資料。新增 2,168 個結構圖放進 `svg/add/` 附加層（583 個小檔、7 MB），Explorer 先查主 chunk、找不到再查附加層，631 個主 chunk 不動。測試 Explorer 26 → 28 項 | ✅ |
 | 5 | 雜交種記號 × 造成漏配：LOTUS 寫 `Rosa × damascena`，專案寫 `Rosa damascena`。可救回 5 個物種（373 筆配對、253 個化合物），包含 README 的示範物種 Rosa damascena，另有 Rosa centifolia、Iris germanica、Hibiscus rosa-sinensis、Citrus tachibana | `13_lotus.py` 改以去掉 × 的名稱比對，救回 5 個物種（2,219 → 2,224）與 268 筆配對。新增 94 個化合物已從 PubChem 抓取並繪圖，共有化合物 11,777 → 11,810、物種特有 47,219 → 47,280。同一原因也讓 16 個物種沒有 Wikidata 名稱（如 Citrus limon），抓取改為同時查詢雜交種寫法（新增 `--retry-missing`），合併時也忽略 × 來判斷名稱是否只是學名。另新增 `build_site.py --svg-new-only`，只加入新結構圖、不改寫既有項目，64 個 chunk 變動而非 631 個 | ✅ |
 | 6 | 「LOTUS 使用接受名」的假設不完全成立，例如專案是 Vetiveria zizanioides、LOTUS 是 Chrysopogon zizanioides，另有 9 個只以變種名出現。608 個無資料物種中有多少能靠 GBIF 同義名救回，尚未量測 | 未處理，需要用 GBIF 同義名做一次實驗 | 待做 |
 | 7 | 證據品質沒有呈現：81%（102,463／126,775 筆）配對只有 1 篇文獻，人工驗證僅 62 筆。`n_references` 與 DOI 已在資料裡但介面不顯示 | 未處理 | 待做 |
@@ -199,4 +199,5 @@
 | Phase 8b-i18n | Explorer 日文介面（中／EN／日三語）+ 和名搜尋 + README.ja.md | 2026-10-02 |
 | 技術債清理 | requirements.txt、MCP 化合物覆蓋 100%、Explorer 測試、工具列排版 | 2026-10-05 |
 | LOTUS 顯示問題（1 至 3） | 完整的物種化合物索引、物種特有化合物按需載入 | 2026-10-17 |
+| LOTUS 被丟掉的化合物（4） | 從 Wikidata 與依 CID 補回 2,168 個結構，Explorer 化合物增加 1,768 個 | 2026-10-19 |
 | LOTUS 雜交種記號（5） | 比對時忽略 ×，救回 5 個物種的化合物與 16 個物種的 Wikidata 名稱 | 2026-10-18 |

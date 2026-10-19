@@ -17,13 +17,13 @@ EU CosIng データベースに登録された 33,638 種類の化粧品成分�
 - **5 種類のノード** — 科（Family）、用途（Function）、成分（Ingredient）、種（Species）、化合物（Compound）
 - **エゴグラフ表示** — ノードをクリックすると周辺ネットワークを展開。パンくずリストで元の画面に戻れます
 - **ディープリンク** — URL パラメータで特定の成分・科・種・用途・化合物・検索結果を直接開けます
-- **化合物の構造式** — 58,690 件の分子構造 SVG を DecompressionStream でオンデマンド読み込み
-- **一つの種に固有の化合物** — 単一の種でのみ報告された 47,280 件の化合物を、種・成分パネルで必要なときに 24 件ずつ読み込み、詳細も表示できます
+- **化合物の構造式** — 60,858 件の分子構造 SVG を DecompressionStream でオンデマンド読み込み
+- **一つの種に固有の化合物** — 単一の種でのみ報告された 48,880 件の化合物を、種・成分パネルで必要なときに 24 件ずつ読み込み、詳細も表示できます
 - **物理化学的性質** — 化合物パネルに RDKit の記述子 9 項目（LogP、TPSA、水素結合供与体・受容体、回転可能結合、環数と芳香環数、重原子数、Fsp3）を表示し、PubChem へ直接リンク
-- **化合物ブラウザ** — 2 種以上の種で報告された 11,810 件の化合物を一覧表示する専用画面。LogP と分子量の範囲での絞り込み、分子式・名前での検索、並べ替え、ページ送りに対応
+- **化合物ブラウザ** — 2 種以上の種で報告された 11,978 件の化合物を一覧表示する専用画面。LogP と分子量の範囲での絞り込み、分子式・名前での検索、並べ替え、ページ送りに対応
 - **種の写真** — GBIF Occurrence API から自動取得
 - **通称・和名** — 中国語の通称は 2,375 種、英語の通称は 2,448 種に、376 科すべてに中国語・英語の通称を収録。和名は 1,587 種と 275 科に収録しています。検索・表示の両方で利用できます
-- **化合物の多言語名称** — 6,589 件の化合物に英語・中国語・日本語の名称と別名を収録（Wikidata 由来）。「caffeine」「槲皮素」「ケルセチン」で検索できます
+- **化合物の多言語名称** — 6,644 件の化合物に英語・中国語・日本語の名称と別名を収録（Wikidata 由来）。「caffeine」「槲皮素」「ケルセチン」で検索できます
 - **三言語 UI** — 中文 / English / 日本語を切り替え可能。ラベルと通称・和名が言語に合わせて切り替わります
 - **絞り込みと並べ替え** — 植物由来 / 規制あり / 構造あり / 用途別 / 科別の絞り込みと、複数の並べ替え
 - **規制データ** — EU 化粧品規則 EC 1223/2009 の Annex II–VI を構造化して色分け表示
@@ -163,11 +163,12 @@ docs/                        # GitHub Pages のルート（Explorer）
 ├── index.html               # シングルページアプリ（CSS/JS 埋め込み）
 ├── data/
 │   ├── ingredients.json     # 33,638 件の成分 + インデックス + 通称・和名（約 8 MB）
-│   ├── compounds.json       # 11,810 件の化合物インデックス。2 種以上に共通するもの（約 6 MB）
+│   ├── compounds.json       # 11,978 件の化合物インデックス。2 種以上に共通するもの（約 6 MB）
 │   ├── species_compounds.json  # 種 → 化合物の完全なリスト（約 0.4 MB）
 │   └── ingredient_compounds.json  # MCP Server 用の追加 5,411 件の化合物（約 0.8 MB）
-├── own/                     # 種に固有の 47,280 件の化合物。必要時に読み込む 178 チャンク（約 11 MB）
+├── own/                     # 種に固有の 48,880 件の化合物。必要時に読み込む 178 チャンク（約 11 MB）
 └── svg/                     # 631 個の SVG チャンク（約 194 MB）
+    └── add/                 # 後から追加した 2,168 件の構造式、583 チャンク（約 7 MB）
 
 cosing-mcp/                  # AI 質問応答層（MCP Server）
 ├── src/cosing_mcp/
@@ -181,13 +182,13 @@ cosing-mcp/                  # AI 質問応答層（MCP Server）
 ├── commands/cosing-analyze.md  # Claude Code スキル
 └── settings.json               # MCP Server 設定
 
-tests/explorer/              # Explorer の UI とデータのテスト（Node + jsdom、26 件）
+tests/explorer/              # Explorer の UI とデータのテスト（Node + jsdom、28 件）
 requirements.txt             # _scripts/ 用の Python 依存パッケージ
 ```
 
 ### SVG の圧縮方式
 
-58,690 個の分子構造 SVG は 1 ページに埋め込めません。そこで次の方法を採っています。
+60,858 個の分子構造 SVG は 1 ページに埋め込めません。そこで次の方法を採っています。
 
 1. 冗長な XML 宣言とスタイルを除去
 2. gzip 圧縮（レベル 9）
@@ -218,9 +219,9 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python _scripts/build_site.py --svg-new-only   # JSON と、未公開の構造式のみ追加
 ```
 
-SVG チャンクは gzip ヘッダーを固定して書き出すため、完全ビルドを繰り返しても結果はバイト単位で一致します。ただし、これまでにコミット済みのチャンクにはビルド時刻が入っているため、完全ビルドでは 631 ファイルすべてが一度だけ書き換わります。化合物を追加したときは `--svg-new-only`（公開済みの項目には触れず、構造式が増えたチャンクだけが変わります）、それ以外は `--skip-svg` を使ってください。
+SVG チャンクは gzip ヘッダーを固定して書き出すため、完全ビルドを繰り返しても結果はバイト単位で一致します。ただし、これまでにコミット済みのチャンクにはビルド時刻が入っているため、完全ビルドでは 631 ファイルすべてが一度だけ書き換わります。化合物を追加したときは `--svg-new-only` を使ってください。未公開の構造式は `docs/svg/add/` に書き出され、Explorer はメインのチャンクに無いときにそこを読みます（631 個のメインチャンクは変わりません。完全ビルドでは `svg/add/` がメインに統合されます）。それ以外は `--skip-svg` を使ってください。
 
-LOTUS の照合（`COSING_SOURCE=2026 .venv/bin/python _scripts/13_lotus.py`）で新しい化合物が見つかったら、ビルドの前に `17_fetch_compound_smiles.py`、`18_render_structures.py`、`19_compute_descriptors.py` を順に実行してください。17 が `compound_v2026` を作り直すためです。
+LOTUS の照合（`COSING_SOURCE=2026 .venv/bin/python _scripts/13_lotus.py`）で新しい化合物が見つかったら、ビルドの前に `17_fetch_compound_smiles.py`、`17b_wikidata_structures.py`（PubChem に無い構造式を Wikidata から取得し InChIKey で検証）、`17_fetch_compound_smiles.py`（`compound_v2026` の再読み込み）、`18_render_structures.py`、`19_compute_descriptors.py` を順に実行してください。
 
 多言語名称を更新する場合（Wikidata へ SPARQL クエリを送信。全件で約 20 分）：
 
@@ -233,7 +234,7 @@ LOTUS の照合（`COSING_SOURCE=2026 .venv/bin/python _scripts/13_lotus.py`）�
 
 ```bash
 cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP Server、43 件
-cd tests/explorer && npm install && npm test             # Explorer の UI とデータ、26 件
+cd tests/explorer && npm install && npm test             # Explorer の UI とデータ、28 件
 ```
 
 ## ロードマップ
@@ -244,6 +245,7 @@ cd tests/explorer && npm install && npm test             # Explorer の UI と�
 
 | 日付 | 内容 |
 |------|------|
+| 2026-10-19 | PubChem が返さなかった化合物を回収 — パイプラインから脱落していた 1,772 件のうち 1,768 件に Wikidata 由来の構造式を付与（SMILES から再計算した InChIKey が LOTUS のキーと一致した場合のみ採用）、SMILES なしで返ってきた 400 件は CID で補完。共通化合物は 11,810 から 11,978 件、種に固有の化合物は 47,280 から 48,880 件に増え、Zingiber officinale は LOTUS と同じ 713 件になりました。新しい構造式は追加レイヤー `svg/add/` に置き、631 個のメインチャンクには触れません |
 | 2026-10-18 | 交雑種記号の処理 — LOTUS と Wikidata は交雑種を乗算記号付き（`Rosa × damascena`）で表記するため、5 種の化合物（デモ用の Rosa damascena を含み、現在 75 件）と 16 種の Wikidata 名称（例：Citrus limon は現在 レモン・檸檬）が一致していませんでした。比較時に記号を無視するようにしました。新しい化合物 94 件を取得して描画し、既存チャンクを書き換えずに構造式を追加する `build_site.py --svg-new-only` を追加 |
 | 2026-10-17 | LOTUS の表示問題を 3 件修正 — 種から化合物へのインデックスが化合物ごとに 30 種で切られていた（リンクの 22.7% が欠落。例：Vitis vinifera は共通化合物 352 件のうち 222 件しか表示されなかった）、成分パネルが開いても空のページになる化合物を列挙していた（188 成分）、単一の種にしか現れない 47,219 件の化合物がまったく見えなかった。Explorer は完全な種リストを読み込み、種に固有の化合物は必要時に読み込みます。`ingredients.json` は 13 MB から 8 MB に縮小し、MCP も完全なインデックスで種の化合物数を数えます |
 | 2026-10-15 | 成分専用の化合物の名称を追加 — `ingredient_compounds.json` の 5,411 件のうち 3,355 件に Wikidata 由来の英語・中国語・日本語名を付け、MCP Server で検索可能に。無効として削除していた種名 3 件も、正しい名称で補完 |

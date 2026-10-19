@@ -1,14 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { readData } from './helpers.mjs';
+import { docsUrl, readData } from './helpers.mjs';
 
 const ing = readData('ingredients.json');
 const cpd = readData('compounds.json');
 const ingCpd = readData('ingredient_compounds.json');
 const sc = readData('species_compounds.json');
 const ownKey = sp => sp.slice(0, 2).toLowerCase().replace(/[^a-z]/g, '_');
-const readOwn = key => JSON.parse(fs.readFileSync(new URL(`../../docs/own/${key}.json`, import.meta.url), 'utf8'));
+const readOwn = key => JSON.parse(fs.readFileSync(docsUrl(`own/${key}.json`), 'utf8'));
+const readAllOwn = () => Object.assign({}, ...fs.readdirSync(docsUrl('own/')).map(f => readOwn(f.replace('.json', ''))));
 const species = new Set(Object.values(ing.items).map(it => it.sp).filter(Boolean));
 
 test('item indexes point at real functions and families', () => {
@@ -117,7 +118,7 @@ test('species-specific compounds: counts match the chunks and none is in compoun
       assert.ok(desc === null || desc.length === 9, `${ik}: bad descriptors`);
     }
   }
-  const files = fs.readdirSync(new URL('../../docs/own/', import.meta.url)).map(f => f.replace('.json', ''));
+  const files = fs.readdirSync(docsUrl('own/')).map(f => f.replace('.json', ''));
   assert.deepEqual(files.sort(), [...new Set(Object.keys(sc.own_n).map(ownKey))].sort(), 'stale or missing chunk files');
 });
 
@@ -128,4 +129,24 @@ test('an ingredient\'s compound count is its shared plus species-specific compou
     const total = (sc.shared[it.sp]?.length || 0) + (sc.own_n[it.sp] || 0);
     assert.equal(it.cc || 0, total, `${ref} (${it.sp})`);
   }
+});
+
+test('every compound the Explorer can show has a drawing, in a main chunk or the add-on layer, never both', () => {
+  const wanted = new Map();
+  const want = (ik, c) => { if (c.desc) wanted.set(ik, c); };
+  for (const [ik, c] of Object.entries(cpd)) want(ik, c);
+  for (const rows of Object.values(readAllOwn())) for (const [ik, , , , desc] of rows) if (desc) wanted.set(ik, { desc });
+
+  const read = rel => {
+    const file = docsUrl(`svg/${rel}`);
+    return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};
+  };
+  const prefixes = [...new Set([...wanted.keys()].map(ik => ik.slice(0, 2)))];
+  const missing = [];
+  for (const px of prefixes) {
+    const main = read(`${px}.json`), add = read(`add/${px}.json`);
+    for (const ik of Object.keys(add)) assert.ok(!(ik in main), `${ik} is in the main chunk and the add-on layer`);
+    for (const ik of wanted.keys()) if (ik.startsWith(px) && !(ik in main) && !(ik in add)) missing.push(ik);
+  }
+  assert.deepEqual(missing.slice(0, 5), [], `${missing.length} compounds have no drawing`);
 });

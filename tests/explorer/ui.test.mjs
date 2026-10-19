@@ -202,3 +202,23 @@ test('species-specific section follows the language', () =>
     assert.equal(ex.document.getElementById('own-btn').textContent, '表示');
     await sleep(100);
   }));
+
+test('structure lookup falls back to the add-on layer and treats its absence as normal', () =>
+  withExplorer({}, async ex => {
+    const calls = [];
+    ex.window.fetch = async url => {
+      calls.push(url);
+      if (url === 'svg/AB.json') return { ok: true, json: async () => ({ ABMAIN: 'main-drawing' }) };
+      if (url === 'svg/add/AB.json') return { ok: true, json: async () => ({ ABLATE: 'late-drawing' }) };
+      return { ok: false, status: 404 };
+    };
+    ex.window.eval('decompressSvg = async b => "SVG:" + b');
+    assert.equal(await ex.window.getSvg('ABMAIN'), 'SVG:main-drawing');
+    assert.equal(await ex.window.getSvg('ABLATE'), 'SVG:late-drawing');
+    assert.equal(await ex.window.getSvg('ABNONE'), null);
+    // a prefix without an add-on file: the main chunk still answers, and the 404 is asked about once
+    assert.equal(await ex.window.getSvg('CDGONE'), null);
+    assert.equal(await ex.window.getSvg('CDGONE'), null);
+    assert.equal(calls.filter(u => u === 'svg/add/CD.json').length, 1);
+    assert.equal(calls.filter(u => u === 'svg/AB.json').length, 1, 'main chunks are cached');
+  }));
