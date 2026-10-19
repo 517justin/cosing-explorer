@@ -6,7 +6,11 @@ Strategy:
   2. Subtract those already in compound_cache.json (resume-safe).
   3. POST batches of 100 InChIKeys to PubChem PUG REST.
   4. Write results to _data/compound_cache.json (append-friendly).
-  5. At the end, load the cache into a DuckDB table `compound_v2026`.
+  5. Records that came back without a SMILES are asked again by CID.
+  6. At the end, load the cache into a DuckDB table `compound_v2026`.
+
+Keys PubChem does not know are cached as {"not_found": true}; 17b_wikidata_structures.py
+recovers most of those from Wikidata.
 
 PubChem rate limit: 5 requests/second, 400 InChIKeys/POST max.
 We use 100 per batch for safety and set 0.25 s between requests.
@@ -66,6 +70,54 @@ def fetch_batch(inchikeys):
         return None
 
 
+URL_CID = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/property/SMILES,InChIKey/JSON"
+
+
+def fetch_by_cid(cids):
+    """{cid: (smiles, inchikey)} for one batch, None on a transient error."""
+    req = Request(URL_CID, data=("cid=" + ",".join(map(str, cids))).encode("utf-8"), method="POST")
+    req.add_header("Content-Type", "application/x-www-form-urlencoded")
+    try:
+        with urlopen(req, timeout=30) as resp:
+            rows = json.loads(resp.read()).get("PropertyTable", {}).get("Properties", [])
+        return {r["CID"]: (r.get("SMILES") or r.get("IsomericSMILES"), r.get("InChIKey")) for r in rows}
+    except HTTPError as e:
+        if e.code == 404:
+            return {}
+        if e.code in (429, 500, 502, 503, 504):
+            return None
+        raise
+    except (URLError, TimeoutError):
+        return None
+
+
+def fill_missing_smiles(cache):
+    """Some records come back from the InChIKey lookup without a SMILES, though PubChem has one
+    for the CID. Ask by CID and accept it only when PubChem reports the same InChIKey."""
+    todo = {v["cid"]: ik for ik, v in cache.items()
+            if not v.get("not_found") and not v.get("smiles") and v.get("cid")}
+    if not todo:
+        return
+    cids = sorted(todo)
+    filled = 0
+    for i in range(0, len(cids), BATCH):
+        batch = cids[i:i + BATCH]
+        result = fetch_by_cid(batch)
+        for wait in (5, 15, 30):
+            if result is not None:
+                break
+            print(f"  transient error, retrying in {wait}s...")
+            time.sleep(wait)
+            result = fetch_by_cid(batch)
+        for cid, (smiles, key) in (result or {}).items():
+            if smiles and key == todo[cid]:
+                cache[todo[cid]]["smiles"] = smiles
+                filled += 1
+        time.sleep(DELAY)
+    save_cache(cache)
+    print(f"Records without a SMILES: {len(cids):,}, filled by CID: {filled:,}")
+
+
 def main():
     db = duckdb.connect(str(DB), read_only=True)
     all_iks = sorted(
@@ -84,6 +136,7 @@ def main():
 
     if not todo:
         print("Nothing to fetch.")
+        fill_missing_smiles(cache)
         load_into_db(cache)
         return
 
@@ -133,6 +186,7 @@ def main():
     print(f"\nDone. Found={found}, NotFound={not_found}, Errors={errors}")
     print(f"Cache size: {len(cache):,} entries")
 
+    fill_missing_smiles(cache)
     load_into_db(cache)
 
 
