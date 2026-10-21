@@ -272,6 +272,9 @@ canvas#graph.dragging { cursor: grabbing; }
 .sp-lbl { color: var(--text-sec); min-width: 50px; flex-shrink: 0; }
 .sp-val { word-break: break-word; }
 .sp-desc { font-size: 13px; color: var(--text-sec); line-height: 1.6; }
+.sp-note { font-size: 11px; color: var(--text-sec); line-height: 1.5; margin: 6px 0; }
+.sp-refs { display: inline-block; min-width: 18px; text-align: center; padding: 0 5px; margin-left: 6px; border-radius: 9px; background: var(--surface-alt); color: var(--text-sec); font-size: 10px; font-variant-numeric: tabular-nums; }
+.sib-row { font-size: 12px; padding: 3px 0; border-bottom: 1px solid var(--border); cursor: pointer; color: var(--compound); word-break: break-all; }
 .own-btn { margin: 2px 0 8px; padding: 4px 12px; border: 1px solid var(--compound); border-radius: 6px; background: var(--compound-dim); color: var(--compound); cursor: pointer; font-size: 12px; font-family: var(--font); }
 .own-btn:disabled { opacity: 0.5; cursor: default; }
 .pc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 10px; font-size: 12px; }
@@ -559,6 +562,11 @@ const I18N = {
     restrictedCount: '受限原料', restrictedRatio: '受限比例',
     viewRegulation: '查看法規 ↗',
     alsoKnown: '別名',
+    refsTitle: '文獻篇數', stereoSibs: '同一平面結構的其他立體異構物',
+    evidenceNote: '{b} 個物種報告過此化合物，其中 {a} 個只有 1 篇文獻支持。物種旁的數字是 LOTUS 收錄的文獻篇數。',
+    noLotus: 'LOTUS 沒有此物種的化合物資料。這代表尚無已發表的植化研究，不代表它不含化合物。',
+    lotusSource: '化合物資料來自 LOTUS，依文獻整理，研究較多的物種涵蓋較完整。',
+    viaNote: '部分化合物在 LOTUS 以其他學名記載，依 GBIF 同義名或種下單位（變種、亞種）歸入此物種：{names}',
     ownCpds: '僅見於此物種的化合物', ownShow: '顯示', ownMore: '顯示更多', ownFail: '載入失敗，點擊重試',
     physProps: '物化性質', mw: '分子量', logp: 'LogP', tpsa: 'TPSA',
     hbd: 'H鍵供體', hba: 'H鍵受體', rotb: '可旋轉鍵', rings: '環數',
@@ -600,6 +608,11 @@ const I18N = {
     restrictedCount: 'Restricted', restrictedRatio: 'Restricted ratio',
     viewRegulation: 'View regulation ↗',
     alsoKnown: 'Also known as',
+    refsTitle: 'References', stereoSibs: 'Other stereoisomers of this structure',
+    evidenceNote: '{b} species report this compound, {a} of them on a single reference. The number next to a species is how many references LOTUS lists.',
+    noLotus: 'LOTUS has no compound data for this species. That means no phytochemistry has been published for it, not that it has no compounds.',
+    lotusSource: 'Compound data comes from LOTUS, compiled from the literature; well-studied species are covered best.',
+    viaNote: 'Some compounds are listed in LOTUS under other names and were credited to this species through GBIF synonyms or its varieties and subspecies: {names}',
     ownCpds: 'Compounds found only in this species', ownShow: 'Show', ownMore: 'Show more', ownFail: 'Could not load, click to retry',
     physProps: 'Physical Properties', mw: 'MW', logp: 'LogP', tpsa: 'TPSA',
     hbd: 'H-Bond Donors', hba: 'H-Bond Acceptors', rotb: 'Rotatable Bonds', rings: 'Rings',
@@ -641,6 +654,11 @@ const I18N = {
     restrictedCount: '規制対象の成分', restrictedRatio: '規制対象の割合',
     viewRegulation: '規制を見る ↗',
     alsoKnown: '別名',
+    refsTitle: '文献数', stereoSibs: '同じ平面構造の他の立体異性体',
+    evidenceNote: '{b} 種がこの化合物を報告しており、うち {a} 種は文献 1 件のみです。種名の横の数字は LOTUS が収録する文献数です。',
+    noLotus: 'LOTUS にはこの種の化合物データがありません。植物化学の研究が発表されていないという意味で、化合物を含まないという意味ではありません。',
+    lotusSource: '化合物データは LOTUS（文献から整理）によるもので、研究の多い種ほど網羅されています。',
+    viaNote: '一部の化合物は LOTUS では別の学名で記載されており、GBIF の異名または種内分類群（変種・亜種）としてこの種に含めています：{names}',
     ownCpds: 'この種にのみ見られる化合物', ownShow: '表示', ownMore: 'さらに表示', ownFail: '読み込めませんでした。クリックで再試行',
     physProps: '物理化学的性質', mw: '分子量', logp: 'LogP', tpsa: 'TPSA',
     hbd: '水素結合供与体', hba: '水素結合受容体', rotb: '回転可能結合', rings: '環数',
@@ -667,6 +685,20 @@ function localName(maps, key) {
 }
 function spName(sp) { return localName({ zh: 'sp_zh', en: 'sp_en', ja: 'sp_ja' }, sp); }
 function cpdOf(ik) { return D.ci[ik] || D.own_ci[ik]; }
+// every species that reports a compound as [species, references], the ones with more CosIng ingredients first
+function cpdSpecies(ik) {
+  const i = D.ci_idx[ik];
+  const list = i === undefined ? ((D.own_ci[ik] && D.own_ci[ik].sp_list) || []) : (D.cpd_sp[i] || []);
+  return list.slice().sort((a, b) => (D.sp_ing_n[b[0]] || 0) - (D.sp_ing_n[a[0]] || 0) || b[1] - a[1] || (a[0] < b[0] ? -1 : 1));
+}
+function speciesRow(sp, refs) {
+  const nav = "navHistory.push({type:GRAPH.view,centerType:GRAPH.centerType,centerIdx:GRAPH.centerIdx});GRAPH=buildEgoGraph('species','" + sp.replace(/'/g, "\\'") + "');CAM.x=0;CAM.y=0;CAM.scale=1;selectedNode=GRAPH.nodes[0];showPanel(selectedNode);updateBreadcrumb()";
+  let h = '<div style="font-size:12px;padding:2px 0;border-bottom:1px solid var(--border)"><span style="font-style:italic;cursor:pointer;color:var(--species)" onclick="' + nav + '">' + esc(sp) + '</span>';
+  const cn = spName(sp);
+  if (cn) h += ' <small style="color:var(--text)">(' + esc(cn) + ')</small>';
+  else if (D.sp_fam[sp]) h += ' <small style="color:var(--text-sec)">' + esc(D.sp_fam[sp]) + '</small>';
+  return h + '<span class="sp-refs" title="' + T('refsTitle') + '">' + refs + '</span></div>';
+}
 function famName(fam) { return localName({ zh: 'fam_zh', en: 'fam_en', ja: 'fam_ja' }, fam); }
 function cpdName(c) {
   const nm = c && c.nm; if (!nm) return '';
@@ -1047,7 +1079,7 @@ function buildEgoGraph(centerType, centerIdx) {
       const ci = nodes.length - 1;
       nodeMap[cpdId] = ci;
       let linked = false;
-      if (cpd.top_sp) cpd.top_sp.forEach(([sp]) => {
+      cpdSpecies(ik).forEach(([sp]) => {
         const spIdx = nodeMap['sp:' + sp];
         if (spIdx !== undefined) { edges.push({ source: spIdx, target: ci, weight: 1 }); linked = true; }
       });
@@ -1228,9 +1260,10 @@ function buildEgoGraph(centerType, centerIdx) {
     nodes.push({ id: cid, type: 'compound', label: cpd ? cpd.f : centerIdx.substring(0, 14), r: 28, ik: centerIdx, x: 0, y: 0, vx: 0, vy: 0 });
     nodeMap[cid] = 0;
 
-    if (cpd && cpd.top_sp) {
-      const cpdSpSet = new Set(cpd.top_sp.map(([sp]) => sp));
-      cpd.top_sp.slice(0, 20).forEach(([sp]) => {
+    const cpdSpList = cpd ? cpdSpecies(centerIdx) : [];
+    if (cpdSpList.length) {
+      const cpdSpSet = new Set(cpdSpList.map(([sp]) => sp));
+      cpdSpList.slice(0, 20).forEach(([sp]) => {
         const sid = 'sp:' + sp;
         if (nodeMap[sid] !== undefined) return;
         nodes.push({ id: sid, type: 'species', label: sp, r: 7, x: 0, y: 0, vx: 0, vy: 0 });
@@ -1930,15 +1963,22 @@ function showPanel(n) {
         });
         h += '</div></div>';
       }
-      if (cpd.top_sp && cpd.top_sp.length) {
-        h += '<div class="sp-section"><h3>' + T('relatedSp') + ' (' + Math.min(cpd.top_sp.length, 20) + '/' + cpd.n_sp + ')</h3><div style="max-height:200px;overflow-y:auto">';
-        cpd.top_sp.slice(0, 20).forEach(([sp, fam]) => {
-          h += '<div style="font-size:12px;padding:2px 0;border-bottom:1px solid var(--border)"><span style="font-style:italic;cursor:pointer;color:var(--species)" onclick="navHistory.push({type:GRAPH.view,centerType:GRAPH.centerType,centerIdx:GRAPH.centerIdx});GRAPH=buildEgoGraph(\'species\',\'' + sp.replace(/'/g, "\\'") + '\');CAM.x=0;CAM.y=0;CAM.scale=1;selectedNode=GRAPH.nodes[0];showPanel(selectedNode);updateBreadcrumb()">' + esc(sp) + '</span>';
-          const _cSpN = spName(sp);
-          if (_cSpN) h += ' <small style="color:var(--text)">(' + esc(_cSpN) + ')</small>';
-          else if (fam) h += ' <small style="color:var(--text-sec)">' + esc(fam) + '</small>';
-          h += '</div>';
+      const sibs = (D.planar[n.ik.slice(0, 14)] || []).filter(k => k !== n.ik).sort((x, y) => (D.ci[y].n_sp || 0) - (D.ci[x].n_sp || 0));
+      if (sibs.length) {
+        h += '<div class="sp-section"><h3>' + T('stereoSibs') + ' (' + sibs.length + ')</h3><div style="max-height:150px;overflow-y:auto">';
+        sibs.slice(0, 40).forEach(k => {
+          const c = D.ci[k];
+          h += '<div class="sib-row" onclick="navToCompound(\'' + k + '\')">' + esc((c.iupac || k).slice(0, 90)) + '<span class="sp-refs" title="' + T('spInCpd') + '">' + c.n_sp + '</span></div>';
         });
+        h += '</div></div>';
+      }
+      const spl = cpdSpecies(n.ik);
+      if (spl.length) {
+        const single = spl.filter(([, r]) => r === 1).length;
+        h += '<div class="sp-section"><h3>' + T('relatedSp') + ' (' + spl.length + ')</h3>';
+        h += '<div class="sp-note">' + T('evidenceNote').replace('{a}', single).replace('{b}', spl.length) + '</div>';
+        h += '<div style="max-height:220px;overflow-y:auto">';
+        spl.forEach(([sp, refs]) => { h += speciesRow(sp, refs); });
         h += '</div></div>';
       }
     }
@@ -2092,6 +2132,7 @@ function compoundCard(ik, formula, open) {
 function speciesCompoundHtml(sp) {
   let h = '';
   const shared = D.ci_by_sp[sp] || [];
+  if (!shared.length && !(D.sc.own_n[sp] || 0)) return '<div class="sp-note">' + T('noLotus') + '</div>';
   if (shared.length) {
     h += '<div class="sp-section"><h3>' + T('compounds') + ' (' + shared.length + ')</h3><div class="sp-chem-grid">';
     speciesCompoundTop(sp).forEach(ik => { h += compoundCard(ik, D.ci[ik].f || '', 'showCompound'); });
@@ -2103,7 +2144,9 @@ function speciesCompoundHtml(sp) {
       '<button class="own-btn" id="own-btn" data-sp="' + esc(sp) + '" onclick="showOwn(this.dataset.sp)">' + T('ownShow') + '</button>' +
       '<div class="sp-chem-grid" id="own-grid"></div></div>';
   }
-  return h;
+  const via = D.sc.via[sp];
+  if (via && via.length) h += '<div class="sp-note">' + T('viaNote').replace('{names}', via.map(n => '<i>' + esc(n) + '</i>').join(', ')) + '</div>';
+  return h + '<div class="sp-note">' + T('lotusSource') + ' <a href="https://lotus.naturalproducts.net/" target="_blank" rel="noopener" style="color:var(--accent)">LOTUS ↗</a></div>';
 }
 
 // Compounds found in a single species live in own/<first two letters>.json and load on demand.
@@ -2122,9 +2165,9 @@ async function loadOwn(sp) {
   for (const [s, rows] of Object.entries(chunk)) {
     const fam = D.sp_fam[s];
     D.own[s] = rows;
-    for (const [ik, f, cid, mw, desc, iupac] of rows) {
+    for (const [ik, f, cid, mw, desc, iupac, refs] of rows) {
       D.own_ci[ik] = { f, iupac, cid: cid || undefined, mw: mw == null ? undefined : mw, desc: desc || undefined,
-        n_sp: 1, n_fam: 1, top_sp: [[s, fam || '']], top_fam: fam ? [[fam, 1]] : [] };
+        n_sp: 1, n_fam: 1, sp_list: [[s, refs]], top_fam: fam ? [[fam, 1]] : [] };
     }
   }
   return D.own[sp] || [];
@@ -2173,12 +2216,14 @@ function showCompound(ik) {
     h += '<h3>' + esc(ik) + '</h3>';
   }
   h += '<div class="overlay-svg" id="ov-' + ik + '"><div class="sp-chem-ph" style="width:180px;height:180px;margin:0 auto">⋯</div></div>';
-  if (c && c.top_sp) {
+  const spl = c ? cpdSpecies(ik) : [];
+  if (spl.length) {
     h += '<div class="overlay-sp"><h3 style="font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-sec);margin:10px 0 4px">Species</h3><ul style="margin:0;padding-left:18px">';
-    c.top_sp.forEach(([sp, fm]) => {
-      h += '<li><i>' + esc(sp) + '</i>' + (fm ? ' <span style="color:var(--text-sec)">(' + esc(fm) + ')</span>' : '') + '</li>';
+    spl.slice(0, 40).forEach(([sp, refs]) => {
+      const fm = D.sp_fam[sp];
+      h += '<li><i>' + esc(sp) + '</i>' + (fm ? ' <span style="color:var(--text-sec)">(' + esc(fm) + ')</span>' : '') + '<span class="sp-refs" title="' + T('refsTitle') + '">' + refs + '</span></li>';
     });
-    if (c.n_sp > c.top_sp.length) h += '<li style="color:var(--text-sec)">… +' + (c.n_sp - c.top_sp.length) + ' more</li>';
+    if (spl.length > 40) h += '<li style="color:var(--text-sec)">… +' + (spl.length - 40) + ' more</li>';
     h += '</ul></div>';
   }
   h += '</div>';
@@ -2322,6 +2367,19 @@ async function main() {
   }
   D.ci_by_fam = {};
   for (const [fam, set] of Object.entries(famSets)) D.ci_by_fam[fam] = [...set];
+
+  // compound -> species (with reference counts), species -> ingredient count, and planar groups of stereoisomers
+  D.ci_idx = {};
+  ciKeys.forEach((ik, i) => { D.ci_idx[ik] = i; });
+  D.cpd_sp = new Array(ciKeys.length);
+  for (const [sp, idxs] of Object.entries(D.sc.shared)) {
+    const refs = D.sc.refs[sp];
+    idxs.forEach((i, k) => { (D.cpd_sp[i] || (D.cpd_sp[i] = [])).push([sp, refs[k]]); });
+  }
+  D.sp_ing_n = {};
+  for (const it of Object.values(D.items)) if (it.sp) D.sp_ing_n[it.sp] = (D.sp_ing_n[it.sp] || 0) + 1;
+  D.planar = {};
+  for (const ik of ciKeys) (D.planar[ik.slice(0, 14)] || (D.planar[ik.slice(0, 14)] = [])).push(ik);
 
   if (!D.sp_zh) D.sp_zh = {};
   if (!D.sp_en) D.sp_en = {};

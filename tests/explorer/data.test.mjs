@@ -150,3 +150,24 @@ test('every compound the Explorer can show has a drawing, in a main chunk or the
   }
   assert.deepEqual(missing.slice(0, 5), [], `${missing.length} compounds have no drawing`);
 });
+
+test('every report carries a reference count, shared and species-specific alike', () => {
+  for (const [sp, idxs] of Object.entries(sc.shared)) {
+    assert.equal(sc.refs[sp]?.length, idxs.length, `${sp}: refs must line up with the compound list`);
+    for (const r of sc.refs[sp]) assert.ok(Number.isInteger(r) && r >= 1, `${sp}: bad reference count ${r}`);
+  }
+  for (const [sp, rows] of Object.entries(readAllOwn())) {
+    for (const row of rows) assert.ok(row.length === 7 && Number.isInteger(row[6]) && row[6] >= 1, `${sp}: bad own row ${row[0]}`);
+  }
+});
+
+test('names credited through GBIF synonyms are recorded, and homonyms are not', () => {
+  assert.ok(sc.via['Lathyrus oleraceus'].includes('Pisum sativum'));
+  assert.ok((sc.shared['Lathyrus oleraceus']?.length || 0) + (sc.own_n['Lathyrus oleraceus'] || 0) > 100, 'garden pea compounds are credited to its accepted name');
+  // GBIF lists "Annona glabra" among the synonyms of Annona squamosa, but the accepted species of that name is another one
+  assert.ok(!(sc.via['Annona squamosa'] || []).includes('Annona glabra'));
+  for (const [sp, names] of Object.entries(sc.via)) {
+    assert.ok(species.has(sp) && (sc.shared[sp] || sc.own_n[sp]), `${sp}: via note for a species without compounds`);
+    assert.ok(names.length > 0 && !names.includes(sp), `${sp}: bad via list`);
+  }
+});

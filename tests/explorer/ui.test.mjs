@@ -222,3 +222,77 @@ test('structure lookup falls back to the add-on layer and treats its absence as 
     assert.equal(calls.filter(u => u === 'svg/add/CD.json').length, 1);
     assert.equal(calls.filter(u => u === 'svg/AB.json').length, 1, 'main chunks are cached');
   }));
+
+const openPanel = (ex, expr) => ex.window.eval(`GRAPH = ${expr}; selectedNode = GRAPH.nodes[0]; showPanel(selectedNode)`);
+
+test('a compound lists every species that reports it, most relevant first, with reference counts', () =>
+  withExplorer({}, async ex => {
+    const ik = 'REFJWTPEDVJJIY-UHFFFAOYSA-N'; // quercetin
+    const n = ex.get(`D.ci['${ik}'].n_sp`);
+    assert.ok(n > 300);
+    ex.window.navToCompound(ik);
+    const rows = [...ex.document.querySelectorAll('#panel .sp-section div[style*="max-height:220px"] > div')];
+    assert.equal(rows.length, n, 'one row per species, not just 20 or 30');
+    assert.match([...ex.document.querySelectorAll('#panel h3')].map(h => h.textContent).join('|'), new RegExp(`\\(${n}\\)`));
+    const ing = rows.map(r => ex.get(`D.sp_ing_n[${JSON.stringify(r.querySelector('span').textContent)}] || 0`));
+    assert.deepEqual(ing.slice(0, 40), [...ing.slice(0, 40)].sort((a, b) => b - a), 'species with more ingredients come first');
+    for (const r of rows.slice(0, 20)) assert.match(r.querySelector('.sp-refs').textContent, /^\d+$/);
+    assert.match(ex.document.querySelector('#panel .sp-note').textContent, new RegExp(`${n} 個物種報告過此化合物，其中 \\d+ 個只有 1 篇`));
+    await sleep(200);
+  }));
+
+test('the graph of a compound reaches species beyond the first alphabetical ones', () =>
+  withExplorer({}, async ex => {
+    ex.window.navToCompound('REFJWTPEDVJJIY-UHFFFAOYSA-N');
+    const species = ex.get(`GRAPH.nodes.filter(n => n.type === 'species').map(n => n.label)`);
+    assert.equal(species.length, 20);
+    assert.ok(species.some(sp => sp > 'Cu'), 'not only the first alphabetical species');
+    await sleep(200);
+  }));
+
+test('a species without LOTUS data says so instead of showing nothing', () =>
+  withExplorer({}, async ex => {
+    const sp = ex.get(`Object.values(D.items).find(i => i.sp && !D.sc.shared[i.sp] && !D.sc.own_n[i.sp]).sp`);
+    openPanel(ex, `buildEgoGraph('species', ${JSON.stringify(sp)})`);
+    assert.match(ex.document.getElementById('panel').textContent, /LOTUS 沒有此物種的化合物資料.*不代表它不含化合物/);
+    assert.equal(ex.document.querySelectorAll('#panel .sp-chem-card').length, 0);
+    ex.window.setLang('en');
+    assert.match(ex.document.getElementById('panel').textContent, /no phytochemistry has been published/);
+    await sleep(100);
+  }));
+
+test('a species with compounds names LOTUS as the source, and says which other names were used', () =>
+  withExplorer({}, async ex => {
+    openPanel(ex, `buildEgoGraph('species', 'Lathyrus oleraceus')`);
+    const notes = [...ex.document.querySelectorAll('#panel .sp-note')].map(n => n.textContent);
+    assert.ok(notes.some(t => t.includes('Pisum sativum') && t.includes('GBIF')), 'synonym note');
+    assert.ok(notes.some(t => t.includes('LOTUS ↗')), 'source note');
+    assert.ok(ex.document.querySelector('#panel a[href="https://lotus.naturalproducts.net/"]'));
+    openPanel(ex, `buildEgoGraph('species', 'Vitis vinifera')`);
+    assert.ok(![...ex.document.querySelectorAll('#panel .sp-note')].some(n => n.textContent.includes('以其他學名記載')) || ex.get(`!!D.sc.via['Vitis vinifera']`));
+    await sleep(200);
+  }));
+
+test('stereoisomers of one structure point at each other', () =>
+  withExplorer({}, async ex => {
+    const group = ex.get(`Object.values(D.planar).find(g => g.length >= 3)`);
+    const [first, ...rest] = group;
+    ex.window.navToCompound(first);
+    const sec = [...ex.document.querySelectorAll('#panel .sp-section')].find(s => s.querySelector('h3')?.textContent.startsWith('同一平面結構'));
+    assert.ok(sec, 'section present');
+    assert.match(sec.querySelector('h3').textContent, new RegExp(`\\(${rest.length}\\)`));
+    const row = sec.querySelector('.sib-row');
+    row.click();
+    assert.ok(rest.includes(ex.get('GRAPH.centerIdx')), 'clicking a row opens that stereoisomer');
+    await sleep(200);
+  }));
+
+test('a species-specific compound shows how many references report it', () =>
+  withExplorer({}, async ex => {
+    ex.window.eval(`GRAPH = buildEgoGraph('species', 'Drimia maritima'); selectedNode = GRAPH.nodes[0]; showPanel(selectedNode)`);
+    ex.document.getElementById('own-btn').click();
+    await sleep(300);
+    ex.document.querySelector('#own-grid .sp-chem-card').click();
+    assert.match(ex.document.querySelector('#panel .sp-refs').textContent, /^\d+$/);
+    await sleep(300);
+  }));
