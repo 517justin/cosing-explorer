@@ -222,7 +222,7 @@ cpd_index_rows = db.execute('''
     )
     SELECT r.inchikey, r.formula, r.iupac_name, r.cid, r.mw,
            r.logp, r.tpsa, r.hbd, r.hba, r.rotb, r.rings, r.arom, r.heavy, r.fsp3,
-           r.sp_count, sc.species, e.family_final
+           r.sp_count, sc.species, e.family_final, sc.n_references
     FROM ranked r
     JOIN species_compounds_v2026 sc ON r.inchikey = sc.inchikey
     LEFT JOIN extract_v2026 e ON sc.species = e.species_accepted
@@ -231,16 +231,17 @@ cpd_index_rows = db.execute('''
 
 compounds = {}
 for (ik, formula, iupac, cid, mw, logp, tpsa, hbd, hba, rotb, rings, arom, heavy, fsp3,
-     sp_count, sp, fam) in cpd_index_rows:
+     sp_count, sp, fam, n_refs) in cpd_index_rows:
     if ik not in compounds:
         compounds[ik] = {
             'f': formula, 'iupac': iupac or '', 'cid': cid, 'mw': mw,
             'logp': logp, 'tpsa': tpsa, 'hbd': hbd, 'hba': hba, 'rotb': rotb,
             'rings': rings, 'arom': arom, 'heavy': heavy, 'fsp3': fsp3,
-            'sp_map': {},
+            'sp_map': {}, 'refs': {},
         }
     if sp and sp not in compounds[ik]['sp_map']:
         compounds[ik]['sp_map'][sp] = fam or ''
+        compounds[ik]['refs'][sp] = n_refs
 
 cpd_result = {}
 for ik, d in compounds.items():
@@ -274,19 +275,22 @@ print(f"  compounds.json: {len(cpd_json)/1024/1024:.2f} MB ({len(cpd_result)} co
 
 # ─── 7a. Species → compounds, complete (compounds.json caps top_sp at 30 species) ───
 # `shared` lists indexes into compounds.json key order, one entry per species, with
-# no cap. `own` holds compounds reported from a single species; there are too many
+# no cap; `refs` holds the number of references behind each of those reports, and
+# `via` the other LOTUS names whose compounds were credited to a species. `own` holds compounds reported from a single species; there are too many
 # to ship with compounds.json, so they go into small chunks the Explorer loads on
 # demand (own/<first two letters of the species>.json).
 print("Building species -> compound index...")
 cpd_pos = {ik: i for i, ik in enumerate(cpd_result)}
 sp_shared = defaultdict(list)
+sp_refs = defaultdict(dict)
 for ik, d in compounds.items():
     for sp in d['sp_map']:
         sp_shared[sp].append(cpd_pos[ik])
+        sp_refs[sp][cpd_pos[ik]] = d['refs'][sp]
 
 own_rows = db.execute('''
     SELECT sc.species, c.inchikey, c.formula, c.iupac_name, c.cid, c.mw,
-           c.logp, c.tpsa, c.hbd, c.hba, c.rotb, c.rings, c.arom, c.heavy, c.fsp3
+           c.logp, c.tpsa, c.hbd, c.hba, c.rotb, c.rings, c.arom, c.heavy, c.fsp3, sc.n_references
     FROM species_compounds_v2026 sc
     JOIN compound_v2026 c ON sc.inchikey = c.inchikey
     WHERE sc.inchikey IN (SELECT inchikey FROM species_compounds_v2026
@@ -300,15 +304,31 @@ def own_key(species):
 
 
 own_chunks = defaultdict(lambda: defaultdict(list))
-for sp, ik, formula, iupac, cid, mw, *desc in own_rows:
+for sp, ik, formula, iupac, cid, mw, *desc, n_refs in own_rows:
     own_chunks[own_key(sp)][sp].append(
-        [ik, formula or '', cid, mw, desc if desc[0] is not None else None, iupac or ''])
+        [ik, formula or '', cid, mw, desc if desc[0] is not None else None, iupac or '', n_refs])
 
 sc_data = {
     'shared': {sp: sorted(v) for sp, v in sorted(sp_shared.items())},
+    'refs': {sp: [sp_refs[sp][i] for i in sorted(v)] for sp, v in sorted(sp_shared.items())},
     'own_n': {sp: len(v) for ck in own_chunks.values() for sp, v in sorted(ck.items())},
 }
 sc_data['own_n'] = dict(sorted(sc_data['own_n'].items()))
+# LOTUS names, other than the species' own, whose compounds were credited to it (GBIF synonyms,
+# varieties and subspecies); the Explorer says so on the species panel
+via_names = defaultdict(list)
+for sp, organism, _n in db.execute('''
+    SELECT species, organism, count(DISTINCT inchikey) AS n FROM (
+        SELECT a.species, l.organism, l.inchikey FROM lotus_alias a
+        JOIN lotus_pair l ON l.organism_norm = a.alias_norm WHERE a.via = 'synonym'
+        UNION ALL
+        SELECT a.species, l.organism, l.inchikey FROM lotus_alias a
+        JOIN lotus_pair l ON l.organism_sp = a.alias_norm
+        WHERE a.via = 'name' AND position(' ' IN a.alias_norm) > 0 AND l.organism_words >= 3
+    ) GROUP BY 1, 2 ORDER BY species, n DESC, organism''').fetchall():
+    if len(via_names[sp]) < 8:
+        via_names[sp].append(organism)
+sc_data['via'] = {sp: v for sp, v in sorted(via_names.items()) if sp in sc_data['shared'] or sp in sc_data['own_n']}
 sc_json = json.dumps(sc_data, separators=(',', ':'), ensure_ascii=False)
 with open(os.path.join(OUT_DIR, 'data', 'species_compounds.json'), 'w') as f:
     f.write(sc_json)
