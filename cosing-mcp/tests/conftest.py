@@ -115,7 +115,8 @@ def _build_mini_data():
 
 SPECIES_COMPOUNDS = {
     "shared": {"Rosa damascena": [0]},
-    "own_n": {"Rosa damascena": 4, "Lavandula angustifolia": 2},
+    "own_n": {"Rosa damascena": 4},
+    "via": {"Rosa damascena": ["Rosa x damascena trigintipetala"]},
 }
 
 

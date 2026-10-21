@@ -70,6 +70,7 @@ class CosIngData:
         self.compounds: dict[str, dict] = {}
         self.ing_compounds: dict[str, dict] = {}
         self.sp_compound_total: dict[str, int] = {}
+        self.sp_via: dict[str, list[str]] = {}
         self.sp_zh: dict[str, str] = {}
         self.sp_en: dict[str, str] = {}
         self.fam_zh: dict[str, str] = {}
@@ -89,6 +90,7 @@ class CosIngData:
         self.ing_compounds = _fetch_json_optional("ingredient_compounds.json")
         sc = _fetch_json_optional("species_compounds.json")
         shared, own = sc.get("shared", {}), sc.get("own_n", {})
+        self.sp_via = sc.get("via", {})
         self.sp_compound_total = {
             sp: len(shared.get(sp, ())) + own.get(sp, 0) for sp in shared.keys() | own.keys()
         }
@@ -298,6 +300,12 @@ class CosIngData:
 
         if self.sp_compound_total:
             result["compound_count"] = self.sp_compound_total.get(name, 0)
+            if not result["compound_count"]:
+                result["compound_note"] = (
+                    "LOTUS has no compound data for this species. That means no phytochemistry has "
+                    "been published for it, not that it has no compounds.")
+            if via := self.sp_via.get(name):
+                result["compounds_also_listed_under"] = via
         else:
             # older deployments: top_sp keeps only 30 species per compound, so this undercounts
             result["compound_count"] = sum(

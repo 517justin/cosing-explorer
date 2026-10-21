@@ -56,6 +56,10 @@ def get_species(name: str) -> dict:
     """Get information about a plant species and its cosmetic extracts.
 
     Includes common names in Chinese, English and Japanese (和名) where available.
+    compound_count comes from LOTUS; when it is 0 the species simply has no LOTUS data
+    (compound_note says so), which is not the same as having no compounds. Compounds that
+    LOTUS lists under another name (a GBIF synonym, a variety) are credited to the species and
+    those names are given in compounds_also_listed_under.
 
     Args:
         name: Scientific name (e.g. "Lavandula angustifolia", "Rosa damascena")

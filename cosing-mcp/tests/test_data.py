@@ -69,7 +69,19 @@ def test_get_species(mini_db):
 
 def test_get_species_counts_shared_and_species_specific_compounds(mini_db):
     assert mini_db.get_species_info("Rosa damascena")["compound_count"] == 1 + 4
-    assert mini_db.get_species_info("Lavandula angustifolia")["compound_count"] == 2
+
+
+def test_get_species_without_lotus_data_says_so(mini_db):
+    r = mini_db.get_species_info("Lavandula angustifolia")
+    assert r["compound_count"] == 0
+    assert "no phytochemistry has been published" in r["compound_note"]
+    assert "compound_note" not in mini_db.get_species_info("Rosa damascena")
+
+
+def test_get_species_names_the_other_names_it_was_credited_through(mini_db):
+    r = mini_db.get_species_info("Rosa damascena")
+    assert r["compounds_also_listed_under"] == ["Rosa x damascena trigintipetala"]
+    assert "compounds_also_listed_under" not in mini_db.get_species_info("Lavandula angustifolia")
 
 
 def test_species_compound_count_falls_back_when_the_index_is_missing():
