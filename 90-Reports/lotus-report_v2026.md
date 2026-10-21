@@ -9,17 +9,19 @@ LOTUS 凍結版 2026-04-13：**674,454** 組「結構—生物—文獻」三元
 | 項目 | 值 |
 | --- | --- |
 | 本專案物種數 | 2,827 |
-| LOTUS 中查得到者 | **2,224**（78.7%）|
-| 物種—化合物配對 | 127,043 |
-| 有成分資料的萃取物 | 6,213 / 7,690（80.8%）|
+| LOTUS 中查得到者 | **2,266**（80.2%）|
+| 物種—化合物配對 | 131,201 |
+| 有成分資料的萃取物 | 6,458 / 7,690（84.0%）|
 | 其中靠忽略雜交種記號（×）才比對到 | 5 |
-| 種層級查無、但同屬有資料 | 489 |
+| 只靠 GBIF 同義名或種下單位（變種、亞種）才有資料的物種 | 42 |
+| 經由同義名或種下單位新增的配對 | 4,158 |
+| 種層級查無、但同屬有資料 | 454 |
 
 ## 二、⚠️ 覆蓋率偏誤（務必理解）
 
 **LOTUS 查不到 ≠ 該物種沒有成分。** 只代表沒有已發表的植化研究。被研究得多的植物（藥用、經濟作物）覆蓋率高，冷門物種接近零。
 
-本專案有 **603** 個物種在 LOTUS 中無資料。這些必須標記為「無資料」，**不可**與「無成分」混為一談——否則所有下游分析都會系統性偏向熱門植物。
+本專案有 **561** 個物種在 LOTUS 中無資料。這些必須標記為「無資料」，**不可**與「無成分」混為一談——否則所有下游分析都會系統性偏向熱門植物。
 
 ## 三、成分最多的物種
 
@@ -29,13 +31,13 @@ LOTUS 凍結版 2026-04-13：**674,454** 組「結構—生物—文獻」三元
 | Nicotiana tabacum | 860 |
 | Solanum lycopersicum | 808 |
 | Mangifera indica | 771 |
-| Tripterygium wilfordii | 747 |
+| Tripterygium wilfordii | 751 |
 | Camellia sinensis | 715 |
 | Zingiber officinale | 713 |
-| Ganoderma lucidum | 696 |
+| Ganoderma lucidum | 699 |
+| Capsicum annuum | 674 |
 | Phaseolus vulgaris | 663 |
 | Panax ginseng | 653 |
-| Capsicum annuum | 650 |
 | Citrus reticulata | 574 |
 
 ## 四、各科的 LOTUS 覆蓋率
@@ -46,18 +48,18 @@ LOTUS 凍結版 2026-04-13：**674,454** 組「結構—生物—文獻」三元
 | --- | --- | --- | --- |
 | Papaveraceae | 20 | 20 | 100% |
 | Pinaceae | 51 | 50 | 98% |
+| Cupressaceae | 27 | 26 | 96% |
 | Sapindaceae | 22 | 21 | 95% |
-| Oleaceae | 20 | 19 | 95% |
 | Araliaceae | 20 | 19 | 95% |
-| Cupressaceae | 27 | 25 | 93% |
+| Oleaceae | 20 | 19 | 95% |
+| Rutaceae | 54 | 51 | 94% |
+| Apiaceae | 65 | 59 | 91% |
 | Rubiaceae | 29 | 26 | 90% |
 | Apocynaceae | 28 | 25 | 89% |
-| Apiaceae | 65 | 57 | 88% |
+| Lauraceae | 25 | 22 | 88% |
+| Asteraceae | 195 | 171 | 88% |
 | Cucurbitaceae | 24 | 21 | 88% |
-| Asteraceae | 195 | 170 | 87% |
 | Brassicaceae | 31 | 27 | 87% |
-| Amaryllidaceae | 23 | 20 | 87% |
-| Plantaginaceae | 21 | 18 | 86% |
 
 ## 五、驗收檢查
 
