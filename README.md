@@ -17,13 +17,15 @@
 - 五種節點類型：科（Family）、用途（Function）、原料（Ingredient）、物種（Species）、化合物（Compound）
 - Ego-graph 導航：點擊任何節點展開其關聯網絡，可用麵包屑路徑回溯
 - 深度連結：支援用 URL 參數直接開啟特定成分、科、物種、用途、化合物或搜尋結果
-- 化合物結構式：60,858 個分子結構 SVG 即時載入，以 DecompressionStream 解壓
+- 化合物結構式：62,139 個分子結構 SVG 即時載入，以 DecompressionStream 解壓
 - 物化性質：化合物面板顯示 9 項 RDKit 描述子（LogP、TPSA、氫鍵供體與受體、可旋轉鍵、環數與芳香環數、重原子數、Fsp3），並直連 PubChem
-- 化合物瀏覽：獨立的清單頁，列出被 2 個以上物種報告的 11,978 個化合物，可依 LogP 與分子量範圍篩選、搜尋分子式或名稱、排序與分頁
-- 物種特有化合物：只在一個物種中被報告的 48,880 個化合物，會在物種與成分面板中按需載入（每次 24 個），點進去可看到完整資料
+- 化合物瀏覽：獨立的清單頁，列出被 2 個以上物種報告的 12,375 個化合物，可依 LogP 與分子量範圍篩選、搜尋分子式或名稱、排序與分頁
+- 證據與來源：化合物頁會列出所有報告過它的物種（關聯度高的在前），每個物種旁標示 LOTUS 收錄的文獻篇數，並說明有多少只靠 1 篇文獻。物種面板會標明資料來自 LOTUS、在 LOTUS 沒有資料時明說（不代表沒有成分），也列出化合物是透過哪些其他學名（GBIF 同義名、變種）歸入的
+- 立體異構物：化合物頁會連到平面結構相同的其他化合物（共有化合物中有 6,201 個至少有一個）
+- 物種特有化合物：只在一個物種中被報告的 49,764 個化合物，會在物種與成分面板中按需載入（每次 24 個），點進去可看到完整資料
 - 物種照片：透過 GBIF Occurrence API 自動載入實物照片
 - 中英文俗名：2,375 種物種有中文俗名、2,448 種有英文俗名，376 科全數附有中英文俗名，搜尋和顯示都支援。日文和名涵蓋 1,587 種物種與 275 科
-- 化合物多語名稱：6,644 個化合物附英/中/日名稱與別名（來自 Wikidata），可用「caffeine」「槲皮素」「ケルセチン」搜尋
+- 化合物多語名稱：6,815 個化合物附英/中/日名稱與別名（來自 Wikidata），可用「caffeine」「槲皮素」「ケルセチン」搜尋
 - 三語介面：用按鈕在中文、English、日本語之間切換，介面文字、俗名與和名隨語系變更；日文模式支援和名搜尋（如「ラベンダー」）
 - 篩選與排序：植物來源 / 有限制 / 有結構 / 用途 / 科篩選，多種排序模式
 - 法規資料：EU 化妝品法規 EC 1223/2009 Annex II–VI 結構化顯示，色彩編碼
@@ -35,7 +37,7 @@
 - 自然語言查詢：在 Claude Code 中直接用中文或英文提問，如「玫瑰精油有哪些用途？」「甘油的 CAS 號是什麼？」
 - 成分表分析：貼上成分表文字或照片，自動辨識 INCI 名稱並批次查詢
 - 法規速查：即時查詢任何成分的 EU 法規限制狀態（Annex II–VI）
-- 物種 / 科資訊：查詢植物分類、萃取物清單、化合物數量
+- 物種 / 科資訊：查詢植物分類、萃取物清單、化合物數量；LOTUS 沒有資料的物種會如實回報「沒有資料」，而不是「沒有化合物」
 - 化學資訊：查詢成分時，會一併回傳其化合物的分子式、PubChem 連結與描述子，7,281 個有結構的成分都適用；Wikidata 有收錄的，另附多語名稱
 - Explorer 連結：所有查詢結果都附上知識圖譜的深度連結，可以直接開啟視覺化頁面
 
@@ -160,21 +162,21 @@ MCP Server 提供 6 個工具，Claude 會根據問題自動選用：
 
 ```
 docs/                        # GitHub Pages 根目錄（Explorer）
-├── index.html               # 單頁應用（CSS/JS 內嵌，~2,500 行）
+├── index.html               # 單頁應用（CSS/JS 內嵌，~2,600 行）
 ├── data/
 │   ├── ingredients.json     # 33,638 筆原料 + 索引 + 中英文俗名（~8 MB）
-│   ├── compounds.json       # 11,978 筆化合物索引，限 2 個以上物種共有（~6 MB）
-│   ├── species_compounds.json  # 完整的物種 → 化合物清單（~0.4 MB）
+│   ├── compounds.json       # 12,375 筆化合物索引，限 2 個以上物種共有（~6 MB）
+│   ├── species_compounds.json  # 完整的物種 → 化合物清單，含文獻篇數（~0.7 MB）
 │   └── ingredient_compounds.json  # 另有 5,411 筆化合物，供 MCP Server 使用（~0.8 MB）
-├── own/                     # 48,880 個物種特有化合物，分成 178 個按需載入的 chunk（~11 MB）
+├── own/                     # 49,764 個物種特有化合物，分成 180 個按需載入的 chunk（~11 MB）
 └── svg/                     # 631 個 SVG chunk（~194 MB）
-    └── add/                 # 後來新增的 2,168 個結構圖，共 583 個 chunk（~7 MB）
+    └── add/                 # 後來新增的 3,449 個結構圖，共 619 個 chunk（~11 MB）
 
 cosing-mcp/                  # AI 問答層（MCP Server）
 ├── src/cosing_mcp/
 │   ├── server.py            # MCP Server 進入點 + 6 個工具定義
 │   └── data.py              # GitHub Pages JSON 快取 + 記憶體索引
-├── tests/                   # 43 項測試
+├── tests/                   # 45 項測試
 ├── skill/cosing-analyze.md  # 成分分析 Skill（分發用副本）
 └── pyproject.toml           # pip install 設定
 
@@ -182,13 +184,13 @@ cosing-mcp/                  # AI 問答層（MCP Server）
 ├── commands/cosing-analyze.md  # Claude Code Skill
 └── settings.json               # MCP Server 設定
 
-tests/explorer/              # Explorer 介面與資料測試（Node + jsdom，28 項）
+tests/explorer/              # Explorer 介面與資料測試（Node + jsdom，36 項）
 requirements.txt             # _scripts/ 的 Python 依賴
 ```
 
 ### SVG 壓縮策略
 
-60,858 個分子結構 SVG 無法內嵌於單頁，所以建置時先壓縮再切成 chunk：
+62,139 個分子結構 SVG 無法內嵌於單頁，所以建置時先壓縮再切成 chunk：
 
 1. 去除冗餘 XML 宣告與樣式
 2. gzip 壓縮（level 9）
@@ -221,6 +223,8 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 SVG chunk 現在用固定的 gzip 標頭寫出，連續兩次完整建置的結果位元組完全相同。目前已提交的 chunk 仍帶有建置時間戳，所以完整重建會一次改寫全部 631 個檔案。新增化合物後請用 `--svg-new-only`：尚未發布的結構圖會寫進 `docs/svg/add/`，Explorer 在主 chunk 找不到時會讀它，631 個主 chunk 完全不動（完整重建會把 `svg/add/` 併回主 chunk）。其他情況用 `--skip-svg`。
 
+更新 LOTUS 比對（LOTUS 或 GBIF 出新版後）要依序執行 `13b_gbif_synonyms.py`（每個物種的 GBIF 同義名）、`13_lotus.py`、`13c_check_synonyms.py`（向 GBIF 確認每個同義名實際指什麼，會剔除 `Annona glabra` 這類同名異物）、再執行一次 `13_lotus.py`。沒有檢查檔時不會使用任何同義名。
+
 LOTUS 比對（`COSING_SOURCE=2026 .venv/bin/python _scripts/13_lotus.py`）找到新化合物時，建置前要依序執行 `17_fetch_compound_smiles.py`、`17b_wikidata_structures.py`（PubChem 查無的結構，從 Wikidata 取得並以 InChIKey 驗證）、再執行一次 `17_fetch_compound_smiles.py` 以重載 `compound_v2026` 表、`18_render_structures.py`、`19_compute_descriptors.py`。
 
 更新多語名稱（會向 Wikidata 發送 SPARQL 查詢，全量約 20 分鐘）：
@@ -233,8 +237,8 @@ LOTUS 比對（`COSING_SOURCE=2026 .venv/bin/python _scripts/13_lotus.py`）找�
 ## 測試
 
 ```bash
-cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP Server，43 項
-cd tests/explorer && npm install && npm test             # Explorer 介面與資料，28 項
+cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP Server，45 項
+cd tests/explorer && npm install && npm test             # Explorer 介面與資料，36 項
 ```
 
 ## 路線圖
@@ -245,6 +249,7 @@ cd tests/explorer && npm install && npm test             # Explorer 介面與資
 
 | 日期 | 內容 |
 |------|------|
+| 2026-10-21 | 處理 LOTUS 問題 6 至 10：LOTUS 以 GBIF 同義名或變種記載的化合物，現在會歸入接受名物種（多 42 個物種有資料、多 4,158 筆報告），但歸入前會先向 GBIF 確認每個名稱的意思，因為 LOTUS 的 960 個同義名中有 637 個其實是獨立的已接受物種（`Annona glabra` 不是 `Annona squamosa`）。化合物頁列出所有報告它的物種（關聯度高的在前），附文獻篇數，並說明 78% 的報告只有 1 篇文獻；物種面板標明來源 LOTUS、沒有資料時明說、並列出歸入時用到的其他學名；平面結構相同的立體異構物互相連結。`get_species` 也回報同樣的資訊 |
 | 2026-10-19 | 補回 PubChem 沒有回傳的化合物：原本掉出流程的 1,772 個化合物中，1,768 個現在有來自 Wikidata 的結構（SMILES 必須通過檢查，由它重新計算的 InChIKey 要與 LOTUS 的一致才採用），另有 400 筆回傳時缺 SMILES 的記錄改用 CID 補齊。共有化合物由 11,810 增為 11,978，物種特有化合物由 47,280 增為 48,880，Zingiber officinale 現在列出 713 個化合物，與 LOTUS 的數字相同。新的結構圖放進附加層 `svg/add/`，631 個主 chunk 完全不動 |
 | 2026-10-18 | 處理雜交種記號：LOTUS 與 Wikidata 把雜交種寫成帶乘號的 `Rosa × damascena`，使 5 個物種的化合物（包含示範物種 Rosa damascena，現有 75 個化合物）和 16 個物種的 Wikidata 名稱（例如 Citrus limon，現為 レモン 與 檸檬）都對不上。比對時改為忽略乘號。另外抓取並繪製了 94 個新化合物，並新增 `build_site.py --svg-new-only`，只加入新結構圖、不改寫其他 chunk |
 | 2026-10-17 | 修正 3 個 LOTUS 顯示問題：物種到化合物的索引每個化合物只留 30 個物種（22.7% 的連結消失，例如 Vitis vinifera 的 352 個共享化合物只顯示 222 個）、成分面板列出點進去是空頁的化合物（188 個成分）、以及只在單一物種出現的 47,219 個化合物完全看不到。Explorer 現在讀取完整的物種清單，物種特有化合物按需載入；`ingredients.json` 從 13 MB 縮到 8 MB，MCP 也改用完整索引計算物種的化合物數 |

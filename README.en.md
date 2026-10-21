@@ -17,13 +17,15 @@ Live demo: [517justin.github.io/cosing-explorer](https://517justin.github.io/cos
 - Five node types: family, function, ingredient, species, and compound
 - Ego-graph navigation: click any node to expand its neighborhood, and use the breadcrumb trail to go back
 - Deep linking: URL parameters open a specific ingredient, family, species, function, compound, or search
-- Compound structures: 60,858 molecular structure SVGs, loaded on demand and decompressed in the browser with DecompressionStream
+- Compound structures: 62,139 molecular structure SVGs, loaded on demand and decompressed in the browser with DecompressionStream
 - Molecular properties: the compound panel shows nine RDKit descriptors (LogP, TPSA, hydrogen-bond donors and acceptors, rotatable bonds, ring and aromatic ring counts, heavy atoms, Fsp3) and links straight to PubChem
-- Compound Browser: a separate list of the 11,978 compounds reported from two or more species, with LogP and molecular weight range filters, formula and name search, sorting, and paging
-- Species-specific compounds: the 48,880 compounds reported from only one species load on demand in the species and ingredient panels, 24 at a time, and each opens with its full details
+- Compound Browser: a separate list of the 12,375 compounds reported from two or more species, with LogP and molecular weight range filters, formula and name search, sorting, and paging
+- Evidence and sources: a compound page lists every species that reports it, most relevant first, each with the number of references LOTUS lists and a note on how many rest on a single reference. Species panels name LOTUS as the source, say when LOTUS has no data for a species (which does not mean it has no compounds), and name the other names, such as GBIF synonyms and varieties, through which compounds were credited
+- Stereoisomers: a compound page links to the other compounds with the same planar structure (6,201 of the shared compounds have at least one)
+- Species-specific compounds: the 49,764 compounds reported from only one species load on demand in the species and ingredient panels, 24 at a time, and each opens with its full details
 - Species photos: loaded automatically from the GBIF Occurrence API
 - Common names: Chinese names for 2,375 species and English names for 2,448, plus Chinese and English names for all 376 families, shown throughout the interface and searchable. Japanese names (和名) cover 1,587 species and 275 families
-- Multilingual compound names: 6,644 compounds have English, Chinese, and Japanese names and aliases from Wikidata, so you can search for "caffeine", "槲皮素", or "ケルセチン"
+- Multilingual compound names: 6,815 compounds have English, Chinese, and Japanese names and aliases from Wikidata, so you can search for "caffeine", "槲皮素", or "ケルセチン"
 - Trilingual UI: switch between Chinese, English, and Japanese with the language button. Labels and common names follow the selected language, and Japanese names (和名) are searchable, for example "ラベンダー"
 - Filtering and sorting: filter by botanical source, restriction, structure, function, or family, and sort several ways
 - Regulation data: Annexes II to VI of EU Cosmetics Regulation EC 1223/2009, shown in a structured, color-coded layout
@@ -35,7 +37,7 @@ Live demo: [517justin.github.io/cosing-explorer](https://517justin.github.io/cos
 - Natural-language queries: ask Claude Code questions such as "What are the functions of rose oil?" or "What's the CAS number of glycerin?"
 - Ingredient label analysis: paste an ingredient list or a photo of one, and the skill identifies the INCI names and looks them all up
 - Regulation lookup: check any ingredient's EU regulatory status (Annexes II to VI)
-- Species and family info: taxonomy, extract lists, and compound counts
+- Species and family info: taxonomy, extract lists, and compound counts; a species without LOTUS data is reported as such, not as having no compounds
 - Chemical data: looking up an ingredient also returns the formula, PubChem link, and descriptors of its compound for all 7,281 ingredients that have a structure, plus multilingual names where Wikidata has them
 - Explorer links: every result includes a deep link to the knowledge graph
 
@@ -160,21 +162,21 @@ The MCP server provides six tools, and Claude picks the right one for each quest
 
 ```
 docs/                        # GitHub Pages root (Explorer)
-├── index.html               # Single-page app (CSS/JS inlined, ~2,500 lines)
+├── index.html               # Single-page app (CSS/JS inlined, ~2,600 lines)
 ├── data/
 │   ├── ingredients.json     # 33,638 ingredients + indexes + common names (~8 MB)
-│   ├── compounds.json       # 11,978 compound index, compounds in 2+ species (~6 MB)
-│   ├── species_compounds.json  # complete species -> compound lists (~0.4 MB)
+│   ├── compounds.json       # 12,375 compound index, compounds in 2+ species (~6 MB)
+│   ├── species_compounds.json  # complete species -> compound lists, with reference counts (~0.7 MB)
 │   └── ingredient_compounds.json  # 5,411 more compounds, for the MCP server (~0.8 MB)
-├── own/                     # 48,880 species-specific compounds in 178 on-demand chunks (~11 MB)
+├── own/                     # 49,764 species-specific compounds in 180 on-demand chunks (~11 MB)
 └── svg/                     # 631 SVG chunks (~194 MB)
-    └── add/                 # 583 chunks holding the 2,168 structures added later (~7 MB)
+    └── add/                 # 619 chunks holding the 3,449 structures added later (~11 MB)
 
 cosing-mcp/                  # AI query layer (MCP Server)
 ├── src/cosing_mcp/
 │   ├── server.py            # MCP Server entry point + 6 tool definitions
 │   └── data.py              # GitHub Pages JSON cache + in-memory indexes
-├── tests/                   # 43 tests
+├── tests/                   # 45 tests
 ├── skill/cosing-analyze.md  # Ingredient analysis skill (distributable copy)
 └── pyproject.toml           # pip install config
 
@@ -182,13 +184,13 @@ cosing-mcp/                  # AI query layer (MCP Server)
 ├── commands/cosing-analyze.md  # Claude Code Skill
 └── settings.json               # MCP Server config
 
-tests/explorer/              # Explorer UI and data tests (Node + jsdom, 28 tests)
+tests/explorer/              # Explorer UI and data tests (Node + jsdom, 36 tests)
 requirements.txt             # Python dependencies for _scripts/
 ```
 
 ### SVG compression strategy
 
-60,858 molecular structure SVGs are too many to inline into a single page, so the build compresses and chunks them:
+62,139 molecular structure SVGs are too many to inline into a single page, so the build compresses and chunks them:
 
 1. Strip redundant XML declarations and styles
 2. gzip compression (level 9)
@@ -221,6 +223,8 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 SVG chunks are written with a fixed gzip header, so repeated full builds are byte-identical. The chunks committed so far still carry build timestamps, so a full rebuild rewrites all 631 files once. Use `--svg-new-only` after adding compounds: it writes the structures that are not published yet to `docs/svg/add/`, which the Explorer reads when a main chunk has no entry, and leaves the 631 main chunks untouched (a full rebuild folds `svg/add/` back into them). Use `--skip-svg` otherwise.
 
+To refresh the LOTUS join after a new LOTUS or GBIF release, run `13b_gbif_synonyms.py` (the GBIF synonyms of every species), `13_lotus.py`, `13c_check_synonyms.py` (asks GBIF what each synonym name really means, which drops homonyms such as `Annona glabra`) and `13_lotus.py` again. Without the check file no synonym is used.
+
 When the LOTUS join finds new compounds (`COSING_SOURCE=2026 .venv/bin/python _scripts/13_lotus.py`), run `17_fetch_compound_smiles.py`, then `17b_wikidata_structures.py` (structures PubChem does not know, taken from Wikidata and checked against the InChIKey), then `17_fetch_compound_smiles.py` again to reload `compound_v2026`, `18_render_structures.py` and `19_compute_descriptors.py` before building.
 
 To refresh multilingual names (queries Wikidata over SPARQL, about 20 minutes for a full run):
@@ -233,8 +237,8 @@ To refresh multilingual names (queries Wikidata over SPARQL, about 20 minutes fo
 ## Testing
 
 ```bash
-cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP server, 43 tests
-cd tests/explorer && npm install && npm test             # Explorer UI and data, 28 tests
+cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP server, 45 tests
+cd tests/explorer && npm install && npm test             # Explorer UI and data, 36 tests
 ```
 
 ## Roadmap
@@ -245,6 +249,7 @@ See [ROADMAP.md](ROADMAP.md).
 
 | Date | Description |
 |------|-------------|
+| 2026-10-21 | LOTUS problems 6 to 10: compounds LOTUS files under a GBIF synonym or a variety are now credited to the accepted species (42 more species have data, 4,158 more reports), but only after asking GBIF what each name means, because 637 of the 960 synonym names in LOTUS turned out to be accepted species in their own right (`Annona glabra` is not `Annona squamosa`). Compound pages list every reporting species, most relevant first, with reference counts and a note that 78% of reports rest on one reference; species panels name LOTUS, say when it has no data, and list the other names used; stereoisomers of one structure are linked. `get_species` says the same |
 | 2026-10-19 | Recovered the compounds PubChem did not return: 1,768 of the 1,772 compounds that had dropped out of the pipeline now have structures from Wikidata (a SMILES is accepted only if the InChIKey recomputed from it matches the LOTUS key), and 400 records that came back without a SMILES were completed by CID. Shared compounds went from 11,810 to 11,978 and species-specific ones from 47,280 to 48,880; Zingiber officinale now lists 713 compounds, the number LOTUS reports. New structures go to an add-on layer, `svg/add/`, so the 631 main chunks stay untouched |
 | 2026-10-18 | Hybrid species matched: LOTUS and Wikidata write hybrids with a multiplication sign (`Rosa × damascena`), so 5 species had lost their compounds (including the demo species Rosa damascena, now 75 compounds) and 16 their Wikidata names (for example Citrus limon, now レモン and 檸檬). Names are now compared without the sign. 94 new compounds were fetched and drawn, and `build_site.py --svg-new-only` adds structures without rewriting the other chunks |
 | 2026-10-17 | Fixed three LOTUS display problems: the species-to-compound index was cut to 30 species per compound (22.7% of links lost, e.g. Vitis vinifera showed 222 of 352 shared compounds), ingredient panels listed compounds whose pages were empty (188 ingredients), and the 47,219 compounds reported from a single species were invisible. The Explorer now reads complete species lists, and species-specific compounds load on demand. `ingredients.json` shrank from 13 MB to 8 MB, and the MCP server counts a species' compounds from the complete index |
