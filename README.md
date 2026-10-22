@@ -153,10 +153,10 @@ MCP Server 提供 6 個工具，Claude 會根據問題自動選用：
 | 資料 | 來源 | 授權 |
 |------|------|------|
 | 化妝品原料 | [EU CosIng](https://data.europa.eu/data/datasets/cosing-list-ingredients-and-fragrance-inventory?locale=en)（European Commission） | Open Data |
-| 分類階層 | [GBIF](https://www.gbif.org/) Backbone Taxonomy | CC BY 4.0 |
+| 分類階層與同義名 | [GBIF](https://www.gbif.org/) Backbone Taxonomy | CC BY 4.0 |
 | 化合物 | [LOTUS](https://lotus.naturalproducts.net/) Natural Products | CC0 |
 | 分子結構 | [PubChem](https://pubchem.ncbi.nlm.nih.gov/) | Public Domain |
-| 多語名稱（化合物、物種和名） | [Wikidata](https://www.wikidata.org/) | CC0 |
+| 多語名稱（化合物、物種和名）、PubChem 沒有的結構 | [Wikidata](https://www.wikidata.org/) | CC0 |
 
 ## 架構
 
@@ -167,7 +167,7 @@ docs/                        # GitHub Pages 根目錄（Explorer）
 │   ├── ingredients.json     # 33,638 筆原料 + 索引 + 中英文俗名（~8 MB）
 │   ├── compounds.json       # 12,375 筆化合物索引，限 2 個以上物種共有（~6 MB）
 │   ├── species_compounds.json  # 完整的物種 → 化合物清單，含文獻篇數（~0.7 MB）
-│   └── ingredient_compounds.json  # 另有 5,411 筆化合物，供 MCP Server 使用（~0.8 MB）
+│   └── ingredient_compounds.json  # 另有 5,399 筆化合物，供 MCP Server 使用（~0.8 MB）
 ├── own/                     # 49,764 個物種特有化合物，分成 180 個按需載入的 chunk（~11 MB）
 └── svg/                     # 631 個 SVG chunk（~194 MB）
     └── add/                 # 後來新增的 3,449 個結構圖，共 619 個 chunk（~11 MB）

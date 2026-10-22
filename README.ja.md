@@ -153,10 +153,10 @@ MCP Server は 6 つのツールを提供し、Claude が質問に応じて自�
 | データ | 出典 | ライセンス |
 |------|------|----------|
 | 化粧品成分 | [EU CosIng](https://data.europa.eu/data/datasets/cosing-list-ingredients-and-fragrance-inventory?locale=en)（欧州委員会） | Open Data |
-| 分類階層 | [GBIF](https://www.gbif.org/) Backbone Taxonomy | CC BY 4.0 |
+| 分類階層と異名 | [GBIF](https://www.gbif.org/) Backbone Taxonomy | CC BY 4.0 |
 | 化合物 | [LOTUS](https://lotus.naturalproducts.net/) Natural Products | CC0 |
 | 分子構造 | [PubChem](https://pubchem.ncbi.nlm.nih.gov/) | パブリックドメイン |
-| 多言語名称（化合物・種の和名） | [Wikidata](https://www.wikidata.org/) | CC0 |
+| 多言語名称（化合物・種の和名）、PubChem に無い構造式 | [Wikidata](https://www.wikidata.org/) | CC0 |
 
 ## アーキテクチャ
 
@@ -167,7 +167,7 @@ docs/                        # GitHub Pages のルート（Explorer）
 │   ├── ingredients.json     # 33,638 件の成分 + インデックス + 通称・和名（約 8 MB）
 │   ├── compounds.json       # 12,375 件の化合物インデックス。2 種以上に共通するもの（約 6 MB）
 │   ├── species_compounds.json  # 種 → 化合物の完全なリスト。文献数つき（約 0.7 MB）
-│   └── ingredient_compounds.json  # MCP Server 用の追加 5,411 件の化合物（約 0.8 MB）
+│   └── ingredient_compounds.json  # MCP Server 用の追加 5,399 件の化合物（約 0.8 MB）
 ├── own/                     # 種に固有の 49,764 件の化合物。必要時に読み込む 180 チャンク（約 11 MB）
 └── svg/                     # 631 個の SVG チャンク（約 194 MB）
     └── add/                 # 後から追加した 3,449 件の構造式、619 チャンク（約 11 MB）

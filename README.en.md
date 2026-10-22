@@ -153,10 +153,10 @@ The MCP server provides six tools, and Claude picks the right one for each quest
 | Data | Source | License |
 |------|--------|---------|
 | Cosmetic ingredients | [EU CosIng](https://data.europa.eu/data/datasets/cosing-list-ingredients-and-fragrance-inventory?locale=en) (European Commission) | Open Data |
-| Taxonomy | [GBIF](https://www.gbif.org/) Backbone Taxonomy | CC BY 4.0 |
+| Taxonomy and synonyms | [GBIF](https://www.gbif.org/) Backbone Taxonomy | CC BY 4.0 |
 | Compounds | [LOTUS](https://lotus.naturalproducts.net/) Natural Products | CC0 |
 | Molecular structures | [PubChem](https://pubchem.ncbi.nlm.nih.gov/) | Public Domain |
-| Multilingual names (compounds, species) | [Wikidata](https://www.wikidata.org/) | CC0 |
+| Multilingual names (compounds, species) and structures PubChem lacks | [Wikidata](https://www.wikidata.org/) | CC0 |
 
 ## Architecture
 
@@ -167,7 +167,7 @@ docs/                        # GitHub Pages root (Explorer)
 │   ├── ingredients.json     # 33,638 ingredients + indexes + common names (~8 MB)
 │   ├── compounds.json       # 12,375 compound index, compounds in 2+ species (~6 MB)
 │   ├── species_compounds.json  # complete species -> compound lists, with reference counts (~0.7 MB)
-│   └── ingredient_compounds.json  # 5,411 more compounds, for the MCP server (~0.8 MB)
+│   └── ingredient_compounds.json  # 5,399 more compounds, for the MCP server (~0.8 MB)
 ├── own/                     # 49,764 species-specific compounds in 180 on-demand chunks (~11 MB)
 └── svg/                     # 631 SVG chunks (~194 MB)
     └── add/                 # 619 chunks holding the 3,449 structures added later (~11 MB)
