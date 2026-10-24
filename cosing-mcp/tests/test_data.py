@@ -93,7 +93,7 @@ def test_species_compound_count_falls_back_when_the_index_is_missing():
     ingredients, compounds, _ = _build_mini_data()
 
     def fetch(name):
-        if name in ("species_compounds.json", "ingredient_compounds.json"):
+        if name in ("species_compounds.json", "ingredient_compounds.json", "roles.json"):
             raise RuntimeError("no cache and no network")
         return ingredients if name == "ingredients.json" else compounds
 
@@ -204,7 +204,7 @@ def test_missing_ingredient_compounds_file_is_tolerated():
     ingredients, compounds, _ = _build_mini_data()
 
     def fetch(name):
-        if name in ("ingredient_compounds.json", "species_compounds.json"):
+        if name in ("ingredient_compounds.json", "species_compounds.json", "roles.json"):
             raise RuntimeError("no cache and no network")
         return ingredients if name == "ingredients.json" else compounds
 
@@ -242,3 +242,38 @@ def test_search_by_compound_name(mini_db):
 def test_search_by_japanese_species_name(mini_db):
     results = mini_db.search("ダマスク")
     assert any(r["ref_no"] == "87220" for r in results)
+
+
+def test_lookup_gives_chemical_roles_with_source(mini_db):
+    cpd = mini_db.lookup("GLYCERIN")["compound"]
+    assert [r["name"] for r in cpd["chemical_roles"]] == ["antidepressant", "antioxidant", "plant metabolite"]
+    assert cpd["chemical_roles"][1] == {"name": "antioxidant", "category": "chemical",
+                                        "cosing_functions": ["ANTIOXIDANT", "SKIN CONDITIONING"]}
+    assert cpd["chemical_roles"][2] == {"name": "plant metabolite", "category": "biological"}
+    assert cpd["chemical_roles_source"] == "ChEBI 256 (CC BY 4.0)"
+    assert cpd["suggested_cosing_functions"] == ["ANTIOXIDANT", "SKIN CONDITIONING"]
+
+
+def test_compound_without_roles_has_no_role_fields(mini_db):
+    cpd = mini_db.lookup("AQUA")["compound"]
+    assert not {"chemical_roles", "chemical_roles_source", "suggested_cosing_functions"} & cpd.keys()
+
+
+def test_missing_roles_file_is_tolerated():
+    from unittest.mock import patch
+
+    from conftest import mini_fetch
+    from cosing_mcp.data import CosIngData
+
+    serve = mini_fetch()
+
+    def fetch(name):
+        if name == "roles.json":
+            raise RuntimeError("no cache and no network")
+        return serve(name)
+
+    db = CosIngData()
+    with patch("cosing_mcp.data._fetch_json", side_effect=fetch):
+        db.load()
+    assert db.roles == []
+    assert "chemical_roles" not in db.lookup("GLYCERIN")["compound"]

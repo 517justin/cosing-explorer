@@ -102,6 +102,7 @@ def _build_mini_data():
             "cid": 753,
             "mw": 92.09,
             "desc": [-1.76, 60.7, 3, 3, 1, 0, 0, 6, 1.0],
+            "cr": [0, 1, 2],
         }
     }
 
@@ -111,6 +112,18 @@ def _build_mini_data():
                              "desc": [-0.82, 9.2, 0, 1, 0, 0, 0, 1, 0.0]},
     }
     return ingredients, compounds, ingredient_compounds
+
+
+# [ChEBI id, name, definition, category (0 biological, 1 chemical, 2 application), CosIng functions]
+ROLES = {
+    "chebi": {"data_version": "256"},
+    "license": "CC BY 4.0",
+    "roles": [
+        [35469, "antidepressant", "A drug used for the treatment of depression.", 2, []],
+        [22586, "antioxidant", "A substance that inhibits oxidation.", 1, ["ANTIOXIDANT", "SKIN CONDITIONING"]],
+        [76924, "plant metabolite", "Any eukaryotic metabolite produced in plants.", 0, []],
+    ],
+}
 
 
 SPECIES_COMPOUNDS = {
@@ -128,6 +141,7 @@ def mini_fetch():
         "compounds.json": compounds,
         "ingredient_compounds.json": ingredient_compounds,
         "species_compounds.json": SPECIES_COMPOUNDS,
+        "roles.json": ROLES,
     }
     return files.__getitem__
 

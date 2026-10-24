@@ -34,6 +34,7 @@ description: 分析化妝品成分表 — 識別成分、查詢 CosIng 知識庫
 - 物種與科附上和名——`lookup_ingredient` 回傳的 `species_ja`／`family_ja`（物種也可用 `get_species` 的 `common_name_ja`）。資料庫的和名並非全數涵蓋（物種約 56%、科約 73%）；沒有 `*_ja` 欄位時只顯示學名，不要自行翻譯或杜撰和名。
 - 所有 Explorer 連結加上 `&lang=ja`（例如 `?ingredient=<ref_no>&lang=ja`），讓連結直接開啟日文介面；英文用戶可用 `&lang=en`。
 - 若成分對應的化合物有 `compound.names.ja`，可一併列出。
+- 若化合物有 `compound.chemical_roles`，可挑幾個和化妝品用途相關的角色（如 antioxidant）說明；`suggested_cosing_functions` 是依角色推得的參考，不是 CosIng 登錄的用途，引用時要說明。
 
 **成分總覽表**
 

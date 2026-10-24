@@ -55,6 +55,9 @@ def _fetch_json_optional(name: str) -> dict:
         return {}
 
 
+ROLE_CATEGORIES = ("biological", "chemical", "application", "other")
+
+
 def explorer_url(param: str, value: str) -> str:
     return f"{EXPLORER_URL}?{param}={quote(value, safe='')}"
 
@@ -71,6 +74,8 @@ class CosIngData:
         self.ing_compounds: dict[str, dict] = {}
         self.sp_compound_total: dict[str, int] = {}
         self.sp_via: dict[str, list[str]] = {}
+        self.roles: list[list] = []
+        self.roles_source = ""
         self.sp_zh: dict[str, str] = {}
         self.sp_en: dict[str, str] = {}
         self.fam_zh: dict[str, str] = {}
@@ -89,6 +94,11 @@ class CosIngData:
         cpd = _fetch_json("compounds.json")
         self.ing_compounds = _fetch_json_optional("ingredient_compounds.json")
         sc = _fetch_json_optional("species_compounds.json")
+        roles = _fetch_json_optional("roles.json")
+        self.roles = roles.get("roles", [])
+        if self.roles:
+            version = (roles.get("chebi") or {}).get("data_version", "")
+            self.roles_source = f"ChEBI {version} ({roles.get('license', 'CC BY 4.0')})" if version else "ChEBI"
         shared, own = sc.get("shared", {}), sc.get("own_n", {})
         self.sp_via = sc.get("via", {})
         self.sp_compound_total = {
@@ -145,7 +155,20 @@ class CosIngData:
                 "rotatable_bonds": rotb, "ring_count": rings, "aromatic_ring_count": arom,
                 "heavy_atom_count": heavy, "fraction_csp3": fsp3,
             }
+        if (cr := cpd.get("cr")) and self.roles:
+            info["chemical_roles"] = [self._role(i) for i in cr]
+            info["chemical_roles_source"] = self.roles_source
+            if suggested := sorted({f for i in cr for f in self.roles[i][4]}):
+                # a guide from a hand-made role table, not what CosIng lists for the ingredient
+                info["suggested_cosing_functions"] = suggested
         return info
+
+    def _role(self, i: int) -> dict:
+        _id, name, _definition, category, functions = self.roles[i]
+        role = {"name": name, "category": ROLE_CATEGORIES[category]}
+        if functions:
+            role["cosing_functions"] = functions
+        return role
 
     def _format_item(self, ref: str) -> dict:
         it = self.items[ref]

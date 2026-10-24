@@ -18,7 +18,9 @@ def lookup_ingredient(query: str) -> dict:
     Explorer link. When the ingredient's CAS number resolves to a known chemical
     structure, also returns multilingual chemical names (en/zh/ja), molecular descriptors
     (MW, LogP, TPSA, H-bond donors/acceptors, rotatable bonds, ring counts, Fsp3) and a
-    PubChem link.
+    PubChem link. Where ChEBI knows the compound it also gives chemical_roles (what the
+    compound does, e.g. antioxidant, plant metabolite) and suggested_cosing_functions, which
+    come from a hand-made role-to-function table and are a guide, not what CosIng lists.
     """
     result = db.lookup(query)
     if not result:

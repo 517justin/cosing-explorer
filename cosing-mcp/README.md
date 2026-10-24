@@ -27,7 +27,7 @@ claude mcp add cosing-mcp -- cosing-mcp
 
 | Tool | Description |
 |------|-------------|
-| `lookup_ingredient` | Look up by INCI name, CAS number, or ref number |
+| `lookup_ingredient` | Look up by INCI name, CAS number, or ref number; returns the compound's ChEBI chemical roles and the CosIng functions they suggest |
 | `search_ingredients` | Keyword search with filters (function, family, restricted, bio-source) |
 | `get_species` | Species info: extracts, compounds, taxonomy |
 | `get_family` | Family info: species count, top functions, restriction rate |
@@ -65,6 +65,7 @@ Then provide a photo or text of a cosmetic ingredient label:
 - `compounds.json` (~6 MB): 12,375 compounds linked to species
 - `species_compounds.json` (~0.7 MB): the complete list of compounds per species, with reference counts and the other names compounds were credited through; used to count a species' compounds
 - `ingredient_compounds.json` (~0.8 MB): structure data for 5,399 more compounds that belong to no species, so every ingredient with a structure returns its formula, PubChem link, and descriptors. 3,344 of them also carry English, Chinese, or Japanese names, and those names are searchable
+- `roles.json` (~0.1 MB): 735 ChEBI chemical roles (CC BY 4.0) with the CosIng functions a hand-made table maps them to; optional, and `lookup_ingredient` leaves out `chemical_roles` and `suggested_cosing_functions` without it. The suggested functions are a guide, not what CosIng lists for the ingredient
 
 Cached at `~/.cache/cosing-mcp/` with 7-day TTL. Works offline after first fetch.
 
