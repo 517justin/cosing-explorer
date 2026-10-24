@@ -26,6 +26,7 @@ EU CosIng データベースに登録された 33,638 種類の化粧品成分�
 - **種の写真** — GBIF Occurrence API から自動取得
 - **通称・和名** — 中国語の通称は 2,375 種、英語の通称は 2,448 種に、376 科すべてに中国語・英語の通称を収録。和名は 1,587 種と 275 科に収録しています。検索・表示の両方で利用できます
 - **化合物の多言語名称** — 6,815 件の化合物に英語・中国語・日本語の名称と別名を収録（Wikidata 由来）。「caffeine」「槲皮素」「ケルセチン」で検索できます
+- **化学的な役割** — 7,422 件の化合物に ChEBI の化学的な役割を付与（ケルセチン：antioxidant、plant metabolite、chelator など）。役割にカーソルを合わせると ChEBI の定義を表示します。手作業の対応表で 33 の役割を 29 の CosIng 機能に結び付け、パネルに「役割から推定される機能」として表示（機能ノードへ移動可）。CosIng の登録情報ではなく目安です
 - **三言語 UI** — 中文 / English / 日本語を切り替え可能。ラベルと通称・和名が言語に合わせて切り替わります
 - **絞り込みと並べ替え** — 植物由来 / 規制あり / 構造あり / 用途別 / 科別の絞り込みと、複数の並べ替え
 - **規制データ** — EU 化粧品規則 EC 1223/2009 の Annex II–VI を構造化して色分け表示
@@ -38,7 +39,7 @@ EU CosIng データベースに登録された 33,638 種類の化粧品成分�
 - **成分表の分析** — 成分表のテキストや写真を渡すと、INCI 名を識別してデータベースを一括照会します
 - **規制の即時確認** — 任意の成分の EU 規制区分（Annex II–VI）をすぐに確認できます
 - **種・科の情報** — 分類情報、抽出物の一覧、化合物数を照会できます（和名つき）。LOTUS にデータがない種は「化合物がない」ではなく「データなし」と返します
-- **化学データ** — 成分を照会すると、その化合物の分子式、PubChem リンク、記述子も返します。構造を持つ 7,281 成分すべてが対象で、Wikidata に収録があれば多言語名称も付きます
+- **化学データ** — 成分を照会すると、その化合物の分子式、PubChem リンク、記述子も返します。構造を持つ 7,281 成分すべてが対象で、Wikidata に収録があれば多言語名称も、ChEBI に収録があれば化学的な役割と、そこから推定される CosIng の機能も付きます
 - **Explorer へのリンク** — すべての回答に知識グラフへのディープリンクを付け、視覚的な探索に進めます
 
 ## グラフのノード選択ロジック
@@ -157,6 +158,7 @@ MCP Server は 6 つのツールを提供し、Claude が質問に応じて自�
 | 化合物 | [LOTUS](https://lotus.naturalproducts.net/) Natural Products | CC0 |
 | 分子構造 | [PubChem](https://pubchem.ncbi.nlm.nih.gov/) | パブリックドメイン |
 | 多言語名称（化合物・種の和名）、PubChem に無い構造式 | [Wikidata](https://www.wikidata.org/) | CC0 |
+| 化学的な役割 | [ChEBI](https://www.ebi.ac.uk/chebi/) | CC BY 4.0（表示が必要） |
 
 ## アーキテクチャ
 
@@ -166,6 +168,7 @@ docs/                        # GitHub Pages のルート（Explorer）
 ├── data/
 │   ├── ingredients.json     # 33,638 件の成分 + インデックス + 通称・和名（約 8 MB）
 │   ├── compounds.json       # 12,375 件の化合物インデックス。2 種以上に共通するもの（約 6 MB）
+│   ├── roles.json           # ChEBI の化学的な役割 735 種と対応する CosIng 機能。化合物はインデックスで参照（約 0.1 MB）
 │   ├── species_compounds.json  # 種 → 化合物の完全なリスト。文献数つき（約 0.7 MB）
 │   └── ingredient_compounds.json  # MCP Server 用の追加 5,399 件の化合物（約 0.8 MB）
 ├── own/                     # 種に固有の 49,764 件の化合物。必要時に読み込む 180 チャンク（約 11 MB）
@@ -176,7 +179,7 @@ cosing-mcp/                  # AI 質問応答層（MCP Server）
 ├── src/cosing_mcp/
 │   ├── server.py            # MCP Server のエントリポイント + 6 ツールの定義
 │   └── data.py              # GitHub Pages の JSON キャッシュ + メモリ内インデックス
-├── tests/                   # 45 件のテスト
+├── tests/                   # 48 件のテスト
 ├── skill/cosing-analyze.md  # 成分分析スキル（配布用コピー）
 └── pyproject.toml           # pip install 設定
 
@@ -184,7 +187,7 @@ cosing-mcp/                  # AI 質問応答層（MCP Server）
 ├── commands/cosing-analyze.md  # Claude Code スキル
 └── settings.json               # MCP Server 設定
 
-tests/explorer/              # Explorer の UI とデータのテスト（Node + jsdom、36 件）
+tests/explorer/              # Explorer の UI とデータのテスト（Node + jsdom、43 件）
 requirements.txt             # _scripts/ 用の Python 依存パッケージ
 ```
 
@@ -227,6 +230,8 @@ LOTUS の照合を更新するとき（LOTUS や GBIF の新版が出たあと�
 
 LOTUS の照合（`COSING_SOURCE=2026 .venv/bin/python _scripts/13_lotus.py`）で新しい化合物が見つかったら、ビルドの前に `17_fetch_compound_smiles.py`、`17b_wikidata_structures.py`（PubChem に無い構造式を Wikidata から取得し InChIKey で検証）、`17_fetch_compound_smiles.py`（`compound_v2026` の再読み込み）、`18_render_structures.py`、`19_compute_descriptors.py` を順に実行してください。
 
+化学的な役割を更新する場合は、ChEBI のオントロジー <https://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi.obo.gz> を `_data/chebi/` にダウンロードし、`.venv/bin/python _scripts/21_load_chebi.py`（InChIKey で化合物を照合し、`compound_roles.json` と `roles.json` を出力）を実行します。続けて、手作業で管理している `_data/chebi/role_function.json` を `21b_check_role_functions.py` で検査（役割の ID と名前、機能名、CosIng 自身の付与との一致度）し、サイトをビルドし直します。
+
 多言語名称を更新する場合（Wikidata へ SPARQL クエリを送信。全件で約 20 分）：
 
 ```bash
@@ -237,8 +242,8 @@ LOTUS の照合（`COSING_SOURCE=2026 .venv/bin/python _scripts/13_lotus.py`）�
 ## テスト
 
 ```bash
-cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP Server、45 件
-cd tests/explorer && npm install && npm test             # Explorer の UI とデータ、36 件
+cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP Server、48 件
+cd tests/explorer && npm install && npm test             # Explorer の UI とデータ、43 件
 ```
 
 ## ロードマップ
@@ -249,6 +254,7 @@ cd tests/explorer && npm install && npm test             # Explorer の UI と�
 
 | 日付 | 内容 |
 |------|------|
+| 2026-10-24 | Phase 8c 完了 — 化学的な役割。ChEBI の役割を 7,422 件の化合物に付与（6,703 件は InChIKey の完全一致、719 件は平面構造で照合）、役割は全部で 735 種。化合物パネルに役割と、そこから推定される CosIng の機能を表示し、ChEBI のライセンスも明記。`lookup_ingredient` は `chemical_roles` と `suggested_cosing_functions` を返します。手作業の役割→機能の対応表がカバーするのは 29 機能（目標は 30 で、届きませんでした。追加候補の `anti-inflammatory agent → SOOTHING` は CosIng の付与との一致が 1% だったため外しました）。構造があり推定機能もある 771 成分のうち、CosIng が推定機能のいずれかを挙げているのは 51%。MCP のテスト 45 → 48 件、Explorer のテスト 36 → 43 件 |
 | 2026-10-21 | LOTUS の問題 6〜10 を処理 — LOTUS が GBIF の異名や変種として記載した化合物を、受理名の種に含めるようにしました（データのある種が 42 種、報告が 4,158 件増加）。ただし含める前に各名称の意味を GBIF に確認します。LOTUS の異名 960 件のうち 637 件は実際には独立した受理種だったためです（`Annona glabra` は `Annona squamosa` ではありません）。化合物ページは報告したすべての種を関連の高い順に文献数つきで一覧し、報告の 78% が文献 1 件のみであることを示します。種のパネルは出典 LOTUS を示し、データがない場合はそう伝え、含める際に使った別名も表示します。同じ平面構造の立体異性体は相互にリンクされます。`get_species` も同じ情報を返します |
 | 2026-10-19 | PubChem が返さなかった化合物を回収 — パイプラインから脱落していた 1,772 件のうち 1,768 件に Wikidata 由来の構造式を付与（SMILES から再計算した InChIKey が LOTUS のキーと一致した場合のみ採用）、SMILES なしで返ってきた 400 件は CID で補完。共通化合物は 11,810 から 11,978 件、種に固有の化合物は 47,280 から 48,880 件に増え、Zingiber officinale は LOTUS と同じ 713 件になりました。新しい構造式は追加レイヤー `svg/add/` に置き、631 個のメインチャンクには触れません |
 | 2026-10-18 | 交雑種記号の処理 — LOTUS と Wikidata は交雑種を乗算記号付き（`Rosa × damascena`）で表記するため、5 種の化合物（デモ用の Rosa damascena を含み、現在 75 件）と 16 種の Wikidata 名称（例：Citrus limon は現在 レモン・檸檬）が一致していませんでした。比較時に記号を無視するようにしました。新しい化合物 94 件を取得して描画し、既存チャンクを書き換えずに構造式を追加する `build_site.py --svg-new-only` を追加 |

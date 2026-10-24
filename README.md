@@ -26,6 +26,7 @@
 - 物種照片：透過 GBIF Occurrence API 自動載入實物照片
 - 中英文俗名：2,375 種物種有中文俗名、2,448 種有英文俗名，376 科全數附有中英文俗名，搜尋和顯示都支援。日文和名涵蓋 1,587 種物種與 275 科
 - 化合物多語名稱：6,815 個化合物附英/中/日名稱與別名（來自 Wikidata），可用「caffeine」「槲皮素」「ケルセチン」搜尋
+- 化學角色：7,422 個化合物附 ChEBI 的化學角色（如槲皮素：antioxidant、plant metabolite、chelator），滑過角色可看 ChEBI 的定義。人工整理的對照表再把 33 個角色對應到 29 個 CosIng 用途，面板據此列出「依角色推得的用途」，可點進用途節點；這只是參考，不是 CosIng 的登錄資料
 - 三語介面：用按鈕在中文、English、日本語之間切換，介面文字、俗名與和名隨語系變更；日文模式支援和名搜尋（如「ラベンダー」）
 - 篩選與排序：植物來源 / 有限制 / 有結構 / 用途 / 科篩選，多種排序模式
 - 法規資料：EU 化妝品法規 EC 1223/2009 Annex II–VI 結構化顯示，色彩編碼
@@ -38,7 +39,7 @@
 - 成分表分析：貼上成分表文字或照片，自動辨識 INCI 名稱並批次查詢
 - 法規速查：即時查詢任何成分的 EU 法規限制狀態（Annex II–VI）
 - 物種 / 科資訊：查詢植物分類、萃取物清單、化合物數量；LOTUS 沒有資料的物種會如實回報「沒有資料」，而不是「沒有化合物」
-- 化學資訊：查詢成分時，會一併回傳其化合物的分子式、PubChem 連結與描述子，7,281 個有結構的成分都適用；Wikidata 有收錄的，另附多語名稱
+- 化學資訊：查詢成分時，會一併回傳其化合物的分子式、PubChem 連結與描述子，7,281 個有結構的成分都適用；Wikidata 有收錄的，另附多語名稱；ChEBI 有收錄的，另附化學角色與依角色推得的 CosIng 用途
 - Explorer 連結：所有查詢結果都附上知識圖譜的深度連結，可以直接開啟視覺化頁面
 
 ## 圖譜節點選取邏輯
@@ -157,6 +158,7 @@ MCP Server 提供 6 個工具，Claude 會根據問題自動選用：
 | 化合物 | [LOTUS](https://lotus.naturalproducts.net/) Natural Products | CC0 |
 | 分子結構 | [PubChem](https://pubchem.ncbi.nlm.nih.gov/) | Public Domain |
 | 多語名稱（化合物、物種和名）、PubChem 沒有的結構 | [Wikidata](https://www.wikidata.org/) | CC0 |
+| 化學角色 | [ChEBI](https://www.ebi.ac.uk/chebi/) | CC BY 4.0（需標註） |
 
 ## 架構
 
@@ -166,6 +168,7 @@ docs/                        # GitHub Pages 根目錄（Explorer）
 ├── data/
 │   ├── ingredients.json     # 33,638 筆原料 + 索引 + 中英文俗名（~8 MB）
 │   ├── compounds.json       # 12,375 筆化合物索引，限 2 個以上物種共有（~6 MB）
+│   ├── roles.json           # 735 種 ChEBI 化學角色與對應的 CosIng 用途，化合物以索引引用（~0.1 MB）
 │   ├── species_compounds.json  # 完整的物種 → 化合物清單，含文獻篇數（~0.7 MB）
 │   └── ingredient_compounds.json  # 另有 5,399 筆化合物，供 MCP Server 使用（~0.8 MB）
 ├── own/                     # 49,764 個物種特有化合物，分成 180 個按需載入的 chunk（~11 MB）
@@ -176,7 +179,7 @@ cosing-mcp/                  # AI 問答層（MCP Server）
 ├── src/cosing_mcp/
 │   ├── server.py            # MCP Server 進入點 + 6 個工具定義
 │   └── data.py              # GitHub Pages JSON 快取 + 記憶體索引
-├── tests/                   # 45 項測試
+├── tests/                   # 48 項測試
 ├── skill/cosing-analyze.md  # 成分分析 Skill（分發用副本）
 └── pyproject.toml           # pip install 設定
 
@@ -184,7 +187,7 @@ cosing-mcp/                  # AI 問答層（MCP Server）
 ├── commands/cosing-analyze.md  # Claude Code Skill
 └── settings.json               # MCP Server 設定
 
-tests/explorer/              # Explorer 介面與資料測試（Node + jsdom，36 項）
+tests/explorer/              # Explorer 介面與資料測試（Node + jsdom，43 項）
 requirements.txt             # _scripts/ 的 Python 依賴
 ```
 
@@ -227,6 +230,8 @@ SVG chunk 現在用固定的 gzip 標頭寫出，連續兩次完整建置的結�
 
 LOTUS 比對（`COSING_SOURCE=2026 .venv/bin/python _scripts/13_lotus.py`）找到新化合物時，建置前要依序執行 `17_fetch_compound_smiles.py`、`17b_wikidata_structures.py`（PubChem 查無的結構，從 Wikidata 取得並以 InChIKey 驗證）、再執行一次 `17_fetch_compound_smiles.py` 以重載 `compound_v2026` 表、`18_render_structures.py`、`19_compute_descriptors.py`。
 
+更新化學角色：從 <https://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi.obo.gz> 下載 ChEBI 本體放到 `_data/chebi/`，執行 `.venv/bin/python _scripts/21_load_chebi.py`（以 InChIKey 比對，產生 `compound_roles.json` 與 `roles.json`），再用 `21b_check_role_functions.py` 檢查人工維護的 `_data/chebi/role_function.json`（角色 id 與名稱、用途名稱是否正確，並與 CosIng 自己的標註比對），最後重建網站。
+
 更新多語名稱（會向 Wikidata 發送 SPARQL 查詢，全量約 20 分鐘）：
 
 ```bash
@@ -237,8 +242,8 @@ LOTUS 比對（`COSING_SOURCE=2026 .venv/bin/python _scripts/13_lotus.py`）找�
 ## 測試
 
 ```bash
-cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP Server，45 項
-cd tests/explorer && npm install && npm test             # Explorer 介面與資料，36 項
+cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP Server，48 項
+cd tests/explorer && npm install && npm test             # Explorer 介面與資料，43 項
 ```
 
 ## 路線圖
@@ -249,6 +254,7 @@ cd tests/explorer && npm install && npm test             # Explorer 介面與資
 
 | 日期 | 內容 |
 |------|------|
+| 2026-10-24 | Phase 8c 完成：化學角色。從 ChEBI 取得角色，7,422 個化合物有角色（6,703 個以 InChIKey 完全比對，719 個以平面結構比對），共 735 種。化合物面板列出角色與依角色推得的 CosIng 用途，附 ChEBI 授權標示；`lookup_ingredient` 回傳 `chemical_roles` 與 `suggested_cosing_functions`。人工整理的角色→用途對照涵蓋 29 個用途（目標 30 個，沒達到：多出的 `anti-inflammatory agent → SOOTHING` 與 CosIng 的標註只有 1% 吻合，所以拿掉）。對有結構又有推得用途的 771 個成分，CosIng 列出其中至少一個的有 51%。MCP 測試 45 → 48 項、Explorer 36 → 43 項 |
 | 2026-10-21 | 處理 LOTUS 問題 6 至 10：LOTUS 以 GBIF 同義名或變種記載的化合物，現在會歸入接受名物種（多 42 個物種有資料、多 4,158 筆報告），但歸入前會先向 GBIF 確認每個名稱的意思，因為 LOTUS 的 960 個同義名中有 637 個其實是獨立的已接受物種（`Annona glabra` 不是 `Annona squamosa`）。化合物頁列出所有報告它的物種（關聯度高的在前），附文獻篇數，並說明 78% 的報告只有 1 篇文獻；物種面板標明來源 LOTUS、沒有資料時明說、並列出歸入時用到的其他學名；平面結構相同的立體異構物互相連結。`get_species` 也回報同樣的資訊 |
 | 2026-10-19 | 補回 PubChem 沒有回傳的化合物：原本掉出流程的 1,772 個化合物中，1,768 個現在有來自 Wikidata 的結構（SMILES 必須通過檢查，由它重新計算的 InChIKey 要與 LOTUS 的一致才採用），另有 400 筆回傳時缺 SMILES 的記錄改用 CID 補齊。共有化合物由 11,810 增為 11,978，物種特有化合物由 47,280 增為 48,880，Zingiber officinale 現在列出 713 個化合物，與 LOTUS 的數字相同。新的結構圖放進附加層 `svg/add/`，631 個主 chunk 完全不動 |
 | 2026-10-18 | 處理雜交種記號：LOTUS 與 Wikidata 把雜交種寫成帶乘號的 `Rosa × damascena`，使 5 個物種的化合物（包含示範物種 Rosa damascena，現有 75 個化合物）和 16 個物種的 Wikidata 名稱（例如 Citrus limon，現為 レモン 與 檸檬）都對不上。比對時改為忽略乘號。另外抓取並繪製了 94 個新化合物，並新增 `build_site.py --svg-new-only`，只加入新結構圖、不改寫其他 chunk |

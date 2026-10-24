@@ -98,26 +98,29 @@
 
 ---
 
-### 8c — ChEBI 化學角色（中期 2–4 weeks，可與 8b 平行）
+### 8c — ChEBI 化學角色（中期 2–4 weeks，可與 8b 平行）✅ 已完成 2026-10-24（用途覆蓋 29/82，略低於原訂 30）
 
 **目標：** 從 ChEBI 引入化學角色標註，解釋化合物為什麼具有特定用途。
 
-| 工作項 | 說明 |
-|--------|------|
-| `21_load_chebi.py` | 下載 ChEBI TSV + 角色本體，以 InChIKey 比對（預估 ~3,000–5,000 overlap） |
-| 角色→用途對照表 | 建立 ChEBI role ↔ CosIng function 交叉映射（~40 組，半自動） |
-| `build_site.py` 修改 | `compounds.json` 加 `chemical_roles` 陣列 |
-| Explorer UI | 化合物面板顯示化學角色 |
-| MCP Server | 新增或擴充工具：查詢化合物角色 + role→function mapping |
+| 工作項 | 說明 | 狀態 |
+|--------|------|------|
+| `21_load_chebi.py` | 解析 ChEBI 本體 `chebi.obo.gz`（release 256，45 MB，不進版控）。角色是 CHEBI:50906 之下的 1,649 個類別；ChEBI 把角色寫在最上位的類別（flavonols 是 plant metabolite，所以 quercetin 也是），因此化合物沿 `is_a` 繼承祖先的角色。以 InChIKey 比對 67,164 個專案化合物：6,703 個完全一致，另有 719 個帶立體資訊的 key 以 ChEBI 只收平面結構的條目（第一段相同）補上，標為 match 1。共 7,422 個化合物、735 種角色，中位數每個化合物 2 個角色 | ✅ |
+| 角色→用途對照表 | `_data/chebi/role_function.json`，人工整理 33 個角色對應 29 個 CosIng 用途；對照沿 ChEBI 的角色階層向上繼承（surfactant 在 ChEBI 是 emulsifier 的子類，因此也得到乳化用途）。`21b_check_role_functions.py` 驗證角色 id 與名稱、用途名稱，並與 CosIng 自己的標註比對 | ✅ |
+| `build_site.py` 修改 | 新增 `data/roles.json`（735 種角色：id、名稱、定義、類別、對應用途，127 KB），依使用次數排序；`compounds.json`、`ingredient_compounds.json` 與 `own/` 每列加 `cr`（角色索引陣列）。3,383 個共有化合物、876 個成分用化合物、3,321 個物種特有化合物有角色 | ✅ |
+| Explorer UI | 化合物面板新增「化學角色」區：有對應用途的角色先排，其餘依常見程度，先顯示 10 個、其餘收合；游標停在角色上顯示 ChEBI 定義；下方列出由角色推得的 CosIng 用途（可點進用途節點）；附 ChEBI 版本、CC BY 4.0 與連結，頁尾加上 ChEBI。三語介面。`roles.json` 載入失敗時面板照常運作 | ✅ |
+| MCP Server | `lookup_ingredient` 的 `compound` 加 `chemical_roles`（名稱、類別、對應用途）、`suggested_cosing_functions` 與 `chemical_roles_source`；`roles.json` 為選用檔，缺檔時略過這幾個欄位 | ✅ |
+| 測試 | MCP 45 → 48 項、Explorer 36 → 43 項；用改壞的副本驗證（Explorer 拿掉 tooltip、角色索引超出範圍，MCP 清掉角色的對應用途），3 種破壞全部被抓到 | ✅ |
 
 **前提：** Phase 8a 完成。  
 **授權：** ChEBI CC BY 4.0，需標註。
 
 **驗收：**
-- 化合物面板顯示角色（如 quercetin: "plant metabolite, antioxidant"）
-- Role ↔ Function 覆蓋 ≥30 / 82 用途
-- ≥3,000 化合物有角色標註
-- ChEBI 授權標示正確
+- ✅ 化合物面板顯示角色（quercetin：plant metabolite、antioxidant 等 19 個，並推得 ANTIOXIDANT、ANTIMICROBIAL、CHELATING）
+- ⚠️ Role ↔ Function 覆蓋 29 / 82 用途（目標 ≥30）。原本有 30 個，把 `anti-inflammatory agent → SOOTHING` 拿掉了：對 CosIng 自己的標註只有 1% 吻合（152 個成分），ChEBI 的「抗發炎藥」是藥理角色，和化妝品的舒緩用途不同。寧可少一個也不湊數；其餘 53 個用途沒有語意相符的 ChEBI 角色，沒有硬配
+- ✅ 7,422 個化合物有角色標註（目標 ≥3,000）
+- ✅ ChEBI 授權標示（面板說明、頁尾、MCP `chemical_roles_source`）
+
+**對照表的可信度：** 對 771 個有結構又有推得用途的成分，CosIng 列出至少一個推得用途的有 51%。這是一致性檢查，不是準確率：CosIng 的用途是配方者登錄的，ChEBI 的角色是化合物本身的性質，兩者不必相同。逐項看，COLORANT 65 個成分中 51% 吻合，BLEACHING 15 個中只有 20%，這也是面板把用途建議標成「僅供參考」的原因。
 
 ---
 
@@ -202,3 +205,4 @@
 | LOTUS 被丟掉的化合物（4） | 從 Wikidata 與依 CID 補回 2,168 個結構，Explorer 化合物增加 1,768 個 | 2026-10-19 |
 | LOTUS 證據、無資料提示、同義名、物種清單、立體異構物（6 至 10） | 同義名經 GBIF 驗證後歸入、文獻篇數與來源說明、完整物種清單、立體異構物連結 | 2026-10-21 |
 | LOTUS 雜交種記號（5） | 比對時忽略 ×，救回 5 個物種的化合物與 16 個物種的 Wikidata 名稱 | 2026-10-18 |
+| Phase 8c | ChEBI 化學角色：7,422 個化合物、735 種角色、33 組角色→用途對照（涵蓋 29/82 用途）、Explorer 面板與 MCP | 2026-10-24 |

@@ -26,6 +26,7 @@ Live demo: [517justin.github.io/cosing-explorer](https://517justin.github.io/cos
 - Species photos: loaded automatically from the GBIF Occurrence API
 - Common names: Chinese names for 2,375 species and English names for 2,448, plus Chinese and English names for all 376 families, shown throughout the interface and searchable. Japanese names (和名) cover 1,587 species and 275 families
 - Multilingual compound names: 6,815 compounds have English, Chinese, and Japanese names and aliases from Wikidata, so you can search for "caffeine", "槲皮素", or "ケルセチン"
+- Chemical roles: 7,422 compounds carry ChEBI chemical roles (quercetin: antioxidant, plant metabolite, chelator, and more); hover a role for its ChEBI definition. A hand-made table maps 33 roles to 29 CosIng functions, and the panel lists the functions the roles suggest, each linking to its function node. They are a guide, not CosIng records
 - Trilingual UI: switch between Chinese, English, and Japanese with the language button. Labels and common names follow the selected language, and Japanese names (和名) are searchable, for example "ラベンダー"
 - Filtering and sorting: filter by botanical source, restriction, structure, function, or family, and sort several ways
 - Regulation data: Annexes II to VI of EU Cosmetics Regulation EC 1223/2009, shown in a structured, color-coded layout
@@ -38,7 +39,7 @@ Live demo: [517justin.github.io/cosing-explorer](https://517justin.github.io/cos
 - Ingredient label analysis: paste an ingredient list or a photo of one, and the skill identifies the INCI names and looks them all up
 - Regulation lookup: check any ingredient's EU regulatory status (Annexes II to VI)
 - Species and family info: taxonomy, extract lists, and compound counts; a species without LOTUS data is reported as such, not as having no compounds
-- Chemical data: looking up an ingredient also returns the formula, PubChem link, and descriptors of its compound for all 7,281 ingredients that have a structure, plus multilingual names where Wikidata has them
+- Chemical data: looking up an ingredient also returns the formula, PubChem link, and descriptors of its compound for all 7,281 ingredients that have a structure, plus multilingual names where Wikidata has them, and chemical roles with the CosIng functions they suggest where ChEBI has them
 - Explorer links: every result includes a deep link to the knowledge graph
 
 ## Graph node selection logic
@@ -157,6 +158,7 @@ The MCP server provides six tools, and Claude picks the right one for each quest
 | Compounds | [LOTUS](https://lotus.naturalproducts.net/) Natural Products | CC0 |
 | Molecular structures | [PubChem](https://pubchem.ncbi.nlm.nih.gov/) | Public Domain |
 | Multilingual names (compounds, species) and structures PubChem lacks | [Wikidata](https://www.wikidata.org/) | CC0 |
+| Chemical roles | [ChEBI](https://www.ebi.ac.uk/chebi/) | CC BY 4.0 (attribution required) |
 
 ## Architecture
 
@@ -166,6 +168,7 @@ docs/                        # GitHub Pages root (Explorer)
 ├── data/
 │   ├── ingredients.json     # 33,638 ingredients + indexes + common names (~8 MB)
 │   ├── compounds.json       # 12,375 compound index, compounds in 2+ species (~6 MB)
+│   ├── roles.json           # 735 ChEBI chemical roles with their CosIng functions; compounds refer to them by index (~0.1 MB)
 │   ├── species_compounds.json  # complete species -> compound lists, with reference counts (~0.7 MB)
 │   └── ingredient_compounds.json  # 5,399 more compounds, for the MCP server (~0.8 MB)
 ├── own/                     # 49,764 species-specific compounds in 180 on-demand chunks (~11 MB)
@@ -176,7 +179,7 @@ cosing-mcp/                  # AI query layer (MCP Server)
 ├── src/cosing_mcp/
 │   ├── server.py            # MCP Server entry point + 6 tool definitions
 │   └── data.py              # GitHub Pages JSON cache + in-memory indexes
-├── tests/                   # 45 tests
+├── tests/                   # 48 tests
 ├── skill/cosing-analyze.md  # Ingredient analysis skill (distributable copy)
 └── pyproject.toml           # pip install config
 
@@ -184,7 +187,7 @@ cosing-mcp/                  # AI query layer (MCP Server)
 ├── commands/cosing-analyze.md  # Claude Code Skill
 └── settings.json               # MCP Server config
 
-tests/explorer/              # Explorer UI and data tests (Node + jsdom, 36 tests)
+tests/explorer/              # Explorer UI and data tests (Node + jsdom, 43 tests)
 requirements.txt             # Python dependencies for _scripts/
 ```
 
@@ -227,6 +230,8 @@ To refresh the LOTUS join after a new LOTUS or GBIF release, run `13b_gbif_synon
 
 When the LOTUS join finds new compounds (`COSING_SOURCE=2026 .venv/bin/python _scripts/13_lotus.py`), run `17_fetch_compound_smiles.py`, then `17b_wikidata_structures.py` (structures PubChem does not know, taken from Wikidata and checked against the InChIKey), then `17_fetch_compound_smiles.py` again to reload `compound_v2026`, `18_render_structures.py` and `19_compute_descriptors.py` before building.
 
+To refresh chemical roles, download the ChEBI ontology from <https://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi.obo.gz> into `_data/chebi/`, run `.venv/bin/python _scripts/21_load_chebi.py` (matches compounds by InChIKey and writes `compound_roles.json` and `roles.json`), check the hand-kept `_data/chebi/role_function.json` with `21b_check_role_functions.py` (role ids and names, function names, and agreement with CosIng's own labels), then rebuild the site.
+
 To refresh multilingual names (queries Wikidata over SPARQL, about 20 minutes for a full run):
 
 ```bash
@@ -237,8 +242,8 @@ To refresh multilingual names (queries Wikidata over SPARQL, about 20 minutes fo
 ## Testing
 
 ```bash
-cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP server, 45 tests
-cd tests/explorer && npm install && npm test             # Explorer UI and data, 36 tests
+cd cosing-mcp && pip install -e ".[dev]" && pytest       # MCP server, 48 tests
+cd tests/explorer && npm install && npm test             # Explorer UI and data, 43 tests
 ```
 
 ## Roadmap
@@ -249,6 +254,7 @@ See [ROADMAP.md](ROADMAP.md).
 
 | Date | Description |
 |------|-------------|
+| 2026-10-24 | Phase 8c complete: chemical roles. ChEBI roles for 7,422 compounds (6,703 matched by InChIKey, 719 through the flat structure), 735 roles in all. The compound panel lists the roles and the CosIng functions they suggest, with the ChEBI licence shown, and `lookup_ingredient` returns `chemical_roles` and `suggested_cosing_functions`. The hand-made role-to-function table covers 29 functions (the goal was 30, which it misses: a further `anti-inflammatory agent → SOOTHING` pair agreed with CosIng's labels only 1% of the time, so it was left out). For the 771 ingredients with a structure and a suggested function, CosIng lists at least one of them 51% of the time. MCP tests 45 → 48, Explorer tests 36 → 43 |
 | 2026-10-21 | LOTUS problems 6 to 10: compounds LOTUS files under a GBIF synonym or a variety are now credited to the accepted species (42 more species have data, 4,158 more reports), but only after asking GBIF what each name means, because 637 of the 960 synonym names in LOTUS turned out to be accepted species in their own right (`Annona glabra` is not `Annona squamosa`). Compound pages list every reporting species, most relevant first, with reference counts and a note that 78% of reports rest on one reference; species panels name LOTUS, say when it has no data, and list the other names used; stereoisomers of one structure are linked. `get_species` says the same |
 | 2026-10-19 | Recovered the compounds PubChem did not return: 1,768 of the 1,772 compounds that had dropped out of the pipeline now have structures from Wikidata (a SMILES is accepted only if the InChIKey recomputed from it matches the LOTUS key), and 400 records that came back without a SMILES were completed by CID. Shared compounds went from 11,810 to 11,978 and species-specific ones from 47,280 to 48,880; Zingiber officinale now lists 713 compounds, the number LOTUS reports. New structures go to an add-on layer, `svg/add/`, so the 631 main chunks stay untouched |
 | 2026-10-18 | Hybrid species matched: LOTUS and Wikidata write hybrids with a multiplication sign (`Rosa × damascena`), so 5 species had lost their compounds (including the demo species Rosa damascena, now 75 compounds) and 16 their Wikidata names (for example Citrus limon, now レモン and 檸檬). Names are now compared without the sign. 94 new compounds were fetched and drawn, and `build_site.py --svg-new-only` adds structures without rewriting the other chunks |
