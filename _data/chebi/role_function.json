@@ -1,0 +1,206 @@
+{
+  "_note": "ChEBI role -> CosIng functions. A compound is credited with the functions of its roles and of every more general role above them (is_a). Only roles whose meaning matches the function are listed; roles without a counterpart (antineoplastic agent, plant metabolite, cosmetic ...) are shown but not mapped.",
+  "roles": {
+    "22586": {
+      "role": "antioxidant",
+      "functions": [
+        "ANTIOXIDANT"
+      ]
+    },
+    "27780": {
+      "role": "detergent",
+      "functions": [
+        "SURFACTANT - CLEANSING",
+        "CLEANSING"
+      ]
+    },
+    "33281": {
+      "role": "antimicrobial agent",
+      "functions": [
+        "ANTIMICROBIAL"
+      ]
+    },
+    "35195": {
+      "role": "surfactant",
+      "functions": [
+        "SURFACTANT"
+      ]
+    },
+    "35225": {
+      "role": "buffer",
+      "functions": [
+        "BUFFERING"
+      ]
+    },
+    "35617": {
+      "role": "flavouring agent",
+      "functions": [
+        "FLAVOURING"
+      ]
+    },
+    "37958": {
+      "role": "dye",
+      "functions": [
+        "COLORANT"
+      ]
+    },
+    "38161": {
+      "role": "chelator",
+      "functions": [
+        "CHELATING"
+      ]
+    },
+    "46787": {
+      "role": "solvent",
+      "functions": [
+        "SOLVENT"
+      ]
+    },
+    "48218": {
+      "role": "antiseptic drug",
+      "functions": [
+        "ANTIMICROBIAL"
+      ]
+    },
+    "48318": {
+      "role": "fragrance",
+      "functions": [
+        "FRAGRANCE",
+        "PERFUMING"
+      ]
+    },
+    "50176": {
+      "role": "keratolytic drug",
+      "functions": [
+        "KERATOLYTIC"
+      ]
+    },
+    "59010": {
+      "role": "antiseborrheic",
+      "functions": [
+        "ANTI-SEBORRHEIC"
+      ]
+    },
+    "59997": {
+      "role": "EC 1.14.18.1 (tyrosinase) inhibitor",
+      "functions": [
+        "BLEACHING"
+      ]
+    },
+    "63046": {
+      "role": "emulsifier",
+      "functions": [
+        "SURFACTANT - EMULSIFYING"
+      ]
+    },
+    "63247": {
+      "role": "reducing agent",
+      "functions": [
+        "REDUCING"
+      ]
+    },
+    "63248": {
+      "role": "oxidising agent",
+      "functions": [
+        "OXIDISING"
+      ]
+    },
+    "63908": {
+      "role": "film-forming compound",
+      "functions": [
+        "FILM FORMING"
+      ]
+    },
+    "64049": {
+      "role": "food acidity regulator",
+      "functions": [
+        "pH ADJUSTERS"
+      ]
+    },
+    "64933": {
+      "role": "melanin synthesis inhibitor",
+      "functions": [
+        "BLEACHING"
+      ]
+    },
+    "65255": {
+      "role": "food preservative",
+      "functions": [
+        "PRESERVATIVE"
+      ]
+    },
+    "74783": {
+      "role": "astringent",
+      "functions": [
+        "ASTRINGENT"
+      ]
+    },
+    "76414": {
+      "role": "propellant",
+      "functions": [
+        "PROPELLANT"
+      ]
+    },
+    "77182": {
+      "role": "food colouring",
+      "functions": [
+        "COLORANT"
+      ]
+    },
+    "77964": {
+      "role": "anticaking agent",
+      "functions": [
+        "ANTICAKING"
+      ]
+    },
+    "77968": {
+      "role": "humectant",
+      "functions": [
+        "HUMECTANT",
+        "SKIN CONDITIONING - HUMECTANT"
+      ]
+    },
+    "77970": {
+      "role": "food thickening agent",
+      "functions": [
+        "VISCOSITY CONTROLLING"
+      ]
+    },
+    "78017": {
+      "role": "food propellant",
+      "functions": [
+        "PROPELLANT"
+      ]
+    },
+    "79056": {
+      "role": "plasticiser",
+      "functions": [
+        "PLASTICISER"
+      ]
+    },
+    "85046": {
+      "role": "skin lightening agent",
+      "functions": [
+        "BLEACHING"
+      ]
+    },
+    "132717": {
+      "role": "bleaching agent",
+      "functions": [
+        "BLEACHING"
+      ]
+    },
+    "172949": {
+      "role": "antimicrobial cosmetic preservative",
+      "functions": [
+        "PRESERVATIVE"
+      ]
+    },
+    "747329": {
+      "role": "lubricant",
+      "functions": [
+        "SLIP MODIFIER"
+      ]
+    }
+  }
+}

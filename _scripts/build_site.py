@@ -7,6 +7,7 @@ Outputs:
   docs/data/ingredients.json  – all ingredients with search/filter data
   docs/data/compounds.json    – compound details for molecular viewer
   docs/data/ingredient_compounds.json – structure data for ingredients outside compounds.json (MCP)
+  docs/data/roles.json        – ChEBI chemical roles (compounds reference them by index)
   docs/data/species_compounds.json – full species -> compound index (shared compounds + counts of species-specific ones)
   docs/own/{xx}.json          – species-specific compounds, loaded on demand by the Explorer
   docs/svg/{XX}.json          – gzip+base64 SVG chunks by InChIKey prefix
@@ -16,8 +17,8 @@ Run: .venv/bin/python _scripts/build_site.py [--skip-svg | --svg-new-only]
   --svg-new-only   write structures that are not published yet to docs/svg/add/ and leave the
                    main chunks untouched (a full rebuild folds svg/add/ back into them)
 """
-import json, os, re, gzip, base64, shutil, sys
-from collections import defaultdict
+import importlib.util, json, os, re, gzip, base64, shutil, sys
+from collections import Counter, defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(ROOT, '_data', 'kb.duckdb')
@@ -98,6 +99,35 @@ cpd_names_path = os.path.join(ROOT, '_data', 'compound_names.json')
 with open(cpd_names_path) as f:
     cpd_names = json.load(f)
 print(f"  compound names: {len(cpd_names)}")
+
+# ─── 4c. Chemical roles from ChEBI (21_load_chebi.py) and the role -> function mapping ───
+print("Loading chemical roles...")
+chebi_dir = os.path.join(ROOT, '_data', 'chebi')
+with open(os.path.join(chebi_dir, 'compound_roles.json')) as f:
+    chebi = json.load(f)
+with open(os.path.join(chebi_dir, 'roles.json')) as f:
+    chebi_roles = json.load(f)
+with open(os.path.join(chebi_dir, 'role_function.json')) as f:
+    role_map = json.load(f)
+_spec = importlib.util.spec_from_file_location('role_check', os.path.join(ROOT, '_scripts', '21b_check_role_functions.py'))
+role_check = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(role_check)
+role_fn = role_check.role_functions(role_map, chebi_roles)  # a role also has the functions of the roles above it
+role_use = Counter(r for _, rs in chebi['compounds'].values() for r in rs)
+role_order = [rid for rid, _ in sorted(role_use.items(), key=lambda kv: (-kv[1], kv[0]))]
+role_idx = {rid: i for i, rid in enumerate(role_order)}
+cpd_roles = {ik: sorted(role_idx[r] for r in rs) for ik, (_match, rs) in chebi['compounds'].items()}
+roles_json = json.dumps({
+    'chebi': chebi['chebi'], 'license': chebi['license'], 'source': chebi['source'],
+    # [ChEBI id, name, definition, category (0 biological, 1 chemical, 2 application, 3 other), CosIng functions]
+    'roles': [[rid, chebi_roles[str(rid)][0], chebi_roles[str(rid)][1], chebi_roles[str(rid)][3], sorted(role_fn[rid])]
+              for rid in role_order],
+}, separators=(',', ':'), ensure_ascii=False)
+os.makedirs(os.path.join(OUT_DIR, 'data'), exist_ok=True)
+with open(os.path.join(OUT_DIR, 'data', 'roles.json'), 'w') as f:
+    f.write(roles_json)
+print(f"  roles.json: {len(roles_json)/1024:.0f} KB ({len(role_order)} roles, {len(cpd_roles):,} compounds with roles, "
+      f"{len({fn for r in role_order for fn in role_fn[r]})} CosIng functions reachable)")
 
 # ─── 5. All ingredients ───
 print("Loading all ingredients...")
@@ -259,6 +289,7 @@ for ik, d in compounds.items():
         'top_sp': [[sp, fam] for sp, fam in top_sp],
     }
     if ik in cpd_names: cpd_result[ik]['nm'] = cpd_names[ik]
+    if ik in cpd_roles: cpd_result[ik]['cr'] = cpd_roles[ik]
     if d['cid']: cpd_result[ik]['cid'] = d['cid']
     if d['mw'] is not None: cpd_result[ik]['mw'] = d['mw']
     if d['logp'] is not None:
@@ -306,7 +337,7 @@ def own_key(species):
 own_chunks = defaultdict(lambda: defaultdict(list))
 for sp, ik, formula, iupac, cid, mw, *desc, n_refs in own_rows:
     own_chunks[own_key(sp)][sp].append(
-        [ik, formula or '', cid, mw, desc if desc[0] is not None else None, iupac or '', n_refs])
+        [ik, formula or '', cid, mw, desc if desc[0] is not None else None, iupac or '', n_refs, cpd_roles.get(ik, [])])
 
 sc_data = {
     'shared': {sp: sorted(v) for sp, v in sorted(sp_shared.items())},
@@ -373,6 +404,7 @@ for ik, formula, cid, mw, *desc in ing_cpd_rows:
     if mw: entry['mw'] = float(mw)
     if desc[0] is not None: entry['desc'] = desc
     if ik in cpd_names: entry['nm'] = cpd_names[ik]
+    if ik in cpd_roles: entry['cr'] = cpd_roles[ik]
     ing_cpds[ik] = entry
 ic_json = json.dumps(ing_cpds, separators=(',', ':'), ensure_ascii=False)
 with open(os.path.join(OUT_DIR, 'data', 'ingredient_compounds.json'), 'w') as f:
