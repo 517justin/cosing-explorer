@@ -287,6 +287,11 @@ canvas#graph.dragging { cursor: grabbing; }
   cursor: pointer;
 }
 .sp-fn:hover { opacity: 0.8; }
+.role-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.role-chip { cursor: help; }
+.role-chip:not(.role-fn) { background: var(--surface-alt); color: var(--text-sec); border: 1px solid var(--border); }
+.role-more { margin-top: 6px; font-size: 11px; color: var(--text-sec); }
+.role-more summary { cursor: pointer; margin-bottom: 4px; }
 .sp-taxon {
   font-size: 13px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
 }
@@ -523,7 +528,7 @@ canvas#graph.dragging { cursor: grabbing; }
   <footer class="site-footer">
     <span>資料來源：<a href="https://data.europa.eu/data/datasets/cosing-list-ingredients-and-fragrance-inventory?locale=en" target="_blank" rel="noopener">EU CosIng — Cosmetic Ingredient Database</a>（European Commission）</span>
     <span>分類階層：<a href="https://www.gbif.org/" target="_blank" rel="noopener">GBIF</a></span>
-    <span>化合物：<a href="https://lotus.naturalproducts.net/" target="_blank" rel="noopener">LOTUS</a> · <a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">PubChem</a></span>
+    <span>化合物：<a href="https://lotus.naturalproducts.net/" target="_blank" rel="noopener">LOTUS</a> · <a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">PubChem</a> · <a href="https://www.ebi.ac.uk/chebi/" target="_blank" rel="noopener">ChEBI</a></span>
     <span>作者：Chia-Hsiu CHEN · <a href="https://github.com/517justin/cosing-explorer" target="_blank" rel="noopener">GitHub</a></span>
     <span>授權條款：<a href="https://github.com/517justin/cosing-explorer/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a></span>
   </footer>
@@ -566,6 +571,8 @@ const I18N = {
     evidenceNote: '{b} 個物種報告過此化合物，其中 {a} 個只有 1 篇文獻支持。物種旁的數字是 LOTUS 收錄的文獻篇數。',
     noLotus: 'LOTUS 沒有此物種的化合物資料。這代表尚無已發表的植化研究，不代表它不含化合物。',
     lotusSource: '化合物資料來自 LOTUS，依文獻整理，研究較多的物種涵蓋較完整。',
+    chemRoles: '化學角色', rolesMore: '另外 {n} 個角色', suggestedFn: '依角色推得的 CosIng 用途',
+    rolesNote: '角色來自 ChEBI {v}（CC BY 4.0），描述化合物在生物或應用上的作用。用途建議由人工對照表推得，僅供參考，不是 CosIng 的登錄資料。',
     viaNote: '部分化合物在 LOTUS 以其他學名記載，依 GBIF 同義名或種下單位（變種、亞種）歸入此物種：{names}',
     ownCpds: '僅見於此物種的化合物', ownShow: '顯示', ownMore: '顯示更多', ownFail: '載入失敗，點擊重試',
     physProps: '物化性質', mw: '分子量', logp: 'LogP', tpsa: 'TPSA',
@@ -612,6 +619,8 @@ const I18N = {
     evidenceNote: '{b} species report this compound, {a} of them on a single reference. The number next to a species is how many references LOTUS lists.',
     noLotus: 'LOTUS has no compound data for this species. That means no phytochemistry has been published for it, not that it has no compounds.',
     lotusSource: 'Compound data comes from LOTUS, compiled from the literature; well-studied species are covered best.',
+    chemRoles: 'Chemical roles', rolesMore: '{n} more roles', suggestedFn: 'CosIng functions suggested by the roles',
+    rolesNote: 'Roles come from ChEBI {v} (CC BY 4.0) and describe what the compound does in organisms or in use. The function suggestions follow a hand-made role table and are a guide, not CosIng records.',
     viaNote: 'Some compounds are listed in LOTUS under other names and were credited to this species through GBIF synonyms or its varieties and subspecies: {names}',
     ownCpds: 'Compounds found only in this species', ownShow: 'Show', ownMore: 'Show more', ownFail: 'Could not load, click to retry',
     physProps: 'Physical Properties', mw: 'MW', logp: 'LogP', tpsa: 'TPSA',
@@ -658,6 +667,8 @@ const I18N = {
     evidenceNote: '{b} 種がこの化合物を報告しており、うち {a} 種は文献 1 件のみです。種名の横の数字は LOTUS が収録する文献数です。',
     noLotus: 'LOTUS にはこの種の化合物データがありません。植物化学の研究が発表されていないという意味で、化合物を含まないという意味ではありません。',
     lotusSource: '化合物データは LOTUS（文献から整理）によるもので、研究の多い種ほど網羅されています。',
+    chemRoles: '化学的な役割', rolesMore: 'ほか {n} 件の役割', suggestedFn: '役割から推定される CosIng の機能',
+    rolesNote: '役割は ChEBI {v}（CC BY 4.0）によるもので、化合物が生物内や利用場面で果たす働きを示します。機能の推定は手作業の対応表に基づく目安で、CosIng の登録情報ではありません。',
     viaNote: '一部の化合物は LOTUS では別の学名で記載されており、GBIF の異名または種内分類群（変種・亜種）としてこの種に含めています：{names}',
     ownCpds: 'この種にのみ見られる化合物', ownShow: '表示', ownMore: 'さらに表示', ownFail: '読み込めませんでした。クリックで再試行',
     physProps: '物理化学的性質', mw: '分子量', logp: 'LogP', tpsa: 'TPSA',
@@ -700,6 +711,37 @@ function speciesRow(sp, refs) {
   return h + '<span class="sp-refs" title="' + T('refsTitle') + '">' + refs + '</span></div>';
 }
 function famName(fam) { return localName({ zh: 'fam_zh', en: 'fam_en', ja: 'fam_ja' }, fam); }
+// Chemical roles (ChEBI): compounds carry indexes into D.roles.roles = [id, name, definition, category, CosIng functions]
+const ROLE_SHOWN = 10;
+function roleSuggestedFns(cr) {
+  const out = new Set();
+  for (const i of cr) for (const f of D.roles.roles[i][4]) out.add(f);
+  return [...out];
+}
+function chemRolesHtml(cr) {
+  if (!D.roles || !cr || !cr.length) return '';
+  const rs = D.roles.roles;
+  // roles that map to a CosIng function first, then the rest from the most to the least common (the order of D.roles)
+  const sorted = cr.slice().sort((a, b) => (rs[b][4].length > 0) - (rs[a][4].length > 0) || a - b);
+  const chip = i => '<span class="sp-fn role-chip' + (rs[i][4].length ? ' role-fn' : '') + '" title="' + esc(rs[i][2]) + '">' + esc(rs[i][1]) + '</span>';
+  let h = '<div class="sp-section"><h3>' + T('chemRoles') + ' (' + cr.length + ')</h3><div class="role-chips">';
+  h += sorted.slice(0, ROLE_SHOWN).map(chip).join('');
+  if (sorted.length > ROLE_SHOWN) {
+    h += '</div><details class="role-more"><summary>' + T('rolesMore').replace('{n}', sorted.length - ROLE_SHOWN) + '</summary><div class="role-chips">' + sorted.slice(ROLE_SHOWN).map(chip).join('') + '</div></details><div>';
+  }
+  h += '</div>';
+  const fns = roleSuggestedFns(cr);
+  if (fns.length) {
+    h += '<div class="sp-note role-note" style="margin-top:8px">' + T('suggestedFn') + '</div><div>';
+    for (const f of fns) {
+      const fi = D.functions.indexOf(f);
+      h += fi >= 0 ? '<span class="sp-fn" onclick="navToFunction(' + fi + ')">' + esc(f) + '</span>' : '<span class="sp-fn">' + esc(f) + '</span>';
+    }
+    h += '</div>';
+  }
+  h += '<div class="sp-note role-note" style="margin-top:8px">' + T('rolesNote').replace('{v}', esc((D.roles.chebi && D.roles.chebi.data_version) || '')) + ' <a href="https://www.ebi.ac.uk/chebi/" target="_blank" rel="noopener" style="color:var(--accent)">ChEBI ↗</a></div>';
+  return h + '</div>';
+}
 function cpdName(c) {
   const nm = c && c.nm; if (!nm) return '';
   const first = l => (nm[l] && nm[l][0]) || '';
@@ -732,7 +774,7 @@ function applyStaticLang() {
   if (ft) ft.innerHTML =
     '<span>' + T('dataSrc') + '：<a href="https://data.europa.eu/data/datasets/cosing-list-ingredients-and-fragrance-inventory?locale=en" target="_blank" rel="noopener">EU CosIng</a>（European Commission）</span>' +
     '<span>' + T('taxonomy') + '：<a href="https://www.gbif.org/" target="_blank" rel="noopener">GBIF</a></span>' +
-    '<span>' + T('compounds') + '：<a href="https://lotus.naturalproducts.net/" target="_blank" rel="noopener">LOTUS</a> · <a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">PubChem</a></span>' +
+    '<span>' + T('compounds') + '：<a href="https://lotus.naturalproducts.net/" target="_blank" rel="noopener">LOTUS</a> · <a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">PubChem</a> · <a href="https://www.ebi.ac.uk/chebi/" target="_blank" rel="noopener">ChEBI</a></span>' +
     '<span>' + T('author') + '：Chia-Hsiu CHEN · <a href="https://github.com/517justin/cosing-explorer" target="_blank" rel="noopener">GitHub</a></span>' +
     '<span>' + T('license') + '：<a href="https://github.com/517justin/cosing-explorer/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a></span>';
 }
@@ -1945,6 +1987,7 @@ function showPanel(n) {
       h += '<div class="pc-item"><span class="pc-lbl">' + T('fsp3') + '</span><span class="pc-val">' + fsp3 + '</span></div>';
       h += '</div></div>';
     }
+    if (cpd) h += chemRolesHtml(cpd.cr);
     if (n.ik) {
       h += '<div class="sp-section"><div class="sp-chem-svg" id="sv-' + n.ik + '" style="width:200px;height:200px;margin:0 auto"><div class="sp-chem-ph" style="width:200px;height:200px">⋯</div></div></div>';
       setTimeout(() => loadSvgInto(n.ik, 'sv-' + n.ik), 50);
@@ -2165,8 +2208,8 @@ async function loadOwn(sp) {
   for (const [s, rows] of Object.entries(chunk)) {
     const fam = D.sp_fam[s];
     D.own[s] = rows;
-    for (const [ik, f, cid, mw, desc, iupac, refs] of rows) {
-      D.own_ci[ik] = { f, iupac, cid: cid || undefined, mw: mw == null ? undefined : mw, desc: desc || undefined,
+    for (const [ik, f, cid, mw, desc, iupac, refs, cr] of rows) {
+      D.own_ci[ik] = { f, iupac, cid: cid || undefined, mw: mw == null ? undefined : mw, desc: desc || undefined, cr: cr && cr.length ? cr : undefined,
         n_sp: 1, n_fam: 1, sp_list: [[s, refs]], top_fam: fam ? [[fam, 1]] : [] };
     }
   }
@@ -2342,6 +2385,8 @@ async function main() {
   D = await ir.json();
   D.ci = await cr.json();
   D.sc = await sr.json();
+  D.roles = null;
+  try { const rr = await fetch('data/roles.json'); if (rr.ok) D.roles = await rr.json(); } catch {}
   D.own = {};
   D.own_ci = {};
 

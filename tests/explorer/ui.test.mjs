@@ -237,7 +237,7 @@ test('a compound lists every species that reports it, most relevant first, with 
     const ing = rows.map(r => ex.get(`D.sp_ing_n[${JSON.stringify(r.querySelector('span').textContent)}] || 0`));
     assert.deepEqual(ing.slice(0, 40), [...ing.slice(0, 40)].sort((a, b) => b - a), 'species with more ingredients come first');
     for (const r of rows.slice(0, 20)) assert.match(r.querySelector('.sp-refs').textContent, /^\d+$/);
-    assert.match(ex.document.querySelector('#panel .sp-note').textContent, new RegExp(`${n} 個物種報告過此化合物，其中 \\d+ 個只有 1 篇`));
+    assert.match(ex.document.querySelector('#panel .sp-note:not(.role-note)').textContent, new RegExp(`${n} 個物種報告過此化合物，其中 \\d+ 個只有 1 篇`));
     await sleep(200);
   }));
 
@@ -295,4 +295,58 @@ test('a species-specific compound shows how many references report it', () =>
     ex.document.querySelector('#own-grid .sp-chem-card').click();
     assert.match(ex.document.querySelector('#panel .sp-refs').textContent, /^\d+$/);
     await sleep(300);
+  }));
+
+test('a compound panel lists its chemical roles, the CosIng functions they suggest, and credits ChEBI', () =>
+  withExplorer({}, async ex => {
+    ex.window.navToCompound(QUERCETIN);
+    const panel = ex.document.getElementById('panel');
+    const chips = [...panel.querySelectorAll('.role-chip')].map(c => c.textContent);
+    assert.equal(chips.length, ex.get(`D.ci['${QUERCETIN}'].cr.length`), 'one chip per role');
+    assert.ok(chips.includes('plant metabolite') && chips.includes('antioxidant'));
+    assert.ok(panel.querySelector('.role-more'), 'long lists fold the rest away');
+    assert.equal(panel.querySelectorAll('.role-chips')[0].querySelectorAll('.role-chip').length, 10);
+    assert.ok(panel.querySelector('.role-chip').title.length > 10, 'the chip carries the ChEBI definition');
+    assert.ok(panel.querySelector('.role-fn'), 'roles that map to a function are marked');
+    const section = [...panel.querySelectorAll('.sp-section')].find(sec => sec.querySelector('h3')?.textContent.startsWith('化學角色'));
+    assert.ok(section);
+    const fns = [...section.querySelectorAll('.sp-fn:not(.role-chip)')].map(f => f.textContent);
+    assert.deepEqual(fns, ['ANTIOXIDANT', 'ANTIMICROBIAL', 'CHELATING']);
+    assert.match(section.textContent, /ChEBI \d+（CC BY 4\.0）/);
+    assert.ok(section.querySelector('a[href="https://www.ebi.ac.uk/chebi/"]'));
+    section.querySelector('.sp-fn:not(.role-chip)').click();
+    assert.equal(ex.get('GRAPH.centerType'), 'function');
+    ex.window.navToCompound(QUERCETIN);
+    ex.window.setLang('ja');
+    assert.match(ex.document.getElementById('panel').textContent, /化学的な役割.*CC BY 4\.0/s);
+    ex.window.setLang('en');
+    assert.match(ex.document.getElementById('panel').textContent, /Chemical roles.*CosIng functions suggested by the roles.*CC BY 4\.0/s);
+    assert.ok(ex.document.querySelector('.site-footer a[href="https://www.ebi.ac.uk/chebi/"]'));
+    await sleep(200);
+  }));
+
+test('a species-specific compound shows its roles too, and one without roles shows no section', () =>
+  withExplorer({}, async ex => {
+    openPanel(ex, `buildEgoGraph('species', 'Abelmoschus esculentus')`);
+    await ex.window.eval(`loadOwn('Abelmoschus esculentus')`);
+    const [withCr] = ex.get(`D.own['Abelmoschus esculentus'].filter(r => r[7].length).map(r => r[0])`);
+    assert.ok(withCr, 'fixture species has a compound with roles');
+    ex.window.navToCompound(withCr);
+    assert.ok(ex.document.querySelectorAll('#panel .role-chip').length > 0);
+    ex.window.navToCompound(CAFFEINE);
+    const hasSection = id => [...ex.document.querySelectorAll('#panel h3')].some(h => h.textContent.startsWith('化學角色'));
+    assert.equal(hasSection(), ex.get(`!!D.ci['${CAFFEINE}'].cr`));
+    ex.window.eval(`delete D.ci['${QUERCETIN}'].cr`);
+    ex.window.navToCompound(QUERCETIN);
+    assert.equal(ex.document.querySelectorAll('#panel .role-chip').length, 0);
+    await sleep(200);
+  }));
+
+test('the Explorer still opens compound panels when roles.json is unavailable', () =>
+  withExplorer({}, async ex => {
+    ex.window.eval('D.roles = null');
+    ex.window.navToCompound(QUERCETIN);
+    assert.equal(ex.document.querySelectorAll('#panel .role-chip').length, 0);
+    assert.match(ex.document.getElementById('panel').textContent, /quercetin/);
+    await sleep(100);
   }));

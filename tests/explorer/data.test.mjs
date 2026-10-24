@@ -7,6 +7,7 @@ const ing = readData('ingredients.json');
 const cpd = readData('compounds.json');
 const ingCpd = readData('ingredient_compounds.json');
 const sc = readData('species_compounds.json');
+const roles = readData('roles.json');
 const ownKey = sp => sp.slice(0, 2).toLowerCase().replace(/[^a-z]/g, '_');
 const readOwn = key => JSON.parse(fs.readFileSync(docsUrl(`own/${key}.json`), 'utf8'));
 const readAllOwn = () => Object.assign({}, ...fs.readdirSync(docsUrl('own/')).map(f => readOwn(f.replace('.json', ''))));
@@ -157,7 +158,7 @@ test('every report carries a reference count, shared and species-specific alike'
     for (const r of sc.refs[sp]) assert.ok(Number.isInteger(r) && r >= 1, `${sp}: bad reference count ${r}`);
   }
   for (const [sp, rows] of Object.entries(readAllOwn())) {
-    for (const row of rows) assert.ok(row.length === 7 && Number.isInteger(row[6]) && row[6] >= 1, `${sp}: bad own row ${row[0]}`);
+    for (const row of rows) assert.ok(row.length === 8 && Number.isInteger(row[6]) && row[6] >= 1, `${sp}: bad own row ${row[0]}`);
   }
 });
 
@@ -170,4 +171,44 @@ test('names credited through GBIF synonyms are recorded, and homonyms are not', 
     assert.ok(species.has(sp) && (sc.shared[sp] || sc.own_n[sp]), `${sp}: via note for a species without compounds`);
     assert.ok(names.length > 0 && !names.includes(sp), `${sp}: bad via list`);
   }
+});
+
+const withRoles = () => [
+  ...Object.entries(cpd), ...Object.entries(ingCpd),
+  ...Object.values(readAllOwn()).flat().map(([ik, , , , , , , cr]) => [ik, { cr }]),
+].filter(([, c]) => c.cr?.length);
+
+test('chemical roles carry their ChEBI source and only name real CosIng functions', () => {
+  assert.equal(roles.license, 'CC BY 4.0');
+  assert.match(roles.source, /ebi\.ac\.uk\/chebi/);
+  assert.ok(roles.chebi.data_version);
+  for (const [id, name, definition, category, fns] of roles.roles) {
+    assert.ok(Number.isInteger(id) && name && typeof definition === 'string', `bad role ${id}`);
+    assert.ok([0, 1, 2, 3].includes(category), `${name}: bad category`);
+    for (const f of fns) assert.ok(ing.functions.includes(f), `${name}: ${f} is not a CosIng function`);
+  }
+  assert.equal(new Set(roles.roles.map(r => r[0])).size, roles.roles.length, 'role ids are unique');
+});
+
+test('roles are ordered from the most to the least common', () => {
+  const uses = new Array(roles.roles.length).fill(0);
+  for (const [, c] of new Map(withRoles())) for (const i of c.cr) uses[i]++;  // a compound counts once
+  for (let i = 1; i < uses.length; i++) assert.ok(uses[i - 1] >= uses[i], `role ${i - 1} (${uses[i - 1]}) before ${i} (${uses[i]})`);
+  assert.ok(uses.every(n => n > 0), 'every listed role is used by a compound');
+});
+
+test('compound role indexes point at real roles, sorted and without repeats', () => {
+  for (const [ik, c] of withRoles()) {
+    for (const i of c.cr) assert.ok(Number.isInteger(i) && i >= 0 && i < roles.roles.length, `${ik}: bad role index ${i}`);
+    assert.deepEqual(c.cr, [...new Set(c.cr)].sort((a, b) => a - b), `${ik}: roles must be sorted and unique`);
+  }
+});
+
+test('ChEBI gives roles to thousands of compounds and the mapping reaches most of its functions', () => {
+  const n = new Set(withRoles().map(([ik]) => ik)).size;
+  assert.ok(n >= 3000, `only ${n} compounds have roles`);
+  const reachable = new Set(roles.roles.flatMap(r => r[4]));
+  assert.ok(reachable.size >= 29, `roles reach only ${reachable.size} CosIng functions`);
+  const quercetin = cpd['REFJWTPEDVJJIY-UHFFFAOYSA-N'].cr.map(i => roles.roles[i][1]);
+  assert.ok(quercetin.includes('plant metabolite') && quercetin.includes('antioxidant'), `quercetin roles: ${quercetin}`);
 });
